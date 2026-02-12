@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
@@ -30,6 +31,8 @@ final Completer<void> _umpConsentFlowCompleter = Completer<void>();
 const String _igAppId = '936619743392459';
 const String _defaultIgUserAgent =
     'Instagram 315.0.0.32.109 Android (33/13; 420dpi; 1080x2400; samsung; SM-G991B; o1s; exynos2100; tr_TR; 563533633)';
+const MethodChannel _reviewChannel =
+    MethodChannel('com.grkmcomert.unfollowerscurrent/review');
 
 Future<void> _waitForUmpConsentFlow() async {
   if (_umpConsentFlowCompleter.isCompleted) return;
@@ -1558,6 +1561,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _launchRateUrl() async {
+    if (Platform.isIOS) {
+      try {
+        await _reviewChannel.invokeMethod('requestReview');
+      } catch (_) {}
+      return;
+    }
+
     final String rawUrl = Platform.isIOS ? _rateUrlIos : _rateUrlAndroid;
     final String trimmed = rawUrl.trim();
     if (trimmed.isEmpty) {
@@ -1625,8 +1635,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ? 'ca-app-pub-3940256099942544/6300978111'
             : 'ca-app-pub-3940256099942544/2934735716')
         : (Platform.isAndroid
-            ? 'ca-app-pub-4966303174577377/1748084831'
-            : 'ca-app-pub-4966303174577377/3471529345');
+            ? 'ca-app-pub-7480771330660307/9017777173'
+            : 'ca-app-pub-7480771330660307/9017777173');
 
     if (_bannerAd != null) {
       try {
@@ -1681,7 +1691,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<Map<String, dynamic>> _showRewardedAdWithResult() async {
+  Future<Map<String, dynamic>> _showRewardedAdWithResult(
+      {String? adUnitOverride}) async {
     if (_adsHidden || _removeAllAds) return {"status": true, "skipped": true};
     if (_isRewardedLoading) return {"status": false, "error": "Loading..."};
     setState(() {
@@ -1694,9 +1705,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ? (Platform.isAndroid
             ? 'ca-app-pub-3940256099942544/1033173712'
             : 'ca-app-pub-3940256099942544/4411468910')
-        : (Platform.isAndroid
-            ? 'ca-app-pub-4966303174577377/3777353937'
-            : 'ca-app-pub-4966303174577377/8306889791');
+        : (adUnitOverride ??
+            (Platform.isAndroid
+                ? 'ca-app-pub-7480771330660307/1330858844'
+                : 'ca-app-pub-7480771330660307/1330858844'));
 
     final Completer<Map<String, dynamic>> c = Completer<Map<String, dynamic>>();
 
@@ -3738,7 +3750,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: Colors.blueGrey.shade900,
     ));
     await Future.delayed(const Duration(seconds: 1));
-    final adResult = await _showRewardedAdWithResult();
+    final adResult = await _showRewardedAdWithResult(
+      adUnitOverride: 'ca-app-pub-7480771330660307/4726353967',
+    );
     if (adResult["status"] == false) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -4070,6 +4084,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final data = jsonDecode(response.body);
         if (data is! Map || data['user'] is! Map) return null;
         final user = data['user'] as Map;
+        final versions = user['hd_profile_pic_versions'];
+        if (versions is List && versions.isNotEmpty) {
+          String? bestUrl;
+          int bestPixels = -1;
+          for (final v in versions) {
+            if (v is Map) {
+              final String url = v['url']?.toString() ?? '';
+              if (url.isEmpty) continue;
+              final int w = _toIntOrNull(v['width']) ?? 0;
+              final int h = _toIntOrNull(v['height']) ?? 0;
+              final int pixels = w * h;
+              if (pixels > bestPixels) {
+                bestPixels = pixels;
+                bestUrl = url;
+              }
+            }
+          }
+          if (bestUrl != null && bestUrl.trim().isNotEmpty) {
+            return bestUrl.trim();
+          }
+        }
         final hdInfo = user['hd_profile_pic_url_info'];
         final hdUrl = hdInfo is Map ? hdInfo['url'] : null;
         if (hdUrl != null && hdUrl.toString().isNotEmpty) {
@@ -4761,8 +4796,15 @@ class _StoryItemViewState extends State<_StoryItemView> {
   void initState() {
     super.initState();
     if (widget.story.isVideo) {
-      final PlatformWebViewControllerCreationParams params =
-          const PlatformWebViewControllerCreationParams();
+      final PlatformWebViewControllerCreationParams params;
+      if (Platform.isIOS || Platform.isMacOS) {
+        params = WebKitWebViewControllerCreationParams(
+          allowsInlineMediaPlayback: true,
+          mediaTypesRequiringUserAction: const <PlaybackMediaTypes>{},
+        );
+      } else {
+        params = const PlatformWebViewControllerCreationParams();
+      }
 
       final WebViewController controller =
           WebViewController.fromPlatformCreationParams(params);
@@ -4778,11 +4820,17 @@ class _StoryItemViewState extends State<_StoryItemView> {
         ..setNavigationDelegate(
           NavigationDelegate(
             onPageFinished: (String url) {
-               if (mounted) {
-                 setState(() {
-                   _isVideoInitialized = true;
-                 });
-               }
+              unawaited(controller.runJavaScript('''
+                (function() {
+                  var v = document.querySelector('video');
+                  if (v) { try { v.play(); } catch (e) {} }
+                })();
+              '''));
+              if (mounted) {
+                setState(() {
+                  _isVideoInitialized = true;
+                });
+              }
             },
           ),
         )
@@ -4790,7 +4838,7 @@ class _StoryItemViewState extends State<_StoryItemView> {
           <!DOCTYPE html>
           <html>
           <body style="margin:0;padding:0;background-color:black;display:flex;align-items:center;justify-content:center;height:100vh;">
-            <video width="100%" height="100%" autoplay playsinline name="media">
+            <video width="100%" height="100%" autoplay playsinline webkit-playsinline name="media">
               <source src="${widget.story.url}" type="video/mp4">
             </video>
           </body>
@@ -5097,4 +5145,3 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
             : WebViewWidget(controller: _controller));
   }
 }
-

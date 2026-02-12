@@ -3,6 +3,7 @@ import UIKit
 import WebKit
 import Firebase
 import UserNotifications
+import StoreKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -40,6 +41,27 @@ import UserNotifications
             let cookieHeader = pairs.joined(separator: "; ")
             print("[com.grkmcomert.unfollowerscurrent/cookie] host: \(host) cookies: \(cookieHeader)")
             result(cookieHeader)
+          }
+        } else {
+          result(FlutterMethodNotImplemented)
+        }
+      }
+
+      let reviewChannel = FlutterMethodChannel(name: "com.grkmcomert.unfollowerscurrent/review", binaryMessenger: controller.binaryMessenger)
+      reviewChannel.setMethodCallHandler { (call: FlutterMethodCall, result: @escaping FlutterResult) in
+        if call.method == "requestReview" {
+          DispatchQueue.main.async {
+            if #available(iOS 14.0, *) {
+              if let scene = UIApplication.shared.connectedScenes
+                  .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+                SKStoreReviewController.requestReview(in: scene)
+              } else {
+                SKStoreReviewController.requestReview()
+              }
+            } else {
+              SKStoreReviewController.requestReview()
+            }
+            result(true)
           }
         } else {
           result(FlutterMethodNotImplemented)
