@@ -57,9 +57,9 @@ jobs:
 
       # 🔥 SÜRÜM: 7.0.0
       - name: Build IPA (FINAL BUILD 7.0.0)
-        run: flutter build ipa --release --no-codesign --build-name=6.0.0 --build-number=${{ github.run_number }}
+        run: flutter build ipa --release --no-codesign --build-name=7.0.0 --build-number=${{ github.run_number }}
 
-      # 2. XML ve İmza Hatalarını Çözen Kritik "FIX" Adımı
+      # 2. XML, Dil ve İmza Hatalarını Çözen Kritik "FIX" Adımı
       - name: Sign & Fix IPA
         env:
           KEYCHAIN_PATH: ${{ runner.temp }}/app-signing.keychain-db
@@ -67,7 +67,7 @@ jobs:
           APP_PATH=build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app
           PLIST_PATH="$APP_PATH/Info.plist"
           
-          # ✅ DOĞRU KİMLİK BULMA: Sadece "Apple Distribution" sertifikasını bulur ve tırnak içindeki ismi alır
+          # ✅ DOĞRU KİMLİK BULMA
           IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep "Apple Distribution" | head -1 | awk -F '"' '{print $2}')
           
           echo "✅ Kullanılacak İmzalama Kimliği: '$IDENTITY'"
@@ -77,7 +77,15 @@ jobs:
             exit 1
           fi
 
-          # Info.plist düzenlemeleri
+          # --- DİL AYARLARI (LOCALIZATION FIX) ---
+          echo "🌐 Dil ayarları enjekte ediliyor..."
+          /usr/libexec/PlistBuddy -c "Delete :CFBundleLocalizations" "$PLIST_PATH" || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations array" "$PLIST_PATH"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations:0 string tr" "$PLIST_PATH"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations:1 string en" "$PLIST_PATH"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDevelopmentRegion tr" "$PLIST_PATH" || /usr/libexec/PlistBuddy -c "Add :CFBundleDevelopmentRegion string tr" "$PLIST_PATH"
+
+          # --- YÖNLENDİRME AYARLARI ---
           /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations" "$PLIST_PATH" || true
           /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations array" "$PLIST_PATH"
           /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations:0 string UIInterfaceOrientationPortrait" "$PLIST_PATH"
@@ -90,7 +98,7 @@ jobs:
           /usr/libexec/PlistBuddy -x -c 'Print :Entitlements' profile.plist > entitlements.plist
           cp "$RUNNER_TEMP/build_pp.mobileprovision" "$APP_PATH/embedded.mobileprovision"
           
-          # Framework'leri tek tek imzalıyoruz (Hata aldığın yer burasıydı)
+          # Framework'leri tek tek imzalıyoruz
           find "$APP_PATH/Frameworks" -name "*.framework" -type d | while read framework; do
               echo "İmzalanıyor: $framework"
               /usr/bin/codesign --force --sign "$IDENTITY" --preserve-metadata=identifier,entitlements "$framework"
