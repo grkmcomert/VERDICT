@@ -208,6 +208,7 @@
         </dict>
     </array>
 
+    <!-- Network Security - Firebase ve Instagram için -->
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsArbitraryLoads</key>
@@ -216,8 +217,50 @@
         <true/>
         <key>NSAllowsLocalNetworking</key>
         <true/>
+        
+        <!-- Firebase/Firestore için özel domain ayarları -->
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>firebaseio.com</key>
+            <dict>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+            </dict>
+            <key>googleapis.com</key>
+            <dict>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+            </dict>
+            <key>firestore.googleapis.com</key>
+            <dict>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+            </dict>
+            <key>instagram.com</key>
+            <dict>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+            </dict>
+        </dict>
     </dict>
+
+    <!-- WebView için gerekli -->
     <key>io.flutter.embedded_views_preview</key>
     <true/>
+
+    <!-- Background Modes - Firebase için -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>fetch</string>
+        <string>remote-notification</string>
+    </array>
 </dict>
 </plist>

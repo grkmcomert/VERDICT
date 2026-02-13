@@ -14,6 +14,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -23,6 +24,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'purchases_service.dart';
+import 'telemetry_service.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -31,6 +34,16 @@ final Completer<void> _umpConsentFlowCompleter = Completer<void>();
 const String _igAppId = '936619743392459';
 const String _defaultIgUserAgent =
     'Instagram 315.0.0.32.109 Android (33/13; 420dpi; 1080x2400; samsung; SM-G991B; o1s; exynos2100; tr_TR; 563533633)';
+const String _revenueCatAndroidApiKey = String.fromEnvironment(
+  'REVENUECAT_ANDROID_API_KEY',
+  defaultValue: '',
+);
+const String _revenueCatIosApiKey = String.fromEnvironment(
+  'REVENUECAT_IOS_API_KEY',
+  defaultValue: 'appl_JaWUAzYMRRqsEAkwdcRvjJxRWnv',
+);
+const MethodChannel _cookieChannel =
+    MethodChannel('com.grkmcomert.unfollowerscurrent/cookie');
 const MethodChannel _reviewChannel =
     MethodChannel('com.grkmcomert.unfollowerscurrent/review');
 
@@ -43,13 +56,14 @@ Future<void> _waitForUmpConsentFlow() async {
 }
 
 String _extractCookieValue(String cookieHeader, String name) {
+  String value = '';
   for (final part in cookieHeader.split(';')) {
     final String trimmed = part.trim();
     if (trimmed.startsWith('$name=')) {
-      return trimmed.substring(name.length + 1);
+      value = trimmed.substring(name.length + 1);
     }
   }
-  return '';
+  return value;
 }
 
 bool _preferWebApi(String userAgent) {
@@ -93,7 +107,31 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+    await PurchasesService.instance.loadCachedPremiumStatus();
+    unawaited(() async {
+      await PurchasesService.instance.configure(
+        androidApiKey: _revenueCatAndroidApiKey,
+        iosApiKey: _revenueCatIosApiKey,
+      );
+      await PurchasesService.instance.checkPurchaseStatus();
+    }());
     await Firebase.initializeApp();
+    try {
+      final FirebaseApp app = Firebase.app();
+      debugPrint('[Firebase] Initialized projectId=${app.options.projectId}');
+    } catch (_) {}
+    try {
+      if (FirebaseAuth.instance.currentUser == null) {
+        final UserCredential cred =
+            await FirebaseAuth.instance.signInAnonymously();
+        debugPrint('[FirebaseAuth] anonymous uid=${cred.user?.uid}');
+      } else {
+        debugPrint(
+            '[FirebaseAuth] already signed in uid=${FirebaseAuth.instance.currentUser?.uid}');
+      }
+    } catch (e) {
+      debugPrint('[FirebaseAuth] anonymous sign-in failed: $e');
+    }
     FirebaseMessaging.onBackgroundMessage(
         _firebaseMessagingBackgroundHandler);
     runApp(const RootApp());
@@ -577,28 +615,473 @@ class ModernLoader extends StatefulWidget {
   final bool isDark;
   final double? progress;
 
-  const ModernLoader({super.key, this.text, this.isDark = false, this.progress});
+  final String lang;
+
+  const ModernLoader(
+      {super.key,
+      this.text,
+      this.isDark = false,
+      this.progress,
+      this.lang = 'tr'});
 
   @override
   State<ModernLoader> createState() => _ModernLoaderState();
 }
 
+const List<Map<String, String>> _analysisDidYouKnowFacts = [
+  {
+    'tr':
+        'Kargalar sadece insan yüzlerini tanımakla kalmaz, kendilerine kötü davrananları yıllarca unutmaz ve diğer kargalara da bunu haber verirler.',
+    'en':
+        'Crows don’t just recognize human faces; they can remember people who treated them badly for years—and even warn other crows.',
+  },
+  {
+    'tr':
+        "Kediler hayatlarının yaklaşık %70'ini uyuyarak geçirirler; yani 10 yaşındaki bir kedi aslında sadece 3 yıl uyanık kalmıştır.",
+    'en':
+        'Cats spend about 70% of their lives asleep—so a 10-year-old cat has been awake for only about 3 years.',
+  },
+  {
+    'tr':
+        'Bal asla bozulmaz; arkeologlar Mısır piramitlerinde 3000 yıllık bozulmamış ve hala yenilebilir durumda olan bal kavanozları bulmuşlardır.',
+    'en':
+        'Honey never spoils; archaeologists have found 3,000-year-old jars of honey in Egyptian pyramids that were still edible.',
+  },
+  {
+    'tr':
+        'Su samurları, uyurken akıntıya kapılıp birbirlerinden ayrılmamak için el ele tutuşurlar.',
+    'en':
+        'Sea otters hold hands while they sleep so they don’t drift apart in the current.',
+  },
+  {
+    'tr':
+        "Venüs'te bir gün, bir yıldan daha uzun sürer; yani kendi etrafında dönmesi, Güneş etrafında dönmesinden daha yavaştır.",
+    'en':
+        'On Venus, a day is longer than a year—it rotates on its axis more slowly than it orbits the Sun.',
+  },
+  {
+    'tr':
+        'Çakmak, kibritten önce icat edilmiştir; bazen teknoloji sandığımızdan daha eski kafalı olabiliyor.',
+    'en':
+        'The lighter was invented before the match—sometimes “old” tech is older than we think.',
+  },
+  {
+    'tr':
+        'Ahtapotların üç tane kalbi ve tam dokuz tane beyni vardır; bir şeyi unutma lüksleri pek yok gibi.',
+    'en':
+        'Octopuses have three hearts and nine brains—forgetting things isn’t really an option.',
+  },
+  {
+    'tr':
+        'İneklerin "en yakın arkadaşları" vardır ve onlardan ayrıldıklarında ciddi şekilde strese girip ağlayabilirler.',
+    'en':
+        'Cows have “best friends,” and they can get seriously stressed—and even cry—when separated.',
+  },
+  {
+    'tr':
+        'Dünyadaki ilk bilgisayar virüsü "Creeper" adındaydı ve ekranda sadece "Ben bir sarmaşığım, yakalayabiliyorsan yakala!" yazıyordu.',
+    'en':
+        'The world’s first computer virus was called “Creeper,” and it displayed: “I’m the creeper, catch me if you can!”',
+  },
+  {
+    'tr':
+        'Bir bulutun ağırlığı ortalama 500 bin kilogramdır; yani tepemizde yüzen devasa bir fil sürüsü gibi düşünebilirsin.',
+    'en':
+        'An average cloud can weigh around 500,000 kg—like a massive herd of elephants floating overhead.',
+  },
+  {
+    'tr':
+        'İnsan DNA\'sı ile bir muzun DNA\'sı %50 oranında benzerdir; yani yarın sabah bir muza "kardeşim" dersen pek de haksız sayılmazsın.',
+    'en':
+        'Human DNA is about 50% similar to banana DNA—so calling a banana “my sibling” tomorrow morning isn’t totally unfair.',
+  },
+  {
+    'tr':
+        'Kutup ayılarının derisi aslında siyahtır, tüyleri ise şeffaftır; beyaz görünmesi sadece bir ışık yansıması hilesidir.',
+    'en':
+        'Polar bears actually have black skin, and their fur is transparent; they look white because of how light scatters.',
+  },
+  {
+    'tr':
+        'Uzayda ağlayamazsınız çünkü yerçekimi olmadığı için gözyaşlarınız yüzünüzden aşağı süzülmez, gözünüzde bir top gibi birikir.',
+    'en':
+        'You can’t really cry in space: without gravity, tears don’t run down your face—they form a blob in your eye.',
+  },
+  {
+    'tr':
+        'Everest Dağı her yıl yaklaşık 4 milimetre kadar uzamaya devam ediyor; yani dünya hala büyüyor.',
+    'en':
+        'Mount Everest keeps growing by about 4 millimeters each year—Earth is still changing.',
+  },
+  {
+    'tr':
+        'Islık çalan fareler aslında birbirlerine şarkı söylerler ama bu sesler insan kulağının duyamayacağı kadar yüksek frekanstadır.',
+    'en':
+        '“Whistling” mice are essentially singing to each other, but at frequencies too high for humans to hear.',
+  },
+  {
+    'tr':
+        'Köpekbalıkları ağaçlardan daha eskidir; dünyada yaklaşık 400 milyon yıldır varlar, ağaçlar ise sadece 350 milyon yıldır.',
+    'en':
+        'Sharks are older than trees—sharks have been around for about 400 million years, trees for about 350 million.',
+  },
+  {
+    'tr':
+        'Muzlar aslında botanik olarak meyve (berry) sayılırken, çilekler bu gruba girmez; botanik dünyası biraz karışık.',
+    'en':
+        'Bananas are botanically berries, but strawberries aren’t—botany can be weird.',
+  },
+  {
+    'tr':
+        'Bir karınca kendi ağırlığının 50 katını kaldırabilir; eğer sen bir karınca olsaydın, bir otomobili tek başına kaldırabilirdin.',
+    'en':
+        'An ant can lift up to 50 times its own weight—if you were an ant, you could lift a car by yourself.',
+  },
+  {
+    'tr': "Eyfel Kulesi yaz aylarında genleşme nedeniyle yaklaşık 15 santimetre kadar uzayabilir.",
+    'en':
+        'The Eiffel Tower can grow by about 15 centimeters in summer due to thermal expansion.',
+  },
+  {
+    'tr':
+        'Dünyadaki tüm insanların toplam ağırlığı, dünyadaki tüm karıncaların toplam ağırlığına neredeyse eşittir.',
+    'en':
+        'The total weight of all humans on Earth is roughly comparable to the total weight of all ants.',
+  },
+  {
+    'tr':
+        'Tembel hayvanlar nefeslerini su altında yunuslardan daha uzun süre tutabilirler; tam 40 dakika boyunca suyun altında kalabilirler.',
+    'en':
+        'Sloths can hold their breath underwater longer than dolphins—up to about 40 minutes.',
+  },
+  {
+    'tr':
+        "Güvercinler, Picasso ve Monet'nin tabloları arasındaki farkı ayırt edebilirler; yani sandığından çok daha sanatsal bir vizyona sahipler.",
+    'en':
+        'Pigeons can tell the difference between paintings by Picasso and Monet—turns out they’re more art-savvy than we think.',
+  },
+  {
+    'tr':
+        'GPS sistemi aslında dünya çapında ücretsizdir ancak ABD hükümeti bu sistemi çalışır halde tutmak için günde yaklaşık 2 milyon dolar harcar.',
+    'en':
+        'GPS is free to use worldwide, but the U.S. government reportedly spends around \$2 million a day to keep it running.',
+  },
+  {
+    'tr':
+        'Platipusların (orkinitorenk) mideleri yoktur; yedikleri besinler yemek borusundan doğrudan bağırsaklarına geçer.',
+    'en':
+        'Platypuses don’t have stomachs—food goes from the esophagus straight to the intestines.',
+  },
+  {
+    'tr':
+        '"Swagger" (havalı yürüyüş/tavır) kelimesini ilk kez William Shakespeare kullanmıştır; adam 16. yüzyılda bile ortama şeklini koymuş.',
+    'en':
+        'William Shakespeare is credited with the first recorded use of the word “swagger”—even in the 16th century, he had style.',
+  },
+  {
+    'tr':
+        'Mavi balinaların kalbi o kadar büyüktür ki, bir insan ana atardamarlarının içinde rahatça yüzebilir.',
+    'en':
+        'A blue whale’s heart is so large that a human could swim through its main arteries.',
+  },
+  {
+    'tr':
+        'Karıncaların akciğerleri yoktur ve asla uyumazlar; tam bir işkolik gibi 7/24 çalışırlar.',
+    'en':
+        'Ants don’t have lungs—and they never truly “sleep”; they operate nonstop like tiny workaholics.',
+  },
+  {
+    'tr':
+        "Satürn ve Jüpiter'de kelimenin tam anlamıyla elmas yağmuru yağar; zengin olmak için yanlış gezegende yaşıyoruz.",
+    'en':
+        'On Saturn and Jupiter, it can literally rain diamonds—apparently we’re living on the wrong planet.',
+  },
+  {
+    'tr':
+        'Bal arıları insan yüzlerini tanıyabilir ve onları tek tek hafızalarına kaydedebilirler.',
+    'en':
+        'Honeybees can recognize human faces and remember them individually.',
+  },
+  {
+    'tr':
+        'Su aygırlarının teri aslında pembe renklidir ve bu ter hem güneş kremi hem de mikrop öldürücü yerine geçer.',
+    'en':
+        'Hippo “sweat” can look pink and acts like both sunscreen and an antibacterial shield.',
+  },
+  {
+    'tr':
+        'Vombatların dışkıları küp şeklindedir; bu sayede dışkıları yokuş aşağı yuvarlanmaz ve bölgelerini işaretlemek için sabit durur.',
+    'en':
+        'Wombat poop is cube-shaped, so it doesn’t roll away and can mark territory more effectively.',
+  },
+  {
+    'tr':
+        'Kaju fıstığı aslında bir meyvenin (kaju elması) en ucunda, meyvenin dışında yetişir; oldukça tuhaf bir görüntüsü vardır.',
+    'en':
+        'Cashews grow outside the cashew apple, hanging at the very end—an oddly surprising design.',
+  },
+  {
+    'tr':
+        "Köpekbalıkları, Satürn'ün halkalarından daha eskidir; Satürn o gösterişli halkalarını takınmadan milyonlarca yıl önce köpekbalıkları dünyadaydı.",
+    'en':
+        'Sharks are older than Saturn’s rings—they were around millions of years before Saturn got its famous bling.',
+  },
+  {
+    'tr':
+        'Kelebekler ayaklarıyla tat alırlar; bir yaprağın üzerine konduklarında aslında akşam yemeğinin tadına bakıyorlar.',
+    'en':
+        'Butterflies taste with their feet—when they land on a leaf, they’re basically sampling dinner.',
+  },
+  {
+    'tr':
+        'Bir salyangoz tam 3 yıl boyunca hiç uyanmadan uyuyabilir; bazen hepimizin buna ihtiyacı var.',
+    'en':
+        'A snail can sleep for up to three years without waking up—honestly, relatable.',
+  },
+  {
+    'tr':
+        'Deve kuşlarının gözleri beyinlerinden daha büyüktür; bakmakla görmek arasındaki o ince çizgide yaşıyorlar.',
+    'en':
+        'An ostrich’s eyes are bigger than its brain—living on the fine line between looking and thinking.',
+  },
+  {
+    'tr':
+        'Flamingolar aslında gri doğarlar; o meşhur pembe renklerini yedikleri karides ve alglerdeki pigmentlerden alırlar.',
+    'en':
+        'Flamingos are born gray; their famous pink comes from pigments in shrimp and algae they eat.',
+  },
+  {
+    'tr':
+        'Sincaplar her yıl binlerce yeni ağacın yetişmesine neden olur çünkü sakladıkları fındık ve cevizlerin yerini unuturlar.',
+    'en':
+        'Squirrels help grow thousands of new trees each year because they forget where they buried nuts.',
+  },
+  {
+    'tr':
+        "Uzayda oynanan ilk video oyunu Tetris'tir; 1993 yılında bir kozmonot tarafından Game Boy ile oynanmıştır.",
+    'en':
+        'The first video game played in space was Tetris—played on a Game Boy by a cosmonaut in 1993.',
+  },
+  {
+    'tr':
+        'Ağaçkakanlar beyin sarsıntısı geçirmemek için dillerini beyinlerinin etrafına sararlar; kask niyetine dil kullanmak oldukça yaratıcı bir çözüm.',
+    'en':
+        'Woodpeckers wrap their tongues around their brains to help avoid concussions—using your tongue as a helmet is a wild solution.',
+  },
+];
+
 class _ModernLoaderState extends State<ModernLoader>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  final Random _factRand = Random();
+  Timer? _factTimer;
+  int _factIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-        duration: const Duration(seconds: 1), vsync: this)
-      ..repeat(reverse: true);
+    _controller =
+        AnimationController(duration: const Duration(milliseconds: 550), vsync: this)
+          ..repeat();
+    _startFactRotationIfNeeded();
   }
 
   @override
   void dispose() {
+    _factTimer?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant ModernLoader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.progress == null && widget.progress != null) {
+      _startFactRotationIfNeeded();
+    } else if (oldWidget.progress != null && widget.progress == null) {
+      _factTimer?.cancel();
+      _factTimer = null;
+    }
+  }
+
+  void _startFactRotationIfNeeded() {
+    if (widget.progress == null) return;
+    if (_analysisDidYouKnowFacts.isEmpty) return;
+    if (_factTimer != null) return;
+    _factIndex = _factRand.nextInt(_analysisDidYouKnowFacts.length);
+    _factTimer = Timer.periodic(const Duration(seconds: 7), (_) {
+      if (!mounted) return;
+      setState(() {
+        _factIndex = (_factIndex + 1) % _analysisDidYouKnowFacts.length;
+      });
+    });
+  }
+
+  Widget _buildDidYouKnow(Color textColor) {
+    if (widget.progress == null) return const SizedBox.shrink();
+    if (_analysisDidYouKnowFacts.isEmpty) return const SizedBox.shrink();
+
+    final bool isTr = widget.lang.toLowerCase() == 'tr';
+    final String label = isTr ? 'BUNU BİLİYOR MUYDUNUZ?' : 'DID YOU KNOW?';
+    final Map<String, String> fact =
+        _analysisDidYouKnowFacts[_factIndex % _analysisDidYouKnowFacts.length];
+    final String body =
+        (fact[isTr ? 'tr' : 'en'] ?? fact['en'] ?? '').trim();
+    if (body.isEmpty) return const SizedBox.shrink();
+
+    final Color panelBg = widget.isDark
+        ? Colors.white.withOpacity(0.06)
+        : Colors.white.withOpacity(0.95);
+    final Color panelBorder = widget.isDark
+        ? Colors.white.withOpacity(0.10)
+        : Colors.blueGrey.withOpacity(0.14);
+    final List<BoxShadow> panelShadow = widget.isDark
+        ? const []
+        : [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 18,
+              offset: const Offset(0, 10),
+            )
+          ];
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+        decoration: BoxDecoration(
+          color: panelBg,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: panelBorder, width: 1),
+          boxShadow: panelShadow,
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF833AB4), Color(0xFFC13584)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: Colors.black.withOpacity(widget.isDark ? 0.35 : 0.12),
+                  width: 0.8,
+                ),
+              ),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.05,
+                  fontSize: 9,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 350),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, anim) {
+                return FadeTransition(
+                  opacity: anim,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.06),
+                      end: Offset.zero,
+                    ).animate(anim),
+                    child: child,
+                  ),
+                );
+              },
+              child: Text(
+                body,
+                key: ValueKey('${widget.lang}_$_factIndex'),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: textColor.withOpacity(0.92),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                  height: 1.35,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRunningMascot({
+    required double progress,
+    required Color accent,
+  }) {
+    final double clamped = progress.clamp(0.0, 1.0);
+    const double barHeight = 6;
+    const double catWidth = 46;
+    const double catHeight = 28;
+    const double totalHeight = 44;
+    const double barTop = 32;
+    final Color catBase =
+        widget.isDark ? const Color(0xFFF3F4F6) : const Color(0xFF111827);
+
+    return SizedBox(
+      height: totalHeight,
+      child: LayoutBuilder(builder: (context, constraints) {
+        final double maxX = max(0.0, constraints.maxWidth - catWidth);
+        final double x = (maxX * clamped).clamp(0.0, maxX);
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              left: 0,
+              right: 0,
+              top: barTop,
+              child: LinearProgressIndicator(
+                value: clamped,
+                backgroundColor: accent.withOpacity(0.18),
+                valueColor: AlwaysStoppedAnimation<Color>(accent),
+                minHeight: barHeight,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            Positioned(
+              left: x,
+              top: barTop - catHeight + 2,
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, _) {
+                  final double t = _controller.value;
+                  final double bob = -1.2 * sin(t * 2 * pi);
+                  final double tilt = 0.03 * sin(t * 2 * pi);
+                  return Transform.translate(
+                    offset: Offset(0, bob),
+                    child: Transform.rotate(
+                      angle: tilt,
+                      child: CustomPaint(
+                        size: const Size(catWidth, catHeight),
+                        painter: _CatWalkerPainter(
+                          phase: t,
+                          baseColor: catBase,
+                          accentColor: accent,
+                          isDark: widget.isDark,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      }),
+    );
   }
 
   @override
@@ -650,42 +1133,192 @@ class _ModernLoaderState extends State<ModernLoader>
 
             if (widget.progress != null) ...[
               const SizedBox(height: 15),
-              TweenAnimationBuilder<double>(
-                tween: Tween<double>(
-                    end: (widget.progress ?? 0.0).clamp(0.0, 1.0)),
-                duration: const Duration(milliseconds: 450),
-                curve: Curves.easeOutCubic,
-                builder: (context, value, child) {
-                  final int percent =
-                      value >= 1.0 ? 100 : min(99, (value * 100).round());
-                  return Column(
-                    children: [
-                      LinearProgressIndicator(
-                        value: value,
-                        backgroundColor: color.withOpacity(0.2),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            widget.isDark ? Colors.blueAccent : Colors.blue),
-                        minHeight: 6,
-                        borderRadius: BorderRadius.circular(10),
+              Builder(builder: (context) {
+                final double value = (widget.progress ?? 0.0).clamp(0.0, 1.0);
+                final int percent =
+                    value >= 1.0 ? 100 : min(99, (value * 100).round());
+                final Color accent = widget.isDark ? Colors.blueAccent : Colors.blue;
+                return Column(
+                  children: [
+                    _buildRunningMascot(progress: value, accent: accent),
+                    const SizedBox(height: 8),
+                    Text(
+                      "%$percent",
+                      style: TextStyle(
+                        color: (widget.isDark ? Colors.white : color)
+                            .withOpacity(0.85),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "%$percent",
-                        style: TextStyle(
-                            color: (widget.isDark ? Colors.white : color)
-                                .withOpacity(0.85),
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold),
-                      )
-                    ],
-                  );
-                },
-              )
+                    )
+                  ],
+                );
+              }),
+              _buildDidYouKnow(textColor),
             ]
           ],
         ),
       ),
     );
+  }
+}
+
+class _CatWalkerPainter extends CustomPainter {
+  final double phase;
+  final Color baseColor;
+  final Color accentColor;
+  final bool isDark;
+
+  const _CatWalkerPainter({
+    required this.phase,
+    required this.baseColor,
+    required this.accentColor,
+    required this.isDark,
+  });
+
+  Color _mix(Color a, Color b, double t) => Color.lerp(a, b, t) ?? a;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double w = size.width;
+    final double h = size.height;
+    final double t = phase % 1.0;
+    final double walk = sin(t * 2 * pi);
+
+    final double groundY = h - 4.0;
+
+    final Paint shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(isDark ? 0.35 : 0.18)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    final Rect shadowRect =
+        Rect.fromCenter(center: Offset(w * 0.50, groundY + 1), width: w * 0.55, height: 6);
+    canvas.drawOval(shadowRect, shadowPaint);
+
+    final Rect bodyBounds = Rect.fromLTWH(10, 11, w - 22, 11);
+    final RRect body = RRect.fromRectAndRadius(bodyBounds, const Radius.circular(7));
+
+    final Color dark = _mix(baseColor, Colors.black, isDark ? 0.05 : 0.18);
+    final Color light = _mix(baseColor, Colors.white, isDark ? 0.14 : 0.08);
+    final Paint bodyPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [light, dark],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ).createShader(Offset.zero & size);
+    canvas.drawRRect(body, bodyPaint);
+
+    final Paint outline = Paint()
+      ..color = Colors.black.withOpacity(isDark ? 0.35 : 0.10)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8;
+    canvas.drawRRect(body, outline);
+
+    final Offset headCenter = Offset(w - 12.2, 13.2);
+    const double headR = 6.7;
+    final Rect headRect =
+        Rect.fromCircle(center: headCenter, radius: headR);
+    final Paint headPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [_mix(light, Colors.white, 0.10), _mix(dark, Colors.black, 0.06)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ).createShader(headRect);
+    canvas.drawCircle(headCenter, headR, headPaint);
+    canvas.drawCircle(headCenter, headR, outline);
+
+    final Path ear1 = Path()
+      ..moveTo(headCenter.dx - 3.8, headCenter.dy - 5.8)
+      ..lineTo(headCenter.dx - 1.2, headCenter.dy - 9.2)
+      ..lineTo(headCenter.dx + 0.6, headCenter.dy - 5.4)
+      ..close();
+    final Path ear2 = Path()
+      ..moveTo(headCenter.dx + 0.4, headCenter.dy - 5.4)
+      ..lineTo(headCenter.dx + 2.4, headCenter.dy - 9.0)
+      ..lineTo(headCenter.dx + 4.7, headCenter.dy - 5.4)
+      ..close();
+    canvas.drawPath(ear1, headPaint);
+    canvas.drawPath(ear2, headPaint);
+    canvas.drawPath(ear1, outline);
+    canvas.drawPath(ear2, outline);
+
+    final Paint eye = Paint()..color = _mix(baseColor, Colors.white, isDark ? 0.10 : 0.04);
+    canvas.drawCircle(Offset(headCenter.dx + 2.3, headCenter.dy - 0.6), 0.8, eye);
+
+    final double tailWiggle = 1.6 * sin(t * 2 * pi + pi / 3);
+    final Path tail = Path()
+      ..moveTo(bodyBounds.left + 1.4, bodyBounds.top + 6.5)
+      ..quadraticBezierTo(
+        bodyBounds.left - 7.5,
+        bodyBounds.top + 2.0 + tailWiggle,
+        bodyBounds.left - 4.0,
+        bodyBounds.top - 3.2 + tailWiggle,
+      )
+      ..quadraticBezierTo(
+        bodyBounds.left - 2.5,
+        bodyBounds.top - 6.2 + tailWiggle,
+        bodyBounds.left + 1.6,
+        bodyBounds.top - 4.6 + tailWiggle,
+      );
+    final Paint tailPaint = Paint()
+      ..color = baseColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawPath(tail, tailPaint);
+    canvas.drawPath(
+      tail,
+      outline
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.9,
+    );
+
+    final double legMaxH = 8.0;
+    final double legMinH = 4.6;
+    final double baseline = groundY;
+
+    double legLift(double phaseOffset) {
+      final double s = sin(t * 2 * pi + phaseOffset);
+      return (s + 1.0) / 2.0;
+    }
+
+    final double liftA = legLift(0);
+    final double liftB = legLift(pi);
+
+    final List<double> legXs = [
+      bodyBounds.left + 4.5,
+      bodyBounds.left + 10.0,
+      bodyBounds.left + 15.5,
+      bodyBounds.left + 21.0,
+    ];
+    final List<double> lifts = [liftA, liftB, liftB, liftA];
+    final Paint legPaint = Paint()..color = baseColor;
+
+    for (int i = 0; i < legXs.length; i++) {
+      final double lift = lifts[i];
+      final double legH = legMaxH - ((legMaxH - legMinH) * lift);
+      final Rect r = Rect.fromLTWH(legXs[i], baseline - legH, 3.0, legH);
+      final RRect rr = RRect.fromRectAndRadius(r, const Radius.circular(1.2));
+      canvas.drawRRect(rr, legPaint);
+    }
+
+    final double collarPulse = 0.30 + (0.12 * (0.5 + 0.5 * walk));
+    final Paint collar = Paint()..color = accentColor.withOpacity(collarPulse);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(headCenter.dx - 6.2, headCenter.dy + 3.9, 10.0, 2.2),
+        const Radius.circular(999),
+      ),
+      collar,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _CatWalkerPainter oldDelegate) {
+    return oldDelegate.phase != phase ||
+        oldDelegate.baseColor != baseColor ||
+        oldDelegate.accentColor != accentColor ||
+        oldDelegate.isDark != isDark;
   }
 }
 
@@ -778,9 +1411,6 @@ class _BioPlannerScreenState extends State<BioPlannerScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (widget.debugError.isNotEmpty)
-                Text("Error: ${widget.debugError}",
-                    style: const TextStyle(color: Colors.red)),
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 18, vertical: 22),
@@ -948,7 +1578,8 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen>
+    with WidgetsBindingObserver {
   Map<String, String> followersMap = {},
       followingMap = {},
       nonFollowersMap = {},
@@ -983,7 +1614,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       newCount = '?',
       leftFollowingCount = '?';
   bool isLoggedIn = false, isProcessing = false, isDarkMode = false;
+  bool _isClearingData = false;
   double _progressValue = 0.0;
+  double _progressTarget = 0.0;
+  DateTime? _progressFinishEndAt;
+  DateTime? _analysisStartedAt;
+  Timer? _analysisProgressTimelineTimer;
+  DateTime? _analysisProgressTimelineStartAt;
+  double _analysisProgressCap = 0.0;
 
   String currentUsername = "";
   String? savedCookie, savedUserId, savedUserAgent;
@@ -993,6 +1631,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Timer? _legalHoldTimer;
   Timer? _consentWatchTimer;
   Timer? _storyAutoTimer;
+  Timer? _progressPumpTimer;
   int _consentWatchTries = 0;
 
   String _lang = 'tr';
@@ -1012,6 +1651,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _isAdminUser = false;
   String? _lastIgWarning;
   bool _securityGuideVisible = false;
+  bool _igWarningVisible = false;
 
   static const bool _forceTestAds = false;
   static const Duration _igRequestTimeout = Duration(seconds: 12);
@@ -1019,51 +1659,118 @@ class _DashboardScreenState extends State<DashboardScreen> {
   static const String _networkTimeOffsetKey = 'network_time_offset_ms';
   int? _networkTimeOffsetMs;
 
+  Future<void> _igRequestChain = Future.value();
+  DateTime? _igLastIgRequestAt;
+  int _igPageRequestCounter = 0;
+
   final Random _storyRand = Random();
   String _rateUrlAndroid = "";
   String _rateUrlIos = "";
   late final ScrollController _storyScrollController;
   Set<String> _storyUsersWithActive = {};
   Map<String, String> _storyUserPks = {};
+  Map<String, String> _storyUserPics = {};
+  Map<String, int> _storyActiveOrderIndex = {};
   bool _isStoryTrayLoading = false;
   bool _watchStoriesEnabled = false;
+  bool _isPremium = false;
+
+  bool get _adsDisabled => _adsHidden || _removeAllAds || _isPremium;
 
   Future<void> _loadStoryTray() async {
-    if (!isLoggedIn ||
-        savedCookie == null ||
-        _isStoryTrayLoading) return;
-    _isStoryTrayLoading = true;
+    if (!isLoggedIn || savedCookie == null || _isStoryTrayLoading) return;
+    if (mounted) {
+      setState(() => _isStoryTrayLoading = true);
+    } else {
+      _isStoryTrayLoading = true;
+    }
     try {
+      await _refreshSessionCookieFromWebViewStore(updateUserId: false);
       final String ua = _resolveUserAgent();
+      final bool preferWeb = _preferWebApi(ua);
       final String appUa =
           ua.toLowerCase().contains('instagram') ? ua : _defaultIgUserAgent;
-      final response = await http.get(
-        Uri.parse("https://i.instagram.com/api/v1/feed/reels_tray/"),
-        headers: _buildAppHeaders(savedCookie!, appUa, dsUserId: savedUserId),
-      );
+
+      Future<http.Response> fetchWeb() => _igGet(
+            Uri.parse("https://www.instagram.com/api/v1/feed/reels_tray/"),
+            headers: _buildWebHeaders(savedCookie!, ua, dsUserId: savedUserId),
+            minGap: const Duration(milliseconds: 240),
+            jitterMaxMs: 220,
+          );
+      Future<http.Response> fetchApp() => _igGet(
+            Uri.parse("https://i.instagram.com/api/v1/feed/reels_tray/"),
+            headers: _buildAppHeaders(savedCookie!, appUa, dsUserId: savedUserId),
+            minGap: const Duration(milliseconds: 240),
+            jitterMaxMs: 220,
+          );
+
+      http.Response response;
+      if (preferWeb) {
+        response = await fetchWeb();
+        if (response.statusCode != 200) response = await fetchApp();
+      } else {
+        response = await fetchApp();
+        if (response.statusCode != 200) response = await fetchWeb();
+      }
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final List tray = data['tray'] ?? [];
+        dynamic decoded;
+        try {
+          decoded = jsonDecode(response.body);
+        } catch (_) {
+          return;
+        }
+        if (decoded is! Map) return;
+        final Map data = decoded;
+        final String? security = _detectIgSecurityBlockFromMap(data);
+        if (security != null) return;
+
+        final List tray =
+            data['tray'] is List ? (data['tray'] as List) : const [];
         final Set<String> active = {};
         final Map<String, String> pks = {};
+        final Map<String, String> pics = {};
+        final Map<String, int> orderIndex = {};
+        int order = 0;
 
         for (var t in tray) {
+          if (t is! Map) continue;
           final user = t['user'];
-          if (user != null && user['username'] != null) {
-            String uname = user['username'].toString().toLowerCase();
-            active.add(uname);
-            pks[uname] = user['pk'].toString();
-          }
+          if (user is! Map) continue;
+          final String unameRaw = user['username']?.toString().trim() ?? '';
+          if (unameRaw.isEmpty) continue;
+          final String uname = unameRaw.toLowerCase();
+
+          active.add(uname);
+          orderIndex.putIfAbsent(uname, () => order++);
+          final String pk = user['pk']?.toString().trim() ?? '';
+          if (pk.isNotEmpty) pks[uname] = pk;
+
+          final String pic = user['profile_pic_url']?.toString().trim() ?? '';
+          if (pic.isNotEmpty) pics[uname] = _normalizeProfileImageUrl(pic);
         }
         if (mounted) {
           setState(() {
             _storyUsersWithActive = active;
             _storyUserPks = pks;
+            _storyUserPics = pics;
+            _storyActiveOrderIndex = orderIndex;
           });
+        } else {
+          _storyUsersWithActive = active;
+          _storyUserPks = pks;
+          _storyUserPics = pics;
+          _storyActiveOrderIndex = orderIndex;
         }
       }
-    } catch (_) {} finally {
-      _isStoryTrayLoading = false;
+    } catch (e) {
+      debugPrint("Story tray load error: $e");
+    } finally {
+      if (mounted) {
+        setState(() => _isStoryTrayLoading = false);
+      } else {
+        _isStoryTrayLoading = false;
+      }
     }
   }
 
@@ -1086,8 +1793,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'loading_ad': 'Reklam yükleniyor...\nLütfen bekleyin.',
       'analysis_secure':
           'Analiz işlemleri güvenli bir şekilde cihazınızda gerçekleştirilmektedir.',
-      'contact_info':
-          'Sorularınız, önerileriniz ve destek için Instagram: @grkmcomert',
+      'purchases_not_configured':
+          'Satın alma sistemi hazır değil. Lütfen daha sonra tekrar deneyin.',
+      'premium_not_active':
+          'Satın alma tamamlandı ancak Premium aktif görünmüyor. Lütfen tekrar deneyin.',
+      'restore_purchases': 'Satın Alımları Geri Yükle',
+      'restore_purchases_short': 'GERİ YÜKLE',
+      'restoring_purchases': 'Satın alımlar geri yükleniyor...',
+      'restore_purchases_success': 'Satın alımlar geri yüklendi ✅',
+      'restore_purchases_none': 'Geri yüklenecek satın alım bulunamadı.',
+      'restore_purchases_failed': 'Geri yükleme başarısız: {err}',
       'next_analysis': 'Sonraki analiz',
       'next_analysis_ready': 'Analiz şu anda yapılabilir.',
       'analysis_available_now': 'Şu an analiz yapılabilir',
@@ -1190,8 +1905,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'loading_ad': 'Loading ad...\nPlease wait.',
       'analysis_secure':
           'All analysis is securely processed locally on your device.',
-      'contact_info':
-          'For support, suggestions, and help: Instagram @grkmcomert',
       'next_analysis': 'Next analysis',
       'next_analysis_ready': 'Ready to scan.',
       'analysis_available_now': 'Analysis available now',
@@ -1219,6 +1932,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'legal_warning': 'Legal Disclaimer',
       'left_following': 'Unfollowed Users',
       'rate_us': 'Rate Us',
+      'Bize Ulaşın': 'Contact Us',
+      'Tüm Reklam Birimlerini ve Bekleme Sürelerini Kaldır':
+          'Remove Ads & Wait Times',
       'rate_test_message': 'This box is currently under test.',
       'story_section_title': 'Watch Stories Secretly or Zoom Profile Photos',
       'story_login_required':
@@ -1241,6 +1957,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'login_title': 'Login',
       'redirecting': 'Session verified, redirecting securely...',
       'data_updated': 'Analysis complete ✅',
+      'purchases_not_configured':
+          'Purchases are not available right now. Please try again later.',
+      'premium_not_active':
+          'Purchase completed, but Premium is not active yet. Please try again.',
+      'restore_purchases': 'Restore Purchases',
+      'restore_purchases_short': 'RESTORE',
+      'restoring_purchases': 'Restoring purchases...',
+      'restore_purchases_success': 'Purchases restored ✅',
+      'restore_purchases_none': 'No purchases to restore.',
+      'restore_purchases_failed': 'Restore failed: {err}',
       'enter_pin': 'Enter PIN',
       'pin_accepted': 'PIN accepted, timer reset ✅',
       'pin_incorrect': 'Invalid PIN',
@@ -1325,6 +2051,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    PurchasesService.instance.isPremium.addListener(_onPremiumChanged);
+    _isPremium = PurchasesService.instance.isPremium.value;
     _storyScrollController = ScrollController();
     _loadStoredData();
     _loadLanguagePreference();
@@ -1337,6 +2066,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _maybeLoadBannerAfterConsent();
       _maybeRequestATT();
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_refreshSessionCookieFromWebViewStore());
+      if (isLoggedIn) {
+        unawaited(TelemetryService.instance.recordSeen());
+      }
+    }
+  }
+
+  void _onPremiumChanged() {
+    final bool premium = PurchasesService.instance.isPremium.value;
+    if (_isPremium == premium) return;
+    if (mounted) {
+      setState(() => _isPremium = premium);
+    } else {
+      _isPremium = premium;
+    }
+
+    if (premium) {
+      _disposeBannerAd();
+    } else {
+      unawaited(_maybeLoadBannerAfterConsent());
+    }
+  }
+
+  void _disposeBannerAd() {
+    try {
+      _bannerAd?.dispose();
+    } catch (_) {}
+    _bannerAd = null;
+    if (mounted) {
+      setState(() {
+        _isAdLoaded = false;
+        _bannerAdError = null;
+      });
+    } else {
+      _isAdLoaded = false;
+      _bannerAdError = null;
+    }
   }
 
   String _normalizeUserKey(String raw) {
@@ -1477,7 +2248,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       });
       return;
     }
-    if (_adsHidden || _removeAllAds) return;
+    if (_adsDisabled) return;
     _consentWatchTimer?.cancel();
     _consentWatchTries = 0;
     _consentWatchTimer = Timer.periodic(const Duration(seconds: 1), (t) async {
@@ -1604,6 +2375,92 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<void> _restorePurchasesPressed() async {
+    if (isProcessing) return;
+
+    await PurchasesService.instance.configure(
+      androidApiKey: _revenueCatAndroidApiKey,
+      iosApiKey: _revenueCatIosApiKey,
+    );
+
+    if (!PurchasesService.instance.isConfigured) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(_t('purchases_not_configured')),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.redAccent,
+        ));
+      }
+      return;
+    }
+
+    if (!mounted) return;
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+              backgroundColor:
+                  isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18)),
+              content: Row(
+                children: [
+                  const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(strokeWidth: 3),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _t('restoring_purchases'),
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ));
+
+    final PurchaseAttemptResult result =
+        await PurchasesService.instance.restorePurchases();
+
+    if (mounted && Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+    if (!mounted) return;
+
+    if (result.errorMessage != null) {
+      final String err = _lang == 'tr'
+          ? 'Lütfen tekrar deneyin.'
+          : 'Please try again.';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(_t('restore_purchases_failed', {'err': err})),
+        duration: const Duration(seconds: 4),
+        backgroundColor: Colors.redAccent,
+      ));
+      return;
+    }
+
+    if (result.success) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(_t('restore_purchases_success')),
+        duration: const Duration(seconds: 3),
+        backgroundColor: Colors.green.shade700,
+      ));
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(_t('restore_purchases_none')),
+      duration: const Duration(seconds: 3),
+      backgroundColor: Colors.blueGrey.shade900,
+    ));
+  }
+
   String _normalizeStoreUrl(String input) {
     final String lower = input.toLowerCase();
     if (lower.startsWith('http://') ||
@@ -1617,7 +2474,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadBannerAd() async {
     final bool useTestAds = _forceTestAds;
-    if (_adsHidden || _removeAllAds) {
+    if (_adsDisabled) {
       try {
         _bannerAd?.dispose();
       } catch (_) {}
@@ -1693,8 +2550,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<Map<String, dynamic>> _showRewardedAdWithResult(
       {String? adUnitOverride}) async {
-    if (_adsHidden || _removeAllAds) return {"status": true, "skipped": true};
-    if (_isRewardedLoading) return {"status": false, "error": "Loading..."};
+    if (_adsDisabled) return {"status": true, "skipped": true};
+    if (_isRewardedLoading) {
+      return {
+        "status": false,
+        "error": _lang == 'tr' ? 'Yükleniyor...' : 'Loading...',
+      };
+    }
     setState(() {
       _isRewardedLoading = true;
     });
@@ -1732,26 +2594,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
               try {
                 ad.dispose();
               } catch (_) {}
-              if (!c.isCompleted)
-                c.complete({"status": false, "error": "ShowError: ${err.message}"});
+              if (!c.isCompleted) {
+                c.complete({
+                  "status": false,
+                  "error": _lang == 'tr'
+                      ? "Gösterim hatası: ${err.message}"
+                      : "Show error: ${err.message}",
+                });
+              }
             },
           );
           try {
             ad.show();
           } catch (e) {
-            if (!c.isCompleted) c.complete({"status": false, "error": "Exception: $e"});
+            if (!c.isCompleted) {
+              c.complete({
+                "status": false,
+                "error": _lang == 'tr' ? "Hata: $e" : "Exception: $e",
+              });
+            }
           }
         },
         onAdFailedToLoad: (LoadAdError err) {
           debugPrint("Ad failed to load: $err");
-          if (!c.isCompleted)
-            c.complete(
-                {"status": false, "error": "LoadError: ${err.message} (Code: ${err.code})"});
+          if (!c.isCompleted) {
+            c.complete({
+              "status": false,
+              "error": _lang == 'tr'
+                  ? "Yükleme hatası: ${err.message} (Kod: ${err.code})"
+                  : "Load error: ${err.message} (Code: ${err.code})",
+            });
+          }
         },
       ),
     );
 
-    Map<String, dynamic> result = {"status": false, "error": "Timeout"};
+    Map<String, dynamic> result = {
+      "status": false,
+      "error": _lang == 'tr' ? "Zaman aşımı" : "Timeout",
+    };
     try {
       result = await c.future.timeout(const Duration(seconds: 45));
     } catch (_) {}
@@ -1770,6 +2651,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           });
         }
       } catch (_) {}
+      unawaited(TelemetryService.instance.recordRewardedAdWatched());
     }
     return result;
   }
@@ -1880,8 +2762,76 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return '$hrs:$mins:$secs';
   }
 
+  Future<void> _incrementFirestoreCounter(String counterName) async {
+    try {
+      final String today = DateTime.now().toString().substring(0, 10);
+      await FirebaseFirestore.instance
+          .collection('daily_stats')
+          .doc(today)
+          .set({
+            counterName: FieldValue.increment(1),
+            'last_updated_at': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true))
+          .timeout(const Duration(seconds: 10));
+      debugPrint('[Firestore] $counterName incremented');
+    } catch (e, st) {
+      debugPrint('[Firestore] $counterName increment failed: $e');
+      debugPrint('$st');
+    }
+  }
+
+  Future<void> _forceWriteIgUserDoc({
+    required String userId,
+    required String username,
+  }) async {
+    final String cleanUserId = userId.trim();
+    if (cleanUserId.isEmpty || cleanUserId == 'null') return;
+
+    String version = '7.0.1';
+    try {
+      final info = await PackageInfo.fromPlatform();
+      final String v = info.version.trim();
+      if (v.isNotEmpty) version = v;
+    } catch (_) {}
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('ig_users')
+          .doc(cleanUserId)
+          .set({
+            'username': username,
+            'userId': cleanUserId,
+            'platform': Platform.isAndroid ? 'android' : 'ios',
+            'is_premium': PurchasesService.instance.isPremium.value,
+            'last_seen': FieldValue.serverTimestamp(),
+            'version': version,
+          }, SetOptions(merge: true))
+          .timeout(const Duration(seconds: 10));
+      debugPrint('[ForceWrite] ig_users/$cleanUserId written');
+    } catch (e, st) {
+      debugPrint('[ForceWrite] ig_users/$cleanUserId write failed: $e');
+      debugPrint('$st');
+    }
+  }
+
+  Future<void> _forceWriteTestLog(String event) async {
+    try {
+      await FirebaseFirestore.instance.collection('test_logs').add({
+        'event': event,
+        'at': FieldValue.serverTimestamp(),
+        'platform': Platform.isAndroid ? 'android' : 'ios',
+        'userId': (savedUserId ?? '').trim(),
+        'username': currentUsername,
+      }).timeout(const Duration(seconds: 10));
+      debugPrint('[ForceWrite] test_logs written ($event)');
+    } catch (e, st) {
+      debugPrint('[ForceWrite] test_logs write failed: $e');
+      debugPrint('$st');
+    }
+  }
+
   Future<void> _showRemainingDialog() async {
-    if (_adsHidden || _removeAllAds) return;
+    if (_adsDisabled) return;
     if (!mounted) return;
     final remaining = _remainingToNextAnalysis;
     if (remaining == null) {
@@ -1919,7 +2869,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _clearCache() async {
-    bool? confirm = await showDialog(
+    if (_isClearingData) return;
+
+    bool? confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
@@ -1935,13 +2887,65 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
     );
-    if (confirm == true) {
+    if (confirm != true) return;
+    if (!mounted) return;
+
+    setState(() => _isClearingData = true);
+    try {
       await _logout();
-      if (mounted)
-        setState(() {
-          _loadStoredData();
-        });
+    } finally {
+      if (mounted) setState(() => _isClearingData = false);
     }
+  }
+
+  Future<String?> _readCookieFromWebViewStore() async {
+    try {
+      final String? cookieString = await _cookieChannel
+          .invokeMethod<String>('getCookies', {'url': 'https://www.instagram.com/'});
+      final String cookie = (cookieString ?? '').trim();
+      if (cookie.isEmpty) return null;
+      final String sessionId = _extractCookieValue(cookie, 'sessionid').trim();
+      if (sessionId.isEmpty) return null;
+      return cookie;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> _refreshSessionCookieFromWebViewStore(
+      {bool updateUserId = true}) async {
+    if (!isLoggedIn) return false;
+
+    final String? cookie = await _readCookieFromWebViewStore();
+    if (cookie == null) return false;
+
+    final String previous = (savedCookie ?? '').trim();
+    if (previous.isNotEmpty && previous == cookie) return false;
+
+    String? updatedUserId = savedUserId;
+    if (updateUserId) {
+      final String fromCookie = _extractCookieValue(cookie, 'ds_user_id').trim();
+      if (fromCookie.isNotEmpty) {
+        updatedUserId = fromCookie;
+      }
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('session_cookie', cookie);
+    if (updateUserId && (updatedUserId ?? '').trim().isNotEmpty) {
+      await prefs.setString('session_user_id', updatedUserId!.trim());
+    }
+
+    if (mounted) {
+      setState(() {
+        savedCookie = cookie;
+        if (updateUserId) savedUserId = updatedUserId;
+      });
+    } else {
+      savedCookie = cookie;
+      if (updateUserId) savedUserId = updatedUserId;
+    }
+    return true;
   }
 
   Future<void> _tryAutoLogin() async {
@@ -1980,6 +2984,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         currentUsername = username ?? fallback;
         savedUserAgent = ua;
       }
+      unawaited(TelemetryService.instance.recordLogin(
+        userId: userId,
+        username: currentUsername,
+        isPremium: PurchasesService.instance.isPremium.value,
+      ));
+      unawaited(_incrementFirestoreCounter('login_count'));
+      unawaited(_forceWriteIgUserDoc(userId: userId, username: currentUsername));
+      await _refreshSessionCookieFromWebViewStore();
       await _refreshUsernameForBanCheckIfNeeded();
       _applyUserFlags();
       if (_isBanned) return;
@@ -1989,15 +3001,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    bool currentDark = isDarkMode;
-    await prefs.clear();
-    await prefs.setBool('is_dark_mode', currentDark);
-    await prefs.setBool('is_terms_accepted', true);
-    try {
-      await WebViewCookieManager().clearCookies();
-    } catch (_) {}
+    final bool currentDark = isDarkMode;
+
     _cancelCountdown();
+    _stopStoryAutoScroll();
+
     if (mounted) {
       setState(() {
         isLoggedIn = false;
@@ -2005,6 +3013,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _hasAnalyzed = false;
         currentUsername = "";
         savedCookie = null;
+        savedUserId = null;
         savedUserAgent = null;
         followersMap = {};
         followingMap = {};
@@ -2014,7 +3023,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
         newFollowersMap = {};
         _syncCountsForUi();
       });
+    } else {
+      isLoggedIn = false;
+      _isBanned = false;
+      _hasAnalyzed = false;
+      currentUsername = "";
+      savedCookie = null;
+      savedUserId = null;
+      savedUserAgent = null;
+      followersMap = {};
+      followingMap = {};
+      nonFollowersMap = {};
+      unfollowersMap = {};
+      leftFollowingMap = {};
+      newFollowersMap = {};
     }
+
+    try {
+      await TelemetryService.instance
+          .recordLogout()
+          .timeout(const Duration(seconds: 2));
+    } catch (_) {}
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      await prefs.setBool('is_dark_mode', currentDark);
+      await prefs.setBool('is_terms_accepted', true);
+    } catch (_) {}
+
+    try {
+      await WebViewCookieManager().clearCookies();
+    } catch (_) {}
   }
 
   Future<void> _launchPrivacyPolicyURL() async {
@@ -2297,12 +3337,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: IconButton(
                                 icon: const Icon(Icons.delete_sweep_outlined,
                                     color: Colors.redAccent),
-                                onPressed: _clearCache)),
+                                onPressed: (isProcessing || _isClearingData)
+                                    ? null
+                                    : _clearCache)),
                       ],
                     ),
                     const SizedBox(height: 20),
 
-                    if (!_adsHidden && !_removeAllAds)
+                    if (!_adsDisabled)
                       Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
@@ -2322,15 +3364,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               child: AdWidget(ad: _bannerAd!),
                             )
                           else if (_bannerAdError != null)
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 8.0),
-                              child: Text('Ad Error: $_bannerAdError',
-                                  style: TextStyle(
-                                      color: Colors.redAccent,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 10)),
-                            )
+                            const SizedBox(height: 50)
                           else
                             const SizedBox(
                                 height: 50,
@@ -2379,7 +3413,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                       if (isProcessing)
                         Container(
-                          height: 250,
+                          height: 330,
                           alignment: Alignment.center,
                           child: ModernLoader(
                             text: _isRewardedLoading
@@ -2389,34 +3423,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     : _t('fetching_data')),
                             isDark: isDarkMode,
                             progress: _progressValue,
+                            lang: _lang,
                           ),
                         )
                       else
                         _buildGrid(cardColor, textColor),
-                      const SizedBox(height: 18),
-                      if (isProcessing)
-                        const SizedBox(height: 70)
-                      else
-                         Column(children: [
-                           _buildMainButton(isDarkMode),
-                           const SizedBox(height: 8),
-                           _buildNextAnalysisInfo(),
-                         ]),
-                      const SizedBox(height: 25),
-                      Text(_t('analysis_secure'),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 10,
-                              color: isDarkMode ? Colors.grey : Colors.blueGrey,
-                              fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 8),
-                      Text(_t('contact_info'),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              color: isDarkMode ? Colors.white : Colors.black87,
-                              fontSize: 11)),
-                      const SizedBox(height: 30),
+                      SizedBox(height: isProcessing ? 10 : 18),
+                      if (isProcessing) ...[
+                        Text(_t('analysis_secure'),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 10,
+                                color:
+                                    isDarkMode ? Colors.grey : Colors.blueGrey,
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 30),
+                      ] else ...[
+                        Column(children: [
+                          _buildAnalysisReadyNowAboveButton(),
+                          _buildNextAnalysisInfo(),
+                          const SizedBox(height: 10),
+                          _buildMainButton(isDarkMode),
+                          const SizedBox(height: 8),
+                          Text(_t('analysis_secure'),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  color: isDarkMode
+                                      ? Colors.grey
+                                      : Colors.blueGrey,
+                                  fontWeight: FontWeight.w600)),
+                        ]),
+                        const SizedBox(height: 30),
+                      ],
                     ],
                   ),
                 ),
@@ -2428,11 +3467,83 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ));
   }
 
+  Widget _buildRestorePurchasesMiniButton({
+    required Color cardBg,
+    required Color txtColor,
+  }) {
+    final bool disabled = isProcessing;
+    final Color accent = Colors.blueGrey;
+
+    return AbsorbPointer(
+      absorbing: disabled,
+      child: Opacity(
+        opacity: disabled ? 0.55 : 1.0,
+        child: GestureDetector(
+          onTap: _restorePurchasesPressed,
+          child: Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: accent.withOpacity(isDarkMode ? 0.20 : 0.12),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: accent.withOpacity(0.10),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: LayoutBuilder(builder: (context, constraints) {
+              const double iconSize = 16;
+              const double gap = 6;
+              final double textWidth =
+                  max(0.0, constraints.maxWidth - (iconSize + gap));
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.restore_rounded, size: iconSize, color: accent),
+                  const SizedBox(width: gap),
+                  SizedBox(
+                    width: textWidth,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.center,
+                      child: Text(
+                        _t('restore_purchases'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: txtColor.withOpacity(0.72),
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildGrid(Color cardColor, Color textColor) {
     return LayoutBuilder(builder: (context, constraints) {
       double cardWidth = (constraints.maxWidth - 16) / 2;
       cardWidth = cardWidth * 0.90;
       double cardHeight = cardWidth * 0.92;
+      const double miniButtonHeight = 34;
+      const double miniGap = 8;
       return Wrap(
         spacing: 12,
         runSpacing: 12,
@@ -2492,9 +3603,78 @@ class _DashboardScreenState extends State<DashboardScreen> {
           SizedBox(
               width: cardWidth,
               height: cardHeight,
-              child: _buildBigCard('legal_warning', "", Colors.blueGrey,
-                  Icons.info_outline, cardColor, textColor,
+              child: _buildBigCard('Bize Ulaşın', "", const Color(0xFFC13584),
+                  Icons.chat_bubble_rounded, cardColor, textColor,
                   showCount: false)),
+          SizedBox(
+              width: cardWidth,
+              height: cardHeight,
+              child: _buildBigCard(
+                  'Tüm Reklam Birimlerini ve Bekleme Sürelerini Kaldır',
+                  "",
+                  const Color(0xFF833AB4),
+                  Icons.ad_units_rounded,
+                  cardColor,
+                  textColor,
+                  showCount: false,
+                  iconWidget: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        const Align(
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Icons.ad_units_rounded,
+                            color: Color(0xFF833AB4),
+                            size: 35,
+                          ),
+                        ),
+                        Positioned(
+                          right: -1,
+                          top: -1,
+                          child: Container(
+                            width: 16,
+                            height: 16,
+                            decoration: const BoxDecoration(
+                              color: Colors.redAccent,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.close_rounded,
+                                color: Colors.white,
+                                size: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ))),
+          SizedBox(
+              width: cardWidth,
+              height: cardHeight,
+              child: Column(
+                children: [
+                  SizedBox(
+                    height:
+                        max(0.0, cardHeight - (miniButtonHeight + miniGap)),
+                    child: _buildBigCard('legal_warning', "", Colors.blueGrey,
+                        Icons.info_outline, cardColor, textColor,
+                        showCount: false),
+                  ),
+                  SizedBox(height: miniGap),
+                  SizedBox(
+                    height: miniButtonHeight,
+                    child: _buildRestorePurchasesMiniButton(
+                      cardBg: cardColor,
+                      txtColor: textColor,
+                    ),
+                  ),
+                ],
+              )),
         ],
       );
     });
@@ -2502,9 +3682,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildBigCard(String titleKey, String count, Color color,
       IconData icon, Color cardBg, Color txtColor,
-      {bool showCount = true, IconData? footerIcon}) {
+      {bool showCount = true, IconData? footerIcon, Widget? iconWidget}) {
     final String title = _t(titleKey, {'username': currentUsername});
     int badgeCount = badges[titleKey] ?? 0;
+    final Widget iconNode = iconWidget ?? Icon(icon, color: color, size: 35);
 
     return GestureDetector(
       onTapDown: (details) {
@@ -2524,6 +3705,119 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _buildDetailedLegalDialog(ctx, isInitial: false));
         } else if (titleKey == 'rate_us') {
           await _launchRateUrl();
+        } else if (titleKey == 'Bize Ulaşın') {
+          try {
+            final Uri url = Uri.parse('https://instagram.com/grkmcomert');
+            final bool ok = await launchUrl(
+              url,
+              mode: LaunchMode.externalApplication,
+            );
+            if (!ok && mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text('Link açılamadı.'),
+                duration: Duration(seconds: 2),
+                backgroundColor: Colors.redAccent,
+              ));
+            }
+          } catch (_) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text('Link açılamadı.'),
+                duration: Duration(seconds: 2),
+                backgroundColor: Colors.redAccent,
+              ));
+            }
+          }
+        } else if (titleKey ==
+            'Tüm Reklam Birimlerini ve Bekleme Sürelerini Kaldır') {
+          if (PurchasesService.instance.isPremium.value) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(_lang == 'tr'
+                    ? 'Premium zaten aktif ✅'
+                    : 'Premium is already active ✅'),
+                duration: const Duration(seconds: 2),
+                backgroundColor: Colors.blueGrey.shade900,
+              ));
+            }
+            return;
+          }
+
+          await PurchasesService.instance.configure(
+            androidApiKey: _revenueCatAndroidApiKey,
+            iosApiKey: _revenueCatIosApiKey,
+          );
+
+          if (!mounted) return;
+          showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (ctx) => AlertDialog(
+                    backgroundColor:
+                        isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18)),
+                    content: Row(
+                      children: [
+                        const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(strokeWidth: 3),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _lang == 'tr'
+                                ? 'Satın alma başlatılıyor...'
+                                : 'Starting purchase...',
+                            style: TextStyle(
+                              color: isDarkMode ? Colors.white : Colors.black,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ));
+
+          final PurchaseAttemptResult result =
+              await PurchasesService.instance.makePurchase();
+
+          if (mounted && Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+          if (!mounted) return;
+
+          if (result.cancelled) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(_lang == 'tr'
+                  ? 'Satın alma iptal edildi.'
+                  : 'Purchase cancelled.'),
+              duration: const Duration(seconds: 2),
+              backgroundColor: Colors.blueGrey.shade900,
+            ));
+            return;
+          }
+
+          if (result.success) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(_lang == 'tr'
+                  ? 'Premium aktif ✅ Reklamlar ve bekleme süreleri kapatıldı.'
+                  : 'Premium active ✅ Ads and wait times are disabled.'),
+              duration: const Duration(seconds: 3),
+              backgroundColor: Colors.green.shade700,
+            ));
+            return;
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(_lang == 'tr'
+                ? 'Satın alma başarısız. Lütfen tekrar deneyin.'
+                : 'Purchase failed. Please try again.'),
+            duration: const Duration(seconds: 4),
+            backgroundColor: Colors.redAccent,
+          ));
         } else {
           Map<String, String> targetMap = followersMap;
           if (titleKey == 'following') targetMap = followingMap;
@@ -2568,7 +3862,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, color: color, size: 35),
+                  iconNode,
                   const SizedBox(height: 8),
                   Text(title,
                       style: TextStyle(
@@ -2619,9 +3913,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 offset: const Offset(0, 8))
           ]),
       child: ElevatedButton.icon(
-        onPressed: isLoggedIn
-            ? _refreshData
-            : () async {
+        onPressed: _isClearingData
+            ? null
+            : (isLoggedIn
+                ? () =>
+                    unawaited(_refreshData(startProcessingImmediately: true))
+                : () async {
                 final dynamic result = await Navigator.push(
                     context,
                     CupertinoPageRoute(
@@ -2644,10 +3941,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 if (status == 'success' || hasSessionPayload) {
                   await _handleLoginSuccess(payload);
                 }
-              },
-        icon: Icon(isLoggedIn ? Icons.refresh : Icons.fingerprint, size: 28),
+              }),
+        icon: Icon(
+            _isClearingData
+                ? Icons.hourglass_top_rounded
+                : (isLoggedIn ? Icons.refresh : Icons.fingerprint),
+            size: 28),
         label: Text(
-            isLoggedIn ? _t('refresh_data') : _t('login_with_instagram'),
+            _isClearingData
+                ? _t('please_wait')
+                : (isLoggedIn ? _t('refresh_data') : _t('login_with_instagram')),
             style: const TextStyle(fontWeight: FontWeight.bold)),
         style: ElevatedButton.styleFrom(
             minimumSize: const Size(double.infinity, 70),
@@ -2662,15 +3965,177 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _setProgressValue(double value) {
     if (!mounted) return;
     final double clamped = value.clamp(0.0, 1.0);
-    if (clamped <= _progressValue) return;
-    if ((clamped - _progressValue).abs() < 0.0015) return;
-    setState(() => _progressValue = clamped);
+    if (clamped <= _progressTarget) return;
+    if ((clamped - _progressTarget).abs() < 0.0009) return;
+
+    _progressTarget = clamped;
+
+    if (!isProcessing) {
+      _stopProgressPump();
+      if (clamped <= _progressValue) return;
+      setState(() => _progressValue = clamped);
+      return;
+    }
+
+    _ensureProgressPump();
   }
 
-  Future<void> _refreshData() async {
+  void _stopProgressPump() {
+    _progressPumpTimer?.cancel();
+    _progressPumpTimer = null;
+    _progressFinishEndAt = null;
+  }
+
+  void _setAnalysisProgressCap(double cap) {
+    _analysisProgressCap = max(_analysisProgressCap, cap);
+  }
+
+  void _startAnalysisProgressTimeline() {
+    _analysisProgressTimelineStartAt = DateTime.now();
+    _analysisProgressTimelineTimer?.cancel();
+    _analysisProgressTimelineTimer =
+        Timer.periodic(const Duration(milliseconds: 160), (_) {
+      if (!mounted || !isProcessing) return;
+      final DateTime? start = _analysisProgressTimelineStartAt;
+      if (start == null) return;
+
+      final int elapsedMs = DateTime.now().difference(start).inMilliseconds;
+
+      final double cap = (_analysisProgressCap <= 0.0 ? 0.92 : _analysisProgressCap)
+          .clamp(0.0, 0.985);
+      final double ceiling = (cap - 0.010).clamp(0.0, 0.985);
+      if (ceiling <= 0) return;
+
+      const double base = 0.08;
+      final double k = ceiling < 0.70 ? 1250 : 1700;
+      final double t = 1.0 - exp(-elapsedMs / k);
+      final double desired = (base + (ceiling - base) * t).clamp(0.0, ceiling);
+      _setProgressValue(desired);
+    });
+  }
+
+  void _stopAnalysisProgressTimeline() {
+    _analysisProgressTimelineTimer?.cancel();
+    _analysisProgressTimelineTimer = null;
+    _analysisProgressTimelineStartAt = null;
+    _analysisProgressCap = 0.0;
+  }
+
+  void _ensureProgressPump() {
+    if (_progressPumpTimer != null) return;
+    const int intervalMs = 50;
+    _progressPumpTimer =
+        Timer.periodic(const Duration(milliseconds: intervalMs), (_) {
+      if (!mounted) {
+        _stopProgressPump();
+        return;
+      }
+      if (!isProcessing) {
+        _stopProgressPump();
+        return;
+      }
+
+      final double target = _progressTarget.clamp(0.0, 1.0);
+      final double current = _progressValue;
+      final double remaining = target - current;
+
+      if (remaining <= 0.0009) {
+        if ((target - current).abs() > 0.0001) {
+          setState(() => _progressValue = target);
+        }
+        if (target >= 0.999) _progressFinishEndAt = null;
+        _stopProgressPump();
+        return;
+      }
+
+      final DateTime? finishEndAt = _progressFinishEndAt;
+      if (finishEndAt != null) {
+        final int timeLeftMs = finishEndAt.difference(DateTime.now()).inMilliseconds;
+        if (timeLeftMs <= 0) {
+          setState(() => _progressValue = target);
+          _stopProgressPump();
+          return;
+        }
+        final int ticksLeft = max(1, (timeLeftMs / intervalMs).ceil());
+        final double step = max(0.0022, remaining / ticksLeft);
+        setState(() => _progressValue = (current + step).clamp(0.0, 1.0));
+        return;
+      }
+
+      final double maxStep = current < 0.60
+          ? 0.012
+          : (current < 0.85 ? 0.010 : (current < 0.95 ? 0.008 : 0.006));
+      const double minStep = 0.0014;
+      final double proportional = remaining * 0.16;
+      final double step =
+          min(remaining, min(maxStep, max(minStep, proportional)));
+
+      setState(() => _progressValue = (current + step).clamp(0.0, 1.0));
+    });
+  }
+
+  Future<void> _finishProgressUi({
+    Duration duration = const Duration(milliseconds: 1100),
+    Duration hold = const Duration(milliseconds: 140),
+  }) async {
+    if (!mounted || !isProcessing) return;
+
+    _progressFinishEndAt = DateTime.now().add(duration);
+    _setProgressValue(1.0);
+
+    final DateTime deadline = DateTime.now()
+        .add(duration + const Duration(milliseconds: 250));
+    while (mounted &&
+        isProcessing &&
+        _progressValue < 0.999 &&
+        DateTime.now().isBefore(deadline)) {
+      await Future.delayed(const Duration(milliseconds: 40));
+    }
+
+    if (!mounted || !isProcessing) return;
+    if (hold > Duration.zero) await Future.delayed(hold);
+  }
+
+  Future<void> _refreshData({bool startProcessingImmediately = false}) async {
     if (_isBanned) return;
+    unawaited(_forceWriteTestLog('refresh_data'));
+    bool processingStarted = false;
+    void startProcessingUi() {
+      if (processingStarted) return;
+      processingStarted = true;
+      _stopProgressPump();
+      _stopAnalysisProgressTimeline();
+      setState(() {
+        isProcessing = true;
+        _analysisStartedAt = DateTime.now();
+        _progressValue = 0.05;
+        _progressTarget = 0.05;
+      });
+      _setAnalysisProgressCap(0.18);
+      _startAnalysisProgressTimeline();
+    }
+
+    void stopProcessingUi() {
+      if (!processingStarted) return;
+      _stopProgressPump();
+      _stopAnalysisProgressTimeline();
+      if (mounted) {
+        setState(() {
+          isProcessing = false;
+          _analysisStartedAt = null;
+        });
+      } else {
+        isProcessing = false;
+        _analysisStartedAt = null;
+      }
+      processingStarted = false;
+    }
+
+    if (startProcessingImmediately && mounted) startProcessingUi();
+
     final prefs = await SharedPreferences.getInstance();
-    final String cookie = (savedCookie ?? '').trim();
+    await _refreshSessionCookieFromWebViewStore();
+    String cookie = (savedCookie ?? '').trim();
     String userId = (savedUserId ?? '').trim();
     _justWatchedReward = false;
     if (userId.isEmpty && cookie.isNotEmpty) {
@@ -2681,6 +4146,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
     }
     if (cookie.isEmpty || userId.isEmpty || userId == 'null') {
+      stopProcessingUi();
       if (mounted) {
         setState(() {
           isLoggedIn = false;
@@ -2709,7 +4175,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final DateTime last = DateTime.fromMillisecondsSinceEpoch(lastMs);
         final Duration wait = const Duration(hours: 6) - now.difference(last);
         if (wait > Duration.zero) {
-          final bool adsDisabled = _adsHidden || _removeAllAds;
+          final bool adsDisabled = _adsDisabled;
           if (mounted) {
             final bool? wantWatch = await showDialog<bool>(
                 context: context,
@@ -2735,34 +4201,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ));
 
               if (wantWatch == true) {
-                 final adResult = await _showRewardedAdWithResult();
-                 if (adResult["status"] == false) {
-                   if (mounted) {
-                     String errorMsg = _lang == 'tr'
-                         ? "Reklam açılamadı: "
-                         : "Ad could not be shown: ";
-                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                       content: Text("$errorMsg ${adResult['error']}"),
-                       backgroundColor: Colors.red,
-                       duration: const Duration(seconds: 4),
-                     ));
-                   }
-                   return;
-                 }
+                  final adResult = await _showRewardedAdWithResult();
+                  if (adResult["status"] == false) {
+                    if (mounted) {
+                      final String msg = _lang == 'tr'
+                          ? 'Reklam açılamadı. Lütfen tekrar deneyin.'
+                          : 'Ad could not be shown. Please try again.';
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(msg),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 4),
+                      ));
+                    }
+                    return;
+                  }
               } else {
+                 stopProcessingUi();
                  return;
               }
             } else {
+              stopProcessingUi();
               return;
             }
           }
         }
       } catch (_) {}
 
-    setState(() {
-      isProcessing = true;
-      _progressValue = 0.05;
-    });
+    if (!processingStarted && mounted) {
+      startProcessingUi();
+    }
 
     try {
       final Map<String, dynamic> info = await _retryIg<Map<String, dynamic>>(
@@ -2775,7 +4242,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         maxAttempts: 3,
       );
 
-      _setProgressValue(0.10);
+      _setAnalysisProgressCap(0.55);
 
       // Kullanıcı adını güncelle
       if (info['username'] != null) {
@@ -2822,9 +4289,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onProgress: (fetched) {
               final double fraction =
                   (fetched / followersExpected).clamp(0.0, 1.0);
-              _setProgressValue(baseProgress + (fraction * followersSpan));
+              _setAnalysisProgressCap(
+                  baseProgress + (fraction * followersSpan));
             });
       }, maxAttempts: 2);
+      _setAnalysisProgressCap(0.80);
 
       Map<String, String> nFollowing = {};
 
@@ -2840,11 +4309,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onProgress: (fetched) {
               final double fraction =
                   (fetched / followingExpected).clamp(0.0, 1.0);
-              _setProgressValue(followingStart + (fraction * followingSpan));
+              _setAnalysisProgressCap(
+                  followingStart + (fraction * followingSpan));
             });
       }, maxAttempts: 2);
-
-      _setProgressValue(0.95);
+      _setAnalysisProgressCap(0.92);
+      _setAnalysisProgressCap(0.96);
 
       if (tFollowers > 0 && fetchedFollowers < (tFollowers * 0.85)) {
         _showAnalysisWarning(_lang == 'tr'
@@ -2860,8 +4330,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
 
       if (nFollowers.isNotEmpty || nFollowing.isNotEmpty) {
-        final bool mustWatchAdToShowResults =
-            !_adsHidden && !_removeAllAds && !_justWatchedReward;
+        final bool mustWatchAdToShowResults = !_adsDisabled && !_justWatchedReward;
         if (mustWatchAdToShowResults) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -2876,8 +4345,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           final adResult = await _showRewardedAdWithResult();
           if (adResult["status"] != true) {
             _showAnalysisWarning(_lang == 'tr'
-                ? "Reklam açılamadı. Sonuçlar gösterilemedi. (${adResult['error']})"
-                : "Ad could not be shown. Results cannot be displayed. (${adResult['error']})");
+                ? "Reklam açılamadı. Sonuçlar gösterilemedi."
+                : "Ad could not be shown. Results cannot be displayed.");
             return;
           }
           if (mounted) {
@@ -2885,10 +4354,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
           }
         }
 
-        _setProgressValue(0.97);
+        _setAnalysisProgressCap(0.985);
         await Future.delayed(const Duration(milliseconds: 16));
         await _processData(nFollowers, nFollowing);
-        _setProgressValue(1.0);
+        unawaited(TelemetryService.instance.recordAnalysisCompleted(
+          followersCount: fetchedFollowers,
+          followingCount: fetchedFollowing,
+          duration: _analysisStartedAt == null
+              ? null
+              : DateTime.now().difference(_analysisStartedAt!),
+        ));
+        await _finishProgressUi();
 
         if (_justWatchedReward) setState(() => _justWatchedReward = false);
         if (mounted)
@@ -2901,6 +4377,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ? 'Beklenmeyen bir hata oluştu.'
           : 'An unexpected error occurred.';
       final String raw = e.toString();
+      if (raw.toLowerCase().contains('ig_warning')) {
+        final String igMsg = _extractIgWarningTextFromError(e);
+        reason = _lang == 'tr'
+            ? 'Instagram bu işlemi geçici olarak kısıtladı. Biraz bekleyip tekrar deneyin.'
+            : 'Instagram temporarily restricted this action. Please wait a bit and try again.';
+        unawaited(_showIgWarningGuide(igMsg));
+      } else
       if (raw.contains('http_401') || raw.contains('http_403')) {
         reason = _lang == 'tr'
             ? 'Oturum süresi doldu veya doğrulama gerekli.'
@@ -2932,7 +4415,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
       _showAnalysisWarning(reason);
     } finally {
-      if (mounted) setState(() => isProcessing = false);
+      _stopProgressPump();
+      _stopAnalysisProgressTimeline();
+      if (mounted) {
+        setState(() {
+          isProcessing = false;
+          _analysisStartedAt = null;
+          _progressValue = _progressTarget.clamp(0.0, 1.0);
+        });
+      }
     }
   }
 
@@ -2972,9 +4463,103 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return null;
   }
 
+  String? _detectIgWarningFromMap(Map body) {
+    final String message = body['message']?.toString() ?? '';
+    final String status = body['status']?.toString() ?? '';
+    final String errorType = body['error_type']?.toString() ?? '';
+    final String errorTitle = body['error_title']?.toString() ?? '';
+    final String detail = body['detail']?.toString() ?? '';
+    final String feedbackTitle = body['feedback_title']?.toString() ?? '';
+    final String feedbackMessage = body['feedback_message']?.toString() ?? '';
+    final bool spam = body['spam'] == true;
+
+    final String combinedLower =
+        '$message $status $errorType $errorTitle $detail $feedbackTitle $feedbackMessage'
+            .toLowerCase();
+
+    final String statusLower = status.toLowerCase().trim();
+    final bool looksLikeWarning = statusLower == 'fail' ||
+        spam ||
+        feedbackTitle.trim().isNotEmpty ||
+        feedbackMessage.trim().isNotEmpty ||
+        combinedLower.contains('feedback_required') ||
+        combinedLower.contains('try again later') ||
+        combinedLower.contains('please wait') ||
+        combinedLower.contains('we restrict') ||
+        combinedLower.contains('action blocked') ||
+        combinedLower.contains('temporarily') ||
+        combinedLower.contains('sentry_block') ||
+        combinedLower.contains('rate limit') ||
+        combinedLower.contains('too many requests');
+
+    if (!looksLikeWarning) return null;
+
+    String msg = '';
+    final String cleanFeedbackTitle = feedbackTitle.trim();
+    final String cleanFeedbackMessage = feedbackMessage.trim();
+    if (cleanFeedbackTitle.isNotEmpty) msg = cleanFeedbackTitle;
+    if (cleanFeedbackMessage.isNotEmpty) {
+      msg = msg.isEmpty ? cleanFeedbackMessage : '$msg — $cleanFeedbackMessage';
+    }
+
+    final String cleanMessage = message.trim();
+    final String cleanErrorTitle = errorTitle.trim();
+    final String cleanDetail = detail.trim();
+
+    if (msg.isEmpty) {
+      if (cleanMessage.isNotEmpty &&
+          cleanMessage.toLowerCase() != 'feedback_required') {
+        msg = cleanMessage;
+      } else if (cleanErrorTitle.isNotEmpty) {
+        msg = cleanErrorTitle;
+      } else if (cleanDetail.isNotEmpty) {
+        msg = cleanDetail;
+      }
+    }
+
+    msg = msg.trim();
+    if (msg.isEmpty) return 'try_again_later';
+    return msg;
+  }
+
+  String? _detectIgWarningFromText(String rawBody) {
+    try {
+      final decoded = jsonDecode(rawBody);
+      if (decoded is Map) {
+        return _detectIgWarningFromMap(decoded);
+      }
+    } catch (_) {}
+
+    final String body = rawBody.toLowerCase();
+    final bool looksLikeWarning = body.contains('feedback_required') ||
+        body.contains('try again later') ||
+        body.contains('please wait') ||
+        body.contains('we restrict') ||
+        body.contains('action blocked') ||
+        body.contains('temporarily') ||
+        body.contains('sentry_block') ||
+        body.contains('rate limit') ||
+        body.contains('too many requests');
+    if (!looksLikeWarning) return null;
+    return _extractIgWarning(rawBody) ?? 'try_again_later';
+  }
+
+  String _extractIgWarningTextFromError(Object error) {
+    final String raw = error.toString();
+    final int idx = raw.toLowerCase().indexOf('ig_warning');
+    if (idx < 0) return '';
+    String tail = raw.substring(idx);
+    tail = tail.replaceFirst(
+      RegExp(r'ig_warning\s*:?\s*', caseSensitive: false),
+      '',
+    );
+    return tail.trim();
+  }
+
   bool _isRetryableIgException(Object error) {
     final String raw = error.toString().toLowerCase();
     if (raw.contains('session_invalid') ||
+        raw.contains('ig_warning') ||
         raw.contains('challenge_required') ||
         raw.contains('checkpoint_required')) {
       return false;
@@ -3015,6 +4600,74 @@ class _DashboardScreenState extends State<DashboardScreen> {
     throw lastError ?? Exception('unknown_error');
   }
 
+  Future<void> _applyIgRequestPacing({
+    required Duration minGap,
+    required int jitterMaxMs,
+    required bool allowBreather,
+  }) async {
+    final DateTime now = DateTime.now();
+    final DateTime? last = _igLastIgRequestAt;
+
+    final int jitterMs = jitterMaxMs <= 0 ? 0 : _storyRand.nextInt(jitterMaxMs);
+    int breatherMs = 0;
+    if (allowBreather) {
+      _igPageRequestCounter++;
+      if (_igPageRequestCounter % 12 == 0) {
+        breatherMs = 280 + _storyRand.nextInt(520);
+      }
+    }
+
+    final int desiredGapMs = minGap.inMilliseconds + jitterMs + breatherMs;
+    if (last != null) {
+      final int elapsedMs = now.difference(last).inMilliseconds;
+      final int waitMs = desiredGapMs - elapsedMs;
+      if (waitMs > 0) {
+        await Future.delayed(Duration(milliseconds: waitMs));
+      }
+    }
+  }
+
+  Future<T> _withIgRequestPacing<T>(
+    Future<T> Function() action, {
+    Duration minGap = const Duration(milliseconds: 220),
+    int jitterMaxMs = 200,
+    bool allowBreather = false,
+  }) async {
+    final Completer<T> completer = Completer<T>();
+    final Future<void> previous = _igRequestChain.catchError((_) {});
+    _igRequestChain = previous.then((_) async {
+      try {
+        await _applyIgRequestPacing(
+          minGap: minGap,
+          jitterMaxMs: jitterMaxMs,
+          allowBreather: allowBreather,
+        );
+        final T result = await action();
+        _igLastIgRequestAt = DateTime.now();
+        completer.complete(result);
+      } catch (e, st) {
+        _igLastIgRequestAt = DateTime.now();
+        completer.completeError(e, st);
+      }
+    }).catchError((_) {});
+    return completer.future;
+  }
+
+  Future<http.Response> _igGet(
+    Uri uri, {
+    required Map<String, String> headers,
+    Duration minGap = const Duration(milliseconds: 410),
+    int jitterMaxMs = 280,
+    bool allowBreather = false,
+  }) {
+    return _withIgRequestPacing(
+      () => http.get(uri, headers: headers).timeout(_igRequestTimeout),
+      minGap: minGap,
+      jitterMaxMs: jitterMaxMs,
+      allowBreather: allowBreather,
+    );
+  }
+
   Future<Map<String, dynamic>?> _fetchUserInfoRaw(
       String userId, String cookie, String ua) async {
     String? terminalError;
@@ -3025,6 +4678,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         if (security != null) {
           terminalError = security;
           return null;
+        }
+        final String? warning = _detectIgWarningFromText(response.body);
+        if (warning != null) {
+          terminalError = 'ig_warning:$warning';
+          throw Exception(terminalError);
         }
       }
       if (response.statusCode == 401 || response.statusCode == 403) {
@@ -3055,11 +4713,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
             terminalError = 'session_invalid';
             return null;
           }
+          final String? warning = _detectIgWarningFromMap(body);
+          if (warning != null) {
+            terminalError = 'ig_warning:$warning';
+            throw Exception(terminalError);
+          }
           return body.cast<String, dynamic>();
         }
       } catch (_) {
         final String? security = _detectIgSecurityBlockFromText(response.body);
-        terminalError ??= security ?? 'invalid_json';
+        if (security != null) {
+          terminalError ??= security;
+        } else {
+          final String? warning = _detectIgWarningFromText(response.body);
+          if (warning != null) {
+            terminalError = 'ig_warning:$warning';
+            throw Exception(terminalError);
+          }
+          terminalError ??= 'invalid_json';
+        }
       }
       terminalError ??= 'invalid_payload';
       return null;
@@ -3070,32 +4742,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ua.toLowerCase().contains('instagram') ? ua : _defaultIgUserAgent;
 
     if (preferWeb) {
-      final webResp = await http
-          .get(
-            Uri.parse("https://www.instagram.com/api/v1/users/$userId/info/"),
-            headers: _buildWebHeaders(cookie, ua, dsUserId: userId),
-          )
-          .timeout(_igRequestTimeout);
+      final webResp = await _igGet(
+        Uri.parse("https://www.instagram.com/api/v1/users/$userId/info/"),
+        headers: _buildWebHeaders(cookie, ua, dsUserId: userId),
+        minGap: const Duration(milliseconds: 410),
+        jitterMaxMs: 280,
+      );
       final parsed = parseUser(webResp);
       if (parsed != null) return parsed;
     }
 
-    final appResp = await http
-        .get(
-          Uri.parse("https://i.instagram.com/api/v1/users/$userId/info/"),
-          headers: _buildAppHeaders(cookie, appUa, dsUserId: userId),
-        )
-        .timeout(_igRequestTimeout);
+    final appResp = await _igGet(
+      Uri.parse("https://i.instagram.com/api/v1/users/$userId/info/"),
+      headers: _buildAppHeaders(cookie, appUa, dsUserId: userId),
+      minGap: const Duration(milliseconds: 410),
+      jitterMaxMs: 280,
+    );
     final appParsed = parseUser(appResp);
     if (appParsed != null) return appParsed;
 
     if (!preferWeb) {
-      final webResp = await http
-          .get(
-            Uri.parse("https://www.instagram.com/api/v1/users/$userId/info/"),
-            headers: _buildWebHeaders(cookie, ua, dsUserId: userId),
-          )
-          .timeout(_igRequestTimeout);
+      final webResp = await _igGet(
+        Uri.parse("https://www.instagram.com/api/v1/users/$userId/info/"),
+        headers: _buildWebHeaders(cookie, ua, dsUserId: userId),
+        minGap: const Duration(milliseconds: 410),
+        jitterMaxMs: 280,
+      );
       final parsed = parseUser(webResp);
       if (parsed != null) return parsed;
     }
@@ -3145,14 +4817,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       String url = "$base$endpoint";
       if (nextMaxId != null) url += "?max_id=$nextMaxId";
 
-      final response = await http
-          .get(
-            Uri.parse(url),
-            headers: useWebApi
-                ? _buildWebHeaders(cookie, ua, dsUserId: userId)
-                : _buildAppHeaders(cookie, appUa, dsUserId: userId),
-          )
-          .timeout(_igRequestTimeout);
+      final response = await _igGet(
+        Uri.parse(url),
+        headers: useWebApi
+            ? _buildWebHeaders(cookie, ua, dsUserId: userId)
+            : _buildAppHeaders(cookie, appUa, dsUserId: userId),
+        minGap: const Duration(milliseconds: 410),
+        jitterMaxMs: 280,
+        allowBreather: true,
+      );
 
       if (response.statusCode == 200) {
         dynamic decoded;
@@ -3162,6 +4835,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           final String? security = _detectIgSecurityBlockFromText(response.body);
           if (security != null) {
             terminalError = security;
+            throw Exception(terminalError);
+          }
+          final String? warning = _detectIgWarningFromText(response.body);
+          if (warning != null) {
+            terminalError = 'ig_warning:$warning';
             throw Exception(terminalError);
           }
           if (!triedAlternate) {
@@ -3185,8 +4863,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
         final String status = data['status']?.toString().toLowerCase() ?? '';
         final String message = data['message']?.toString().toLowerCase() ?? '';
-        if (status == 'fail' ||
-            message.contains('login') ||
+        if (message.contains('login') ||
             message.contains('challenge') ||
             message.contains('checkpoint')) {
           terminalError = 'session_invalid';
@@ -3197,11 +4874,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
           throw Exception(terminalError);
         }
 
+        final String? warning = _detectIgWarningFromMap(data);
+        if (warning != null) {
+          terminalError = 'ig_warning:$warning';
+          throw Exception(terminalError);
+        }
+
+        if (status == 'fail') {
+          final String rawMsg = data['message']?.toString().trim() ?? '';
+          terminalError = rawMsg.isNotEmpty ? 'ig_warning:$rawMsg' : 'ig_warning';
+          throw Exception(terminalError);
+        }
+
         final List users = data['users'] is List ? data['users'] : const [];
         for (var u in users) {
           String picUrl = u['profile_pic_url'].toString();
-          // HD fix: remove resize params like s150x150
-          picUrl = picUrl.replaceAll(RegExp(r'\/s\d+x\d+\/'), '/');
+          picUrl = _normalizeProfileImageUrl(picUrl);
 
           targetMap[u['username'].toString()] = picUrl;
           currentCount++;
@@ -3214,12 +4902,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ? nextCursor
             : null;
         hasNext = nextMaxId != null;
-
-        await Future.delayed(const Duration(milliseconds: 500));
       } else {
         final String? security = _detectIgSecurityBlockFromText(response.body);
         if (security != null) {
           terminalError = security;
+          throw Exception(terminalError);
+        }
+        final String? warning = _detectIgWarningFromText(response.body);
+        if (warning != null) {
+          terminalError = 'ig_warning:$warning';
           throw Exception(terminalError);
         }
         if (response.statusCode == 401 || response.statusCode == 403) {
@@ -3243,7 +4934,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (result is! Map) return;
     final Map<String, dynamic> payload =
         result.map((k, v) => MapEntry(k.toString(), v));
-    final prefs = await SharedPreferences.getInstance();
     final String cookie = (payload['cookie'] ?? '').toString().trim();
     String userId = (payload['user_id'] ?? '').toString().trim();
     if (userId.isEmpty || userId == 'null') {
@@ -3268,23 +4958,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
     final String username =
         usernameRaw.isNotEmpty ? usernameRaw : (_lang == 'tr' ? 'Kullanıcı' : 'User');
-    await prefs.setString('session_cookie', cookie);
-    await prefs.setString('session_user_id', userId);
-    await prefs.setString('session_username', username);
-    await prefs.setString('session_user_agent', userAgent);
+
     unawaited(() async {
       try {
-        final String today = DateTime.now().toString().substring(0, 10);
-        await FirebaseFirestore.instance
-            .collection('daily_stats')
-            .doc(today)
-            .set({
-          'login_count': FieldValue.increment(1),
-        }, SetOptions(merge: true));
-      } catch (e) {
-        debugPrint("Firestore login increment error: $e");
-      }
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('session_cookie', cookie);
+        await prefs.setString('session_user_id', userId);
+        await prefs.setString('session_username', username);
+        await prefs.setString('session_user_agent', userAgent);
+      } catch (_) {}
     }());
+
+    unawaited(TelemetryService.instance.recordLogin(
+      userId: userId,
+      username: username,
+      isPremium: PurchasesService.instance.isPremium.value,
+    ));
+    unawaited(_incrementFirestoreCounter('login_count'));
+    unawaited(_forceWriteIgUserDoc(userId: userId, username: username));
     if (mounted) {
       setState(() {
         isLoggedIn = true;
@@ -3295,13 +4986,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
         savedUserAgent = userAgent;
         _syncCountsForUi();
       });
-      _applyUserFlags();
-      if (_isBanned) {
-        return;
-      }
-      unawaited(_refreshData());
-      unawaited(_loadStoryTray());
+    } else {
+      isLoggedIn = true;
+      _hasAnalyzed = false;
+      savedCookie = cookie;
+      savedUserId = userId;
+      currentUsername = username;
+      savedUserAgent = userAgent;
     }
+
+    _applyUserFlags();
+    if (_isBanned) return;
+    unawaited(_refreshData(startProcessingImmediately: true));
+    unawaited(_loadStoryTray());
   }
 
   Future<void> _processData(
@@ -3478,20 +5175,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final realNow = await _getNetworkTime();
     await prefs.setInt('last_update_time', realNow.millisecondsSinceEpoch);
     _setProgressValue(0.999);
-    unawaited(() async {
-      try {
-        final String today = DateTime.now().toString().substring(0, 10);
-        await FirebaseFirestore.instance
-            .collection('daily_stats')
-            .doc(today)
-            .set({
-          'query_count': FieldValue.increment(1),
-        }, SetOptions(merge: true))
-            .timeout(const Duration(seconds: 6));
-      } catch (e) {
-        debugPrint("Firestore query increment error: $e");
-      }
-    }());
+    unawaited(_incrementFirestoreCounter('query_count'));
     _hasAnalyzed = true;
     _loadStoredData();
   }
@@ -3594,8 +5278,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Map<String, String> _safeMapCast(dynamic input) {
     Map<String, String> output = {};
-    if (input is Map)
-      input.forEach((k, v) => output[k.toString()] = v.toString());
+    if (input is Map) {
+      input.forEach((k, v) {
+        final String key = k.toString();
+        final String raw = v.toString();
+        output[key] = _normalizeProfileImageUrl(raw);
+      });
+    }
     return output;
   }
 
@@ -3700,6 +5389,87 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<void> _showIgWarningGuide(String igMessage) async {
+    if (!mounted || _igWarningVisible) return;
+    _igWarningVisible = true;
+    final bool isTr = _lang == 'tr';
+
+    final String title =
+        isTr ? 'Instagram Geçici Kısıtlama' : 'Instagram Temporary Restriction';
+    final String description = isTr
+        ? 'Instagram bu işlemi geçici olarak kısıtladı. Bu genelde çok sık istek / otomatik aktivite algılandığında olur. Veri çekme durduruldu.'
+        : 'Instagram temporarily restricted this action. This can happen when requests are too frequent or activity looks automated. We stopped fetching data.';
+
+    final String cleanIg = (() {
+      final String v = igMessage.trim();
+      final String lower = v.toLowerCase();
+      if (lower == 'try_again_later' || lower == 'feedback_required') return '';
+      return v;
+    })();
+
+    final String igBlock = cleanIg.isEmpty
+        ? ''
+        : (isTr ? 'Instagram mesajı:\n$cleanIg' : 'Instagram message:\n$cleanIg');
+
+    final String steps = isTr
+        ? 'Ne yapabilirsin?\n'
+            '1) Instagram uygulamasını aç.\n'
+            '2) Bir uyarı/ek doğrulama varsa tamamla.\n'
+            '3) 10–30 dakika bekle.\n'
+            '4) Bu uygulamaya dönüp tekrar “VERİLERİ GÜNCELLE”ye bas.'
+        : 'What you can do:\n'
+            '1) Open the Instagram app.\n'
+            '2) Complete any alert or verification if shown.\n'
+            '3) Wait 10–30 minutes.\n'
+            '4) Come back here and tap “REFRESH DATA” again.';
+
+    final String hint = isTr
+        ? 'Not: Arka arkaya çok sık analiz yapmak bu uyarıyı tetikleyebilir.'
+        : 'Note: Running analyses back-to-back can trigger this.';
+
+    try {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (ctx) => AlertDialog(
+          title: Text(title),
+          content: SingleChildScrollView(
+            child: Text(
+              igBlock.isEmpty
+                  ? '$description\n\n$steps\n\n$hint'
+                  : '$description\n\n$igBlock\n\n$steps\n\n$hint',
+              style: const TextStyle(height: 1.35),
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(isTr ? 'Kapat' : 'Close')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                await Future.delayed(const Duration(milliseconds: 120));
+                try {
+                  await launchUrl(
+                    Uri.parse('https://www.instagram.com/'),
+                    mode: LaunchMode.externalApplication,
+                  );
+                } catch (_) {}
+              },
+              child: Text(isTr ? "Instagram'ı Aç" : 'Open Instagram'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      _igWarningVisible = false;
+    }
+  }
+
   void _showAnalysisWarning(String reason) {
     if (!mounted) return;
     final String message =
@@ -3743,6 +5513,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<bool> _showAdGate() async {
+    if (_adsDisabled) return true;
     if (!mounted) return false;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(_t('story_ad_wait')),
@@ -3757,8 +5528,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(_lang == 'tr'
-              ? "Reklam açılamadı: ${adResult['error']}"
-              : "Ad could not be shown: ${adResult['error']}"),
+              ? 'Reklam açılamadı. Lütfen tekrar deneyin.'
+              : 'Ad could not be shown. Please try again.'),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 4),
         ));
@@ -3771,23 +5542,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<_StoryProfile> _getStoryProfiles() {
     if (isLoggedIn) {
       final source = followingMap.isNotEmpty ? followingMap : followersMap;
-      if (source.isNotEmpty) {
-        final List<_StoryProfile> list = source.entries
-            .map((e) => _StoryProfile(
+      final List<_StoryProfile> list = source.entries
+          .map((e) {
+            final String unameLower = e.key.toLowerCase();
+            return _StoryProfile(
                 username: e.key,
                 imageUrl: e.value,
-                hasStory: _storyUsersWithActive.contains(e.key.toLowerCase()),
-                pk: _storyUserPks[e.key.toLowerCase()]))
-            .toList();
+                hasStory: _storyUsersWithActive.contains(unameLower),
+                pk: _storyUserPks[unameLower]);
+          })
+          .toList();
 
-        list.sort((a, b) {
-          if (a.hasStory && !b.hasStory) return -1;
-          if (!a.hasStory && b.hasStory) return 1;
-          return a.username.compareTo(b.username);
-        });
-        return list;
+      final Set<String> seen = source.keys.map((e) => e.toLowerCase()).toSet();
+      int added = 0;
+      for (final unameLower in _storyUsersWithActive) {
+        if (seen.contains(unameLower)) continue;
+        if (added >= 25) break;
+        final String pic = (_storyUserPics[unameLower] ?? '').trim();
+        final bool hasPic = pic.isNotEmpty;
+        list.add(_StoryProfile(
+            username: unameLower,
+            imageUrl: hasPic ? pic : "https://via.placeholder.com/150",
+            isBlurred: !hasPic,
+            hasStory: true,
+            pk: _storyUserPks[unameLower]));
+        added++;
       }
-      return [];
+
+      list.sort((a, b) {
+        if (a.hasStory && !b.hasStory) return -1;
+        if (!a.hasStory && b.hasStory) return 1;
+        if (a.hasStory && b.hasStory) {
+          final int ai =
+              _storyActiveOrderIndex[a.username.toLowerCase()] ?? (1 << 30);
+          final int bi =
+              _storyActiveOrderIndex[b.username.toLowerCase()] ?? (1 << 30);
+          if (ai != bi) return ai.compareTo(bi);
+        }
+        return a.username.compareTo(b.username);
+      });
+      return list;
     }
 
     final List<int> ids = List<int>.generate(20, (i) => i + 1);
@@ -3820,6 +5614,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         width: size,
         height: size,
         fit: BoxFit.cover,
+        filterQuality: FilterQuality.high,
         errorBuilder: (context, error, stack) => Container(
               width: size,
               height: size,
@@ -3856,46 +5651,65 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final BoxDecoration? ringDecoration = showRing
         ? const BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [Color(0xFFFEDA75), Color(0xFFFA7E1E), Color(0xFFD62976)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+            gradient: SweepGradient(
+              colors: [
+                Color(0xFFFBAA47),
+                Color(0xFFD91A46),
+                Color(0xFFA60F93),
+                Color(0xFFFBAA47),
+              ],
+              transform: GradientRotation(-pi / 2),
             ),
           )
         : (showWhiteRing
             ? BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white,
-                border: Border.all(color: Colors.white, width: 2),
+                border: Border.all(
+                  color: isDarkMode ? Colors.white70 : Colors.white,
+                  width: 2,
+                ),
               )
             : (showMutedRing
-                ? const BoxDecoration(
+                ? BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        Color(0x99FEDA75),
-                        Color(0x99FA7E1E),
-                        Color(0x99D62976)
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                    border: Border.all(
+                      color: isDarkMode
+                          ? Colors.white24
+                          : Colors.blueGrey.withOpacity(0.35),
+                      width: 2,
                     ),
                   )
                 : null));
-    final double ringPadding =
-        (showRing || showWhiteRing) ? 2.5 : (showMutedRing ? 1.5 : 0.0);
+
+    final double outerPadding =
+        showRing ? 3.0 : (showWhiteRing ? 2.2 : (showMutedRing ? 2.0 : 0.0));
+    final double innerPadding = showRing ? 1.6 : 0.0;
+
+    final Widget avatar = ClipOval(child: _buildStoryImage(profile, size));
+    final Widget inner = innerPadding <= 0
+        ? avatar
+        : Container(
+            padding: EdgeInsets.all(innerPadding),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isDarkMode ? Colors.black : Colors.white,
+            ),
+            child: avatar,
+          );
+
+    final Widget avatarWithRing = ringDecoration == null
+        ? inner
+        : Container(
+            padding: EdgeInsets.all(outerPadding),
+            decoration: ringDecoration,
+            child: inner,
+          );
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: isLoggedIn ? () => _handleStoryTap(profile) : null,
       child: Column(
         children: [
-          Container(
-            padding: EdgeInsets.all(ringPadding),
-            decoration: ringDecoration,
-            child: ClipOval(
-              child: _buildStoryImage(profile, size),
-            ),
-          ),
+          avatarWithRing,
           const SizedBox(height: 6),
           SizedBox(
             width: 70,
@@ -3932,7 +5746,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 fontWeight: FontWeight.w800,
                 fontSize: 13,
                 color: isDarkMode ? Colors.white : Colors.black87)),
-        if (isLoggedIn && isProcessing) ...[
+        if (isLoggedIn && _isStoryTrayLoading) ...[
           const SizedBox(height: 8),
           Row(
             children: [
@@ -3966,7 +5780,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         SizedBox(
           height: 90,
           child: profiles.isEmpty
-              ? (isLoggedIn && isProcessing
+              ? (isLoggedIn && _isStoryTrayLoading
                   ? const SizedBox.shrink()
                   : Center(
                       child: Text(_t('story_no_data'),
@@ -4432,19 +6246,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
       fontWeight: FontWeight.w700,
       color: isDarkMode ? Colors.white : Colors.black87,
     );
-    final bool adsDisabled = _adsHidden || _removeAllAds;
+    final bool adsDisabled = _adsDisabled;
     if (adsDisabled) {
       return Text(_t('analysis_ready_risk'), style: style);
     }
     final remaining = _remainingToNextAnalysis;
-    final String label = remaining == null
-        ? '${_t('next_analysis')}: ${_t('next_analysis_ready')}'
-        : '${_t('next_analysis')}: ${_formatDuration(remaining)}';
+    if (remaining == null) return const SizedBox.shrink();
+    final String label = '${_t('next_analysis')}: ${_formatDuration(remaining)}';
     return GestureDetector(
         onTap: _showRemainingDialog,
         child: Text(
             label,
             style: style));
+  }
+
+  Widget _buildAnalysisReadyNowAboveButton() {
+    if (!isLoggedIn) return const SizedBox.shrink();
+    if (_adsDisabled) return const SizedBox.shrink();
+    if (_remainingToNextAnalysis != null) return const SizedBox.shrink();
+
+    final Color readyColor = isDarkMode ? Colors.greenAccent : Colors.green;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Text(
+        _t('next_analysis_ready'),
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          color: readyColor.withOpacity(0.92),
+        ),
+      ),
+    );
   }
 
   Future<void> _checkUserAgreement() async {
@@ -4462,10 +6295,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   void dispose() {
+    PurchasesService.instance.isPremium.removeListener(_onPremiumChanged);
+    WidgetsBinding.instance.removeObserver(this);
     _cancelCountdown();
     _cancelLegalHoldTimer();
     _consentWatchTimer?.cancel();
     _storyAutoTimer?.cancel();
+    _stopProgressPump();
+    _stopAnalysisProgressTimeline();
     _storyScrollController.dispose();
     _bannerAd?.dispose();
     super.dispose();
@@ -4918,6 +6755,33 @@ class DetailListPage extends StatelessWidget {
                 itemCount: names.length,
                 itemBuilder: (ctx, i) {
                   bool isNew = newItems.contains(names[i]);
+                  final String imageUrl = (items[names[i]] ?? '').trim();
+                  final Widget avatar = imageUrl.isEmpty
+                      ? Container(
+                          width: 40,
+                          height: 40,
+                          color: isDark ? Colors.white12 : Colors.black12,
+                          child: Icon(
+                            Icons.person,
+                            color: isDark ? Colors.white70 : Colors.black45,
+                          ),
+                        )
+                      : Image.network(
+                          imageUrl,
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                          filterQuality: FilterQuality.high,
+                          errorBuilder: (context, error, stack) => Container(
+                            width: 40,
+                            height: 40,
+                            color: isDark ? Colors.white12 : Colors.black12,
+                            child: Icon(
+                              Icons.person,
+                              color: isDark ? Colors.white70 : Colors.black45,
+                            ),
+                          ),
+                        );
                   return ListTile(
                     onTap: () async {
                       final Uri url =
@@ -4927,8 +6791,7 @@ class DetailListPage extends StatelessWidget {
                         Clipboard.setData(ClipboardData(text: names[i]));
                       }
                     },
-                    leading: CircleAvatar(
-                        backgroundImage: NetworkImage(items[names[i]] ?? "")),
+                    leading: ClipOval(child: avatar),
                     title: Row(children: [
                       Text(names[i],
                           style: TextStyle(
