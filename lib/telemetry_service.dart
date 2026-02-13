@@ -13,6 +13,8 @@ class TelemetryService {
 
   static final TelemetryService instance = TelemetryService._();
 
+  static const Duration _writeTimeout = Duration(seconds: 20);
+
   static const String _userIdPrefKey = 'telemetry_user_id';
   static const String _usernamePrefKey = 'telemetry_username';
   static const String _sessionIdPrefKey = 'telemetry_session_id';
@@ -340,7 +342,7 @@ class TelemetryService {
             'last_session_id': sessionId,
             'updated_at': now,
           }, SetOptions(merge: true))
-          .timeout(const Duration(seconds: 6));
+          .timeout(_writeTimeout);
 
       await userRef
           .collection('sessions')
@@ -356,7 +358,7 @@ class TelemetryService {
             'login_at': now,
             'updated_at': now,
           }, SetOptions(merge: true))
-          .timeout(const Duration(seconds: 6));
+          .timeout(_writeTimeout);
 
       unawaited(_clearLastError());
       return true;
@@ -391,7 +393,7 @@ class TelemetryService {
             'last_seen_at': now,
             'updated_at': now,
           }, SetOptions(merge: true))
-          .timeout(const Duration(seconds: 6));
+          .timeout(_writeTimeout);
 
       if (sessionId != null && sessionId.trim().isNotEmpty) {
         await userRef
@@ -402,7 +404,7 @@ class TelemetryService {
               ...locale,
               'updated_at': now,
             }, SetOptions(merge: true))
-            .timeout(const Duration(seconds: 6));
+            .timeout(_writeTimeout);
       }
       unawaited(_clearLastError());
       return true;
@@ -440,7 +442,7 @@ class TelemetryService {
             'last_seen_at': now,
             'updated_at': now,
           }, SetOptions(merge: true))
-          .timeout(const Duration(seconds: 6));
+          .timeout(_writeTimeout);
 
       await sessionRef
           .set({
@@ -452,7 +454,7 @@ class TelemetryService {
             'last_rewarded_ad_at': now,
             'updated_at': now,
           }, SetOptions(merge: true))
-          .timeout(const Duration(seconds: 6));
+          .timeout(_writeTimeout);
 
       unawaited(_clearLastError());
       return true;
@@ -486,7 +488,7 @@ class TelemetryService {
             'last_seen_at': now,
             'updated_at': now,
           }, SetOptions(merge: true))
-          .timeout(const Duration(seconds: 6));
+          .timeout(_writeTimeout);
 
       if (sessionId != null && sessionId.trim().isNotEmpty) {
         await userRef
@@ -501,7 +503,7 @@ class TelemetryService {
               'last_seen_at': now,
               'updated_at': now,
             }, SetOptions(merge: true))
-            .timeout(const Duration(seconds: 6));
+            .timeout(_writeTimeout);
       }
       unawaited(_clearLastError());
       return true;
@@ -544,7 +546,7 @@ class TelemetryService {
             'last_seen_at': now,
             'updated_at': now,
           }, SetOptions(merge: true))
-          .timeout(const Duration(seconds: 6));
+          .timeout(_writeTimeout);
 
       if (sessionId != null && sessionId.trim().isNotEmpty) {
         await userRef
@@ -559,7 +561,7 @@ class TelemetryService {
               if (duration != null) 'analysis_duration_ms': duration.inMilliseconds,
               'updated_at': now,
             }, SetOptions(merge: true))
-            .timeout(const Duration(seconds: 6));
+            .timeout(_writeTimeout);
       }
       unawaited(_clearLastError());
       return true;

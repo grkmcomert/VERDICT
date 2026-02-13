@@ -19,7 +19,7 @@
     </array>
 
     <key>NSUserTrackingUsageDescription</key>
-    <string>Size daha uygun içerikler ve reklamlar gösterebilmek için izninize ihtiyacımız var.</string>
+    <string>We need your permission to show you more relevant content and ads.</string>
 
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>

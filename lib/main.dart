@@ -182,7 +182,10 @@ class _RootAppState extends State<RootApp> {
       await _fetchConfig();
     } catch (e) {
       debugPrint("Config Hatası: $e");
-      _debugError = "Bağlantı Hatası: $e";
+      final bool isTr = Platform.localeName.toLowerCase().startsWith('tr');
+      _debugError = isTr
+          ? 'Bağlantı hatası. Lütfen tekrar deneyin.'
+          : 'Connection error. Please try again.';
     }
 
     try {
@@ -416,7 +419,10 @@ class _RootAppState extends State<RootApp> {
     } catch (e) {
       _showRealApp = false;
       _isAppEnabled = true;
-      _debugError = "Config Error: $e";
+      final bool isTr = Platform.localeName.toLowerCase().startsWith('tr');
+      _debugError = isTr
+          ? 'Bağlantı hatası. Lütfen tekrar deneyin.'
+          : 'Connection error. Please try again.';
     }
   }
 
@@ -1541,12 +1547,15 @@ class _BioPlannerScreenState extends State<BioPlannerScreen> {
   }
 }
 
+final GlobalKey<ScaffoldMessengerState> _diagScaffoldKey = GlobalKey<ScaffoldMessengerState>();
+
 class UnfollowersApp extends StatelessWidget {
   const UnfollowersApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: _diagScaffoldKey,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blueGrey),
       home: const DashboardScreen(),
     );
@@ -1875,10 +1884,6 @@ class _DashboardScreenState extends State<DashboardScreen>
           "Instagram API’sinde veya web altyapısında meydana gelebilecek köklü değişiklikler, uygulamanın işlevselliğini kısmen veya tamamen yitirmesine neden olabilir. Geliştirici, 'mücbir sebep' (force majeure) olarak kabul edilen bu tür altyapısal değişikliklere bağlı olarak uygulamayı güncelleme veya hizmeti sürdürme konusunda herhangi bir taahhütte bulunmamaktadır.",
       'ad_wait_message':
           'Analiz tamamlandı, sonuçlar reklamdan sonra gösterilecek.',
-      'rate_title': 'Memnun Kaldın mı?',
-      'rate_content': 'Uygulamanın gelişmesi ve sürdürülebilirliği için bize mağazadan puan verebilir misin?',
-      'rate_button': 'MAĞAZAYA GİT',
-      'later': 'SONRA',
       'analysis_failed_title': 'Analiz yapılamadı',
       'analysis_failed_reason': 'Neden: {reason}',
       'analysis_failed_hint':
@@ -1991,11 +1996,6 @@ class _DashboardScreenState extends State<DashboardScreen>
           'Fundamental changes to the Instagram API or web infrastructure may cause the application to lose its functionality partially or completely. The developer makes no commitment to update the application or maintain the service in response to such infrastructural changes, which are considered "force majeure".',
       'ad_wait_message':
           'Analysis complete, results will be shown after the ad.',
-      'rate_title': 'Did you enjoy it?',
-      'rate_content':
-          'Would you mind rating us on the store to support the app?',
-      'rate_button': 'GO TO STORE',
-      'later': 'LATER',
       'analysis_failed_title': 'Analysis failed',
       'analysis_failed_reason': 'Reason: {reason}',
       'analysis_failed_hint':
@@ -2282,54 +2282,17 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Future<void> _checkRatingDialog() async {
-     final prefs = await SharedPreferences.getInstance();
-     int count = prefs.getInt('app_launch_count') ?? 0;
-     bool hasRated = prefs.getBool('has_rated_app') ?? false;
+    if (!Platform.isIOS) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final int count = prefs.getInt('app_launch_count') ?? 0;
+      final bool hasRequested = prefs.getBool('has_rated_app') ?? false;
 
-     if (count == 2 && !hasRated) {
-        _showRateDialog();
-     }
-  }
-
-  void _showRateDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
-        title: Row(
-          children: [
-            const Icon(Icons.star, color: Colors.amber),
-            const SizedBox(width: 8),
-            Expanded(child: Text(_t('rate_title'), style: TextStyle(color: isDarkMode ? Colors.white : Colors.black))),
-          ],
-        ),
-        content: Text(_t('rate_content'), style: TextStyle(color: isDarkMode ? Colors.grey : Colors.black87)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-            },
-            child: Text(_t('later'), style: const TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-             style: ElevatedButton.styleFrom(
-               backgroundColor: Colors.blueAccent,
-               foregroundColor: Colors.white,
-               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-             ),
-             onPressed: () async {
-               final prefs = await SharedPreferences.getInstance();
-               await prefs.setBool('has_rated_app', true);
-               Navigator.pop(ctx);
-               await _launchRateUrl();
-             },
-             child: Text(_t('rate_button')),
-          )
-        ],
-      )
-    );
+      if (count == 2 && !hasRequested) {
+        await prefs.setBool('has_rated_app', true);
+        unawaited(_launchRateUrl());
+      }
+    } catch (_) {}
   }
 
   Future<void> _launchRateUrl() async {
@@ -2796,7 +2759,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     final String cleanUserId = userId.trim();
     if (cleanUserId.isEmpty || cleanUserId == 'null') return;
 
-    String version = '7.0.1';
+    String version = '8.0.0';
     try {
       final info = await PackageInfo.fromPlatform();
       final String v = info.version.trim();
@@ -2832,39 +2795,6 @@ class _DashboardScreenState extends State<DashboardScreen>
           e,
           st,
           reason: 'forceWriteIgUserDoc:$cleanUserId',
-          fatal: false,
-        ));
-      } catch (_) {}
-    }
-  }
-
-  Future<void> _forceWriteTestLog(String event) async {
-    try {
-      final docRef =
-          await FirebaseFirestore.instance.collection('test_logs').add({
-        'event': event,
-        'at': FieldValue.serverTimestamp(),
-        'platform': Platform.isAndroid ? 'android' : 'ios',
-        'userId': (savedUserId ?? '').trim(),
-        'username': currentUsername,
-      }).timeout(const Duration(seconds: 10));
-      try {
-        await docRef
-            .get(const GetOptions(source: Source.server))
-            .timeout(const Duration(seconds: 10));
-      } catch (_) {}
-      debugPrint('[ForceWrite] test_logs written ($event)');
-      try {
-        FirebaseCrashlytics.instance.log('ForceWrite test_logs ok ($event)');
-      } catch (_) {}
-    } catch (e, st) {
-      debugPrint('[ForceWrite] test_logs write failed: $e');
-      debugPrint('$st');
-      try {
-        unawaited(FirebaseCrashlytics.instance.recordError(
-          e,
-          st,
-          reason: 'forceWriteTestLog:$event',
           fatal: false,
         ));
       } catch (_) {}
@@ -4139,7 +4069,6 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Future<void> _refreshData({bool startProcessingImmediately = false}) async {
     if (_isBanned) return;
-    unawaited(_forceWriteTestLog('refresh_data'));
     bool processingStarted = false;
     void startProcessingUi() {
       if (processingStarted) return;
@@ -4171,8 +4100,6 @@ class _DashboardScreenState extends State<DashboardScreen>
       }
       processingStarted = false;
     }
-
-    if (startProcessingImmediately && mounted) startProcessingUi();
 
     final prefs = await SharedPreferences.getInstance();
     await _refreshSessionCookieFromWebViewStore();
