@@ -17,6 +17,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
@@ -2777,6 +2778,14 @@ class _DashboardScreenState extends State<DashboardScreen>
     } catch (e, st) {
       debugPrint('[Firestore] $counterName increment failed: $e');
       debugPrint('$st');
+      try {
+        unawaited(FirebaseCrashlytics.instance.recordError(
+          e,
+          st,
+          reason: 'incrementFirestoreCounter:$counterName',
+          fatal: false,
+        ));
+      } catch (_) {}
     }
   }
 
@@ -2795,10 +2804,9 @@ class _DashboardScreenState extends State<DashboardScreen>
     } catch (_) {}
 
     try {
-      await FirebaseFirestore.instance
-          .collection('ig_users')
-          .doc(cleanUserId)
-          .set({
+      final docRef =
+          FirebaseFirestore.instance.collection('ig_users').doc(cleanUserId);
+      await docRef.set({
             'username': username,
             'userId': cleanUserId,
             'platform': Platform.isAndroid ? 'android' : 'ios',
@@ -2807,26 +2815,59 @@ class _DashboardScreenState extends State<DashboardScreen>
             'version': version,
           }, SetOptions(merge: true))
           .timeout(const Duration(seconds: 10));
+      try {
+        await docRef
+            .get(const GetOptions(source: Source.server))
+            .timeout(const Duration(seconds: 10));
+      } catch (_) {}
       debugPrint('[ForceWrite] ig_users/$cleanUserId written');
+      try {
+        FirebaseCrashlytics.instance.log('ForceWrite ig_users/$cleanUserId ok');
+      } catch (_) {}
     } catch (e, st) {
       debugPrint('[ForceWrite] ig_users/$cleanUserId write failed: $e');
       debugPrint('$st');
+      try {
+        unawaited(FirebaseCrashlytics.instance.recordError(
+          e,
+          st,
+          reason: 'forceWriteIgUserDoc:$cleanUserId',
+          fatal: false,
+        ));
+      } catch (_) {}
     }
   }
 
   Future<void> _forceWriteTestLog(String event) async {
     try {
-      await FirebaseFirestore.instance.collection('test_logs').add({
+      final docRef =
+          await FirebaseFirestore.instance.collection('test_logs').add({
         'event': event,
         'at': FieldValue.serverTimestamp(),
         'platform': Platform.isAndroid ? 'android' : 'ios',
         'userId': (savedUserId ?? '').trim(),
         'username': currentUsername,
       }).timeout(const Duration(seconds: 10));
+      try {
+        await docRef
+            .get(const GetOptions(source: Source.server))
+            .timeout(const Duration(seconds: 10));
+      } catch (_) {}
       debugPrint('[ForceWrite] test_logs written ($event)');
+      try {
+        FirebaseCrashlytics.instance.log('ForceWrite test_logs ok ($event)');
+      } catch (_) {}
     } catch (e, st) {
       debugPrint('[ForceWrite] test_logs write failed: $e');
       debugPrint('$st');
+      try {
+        unawaited(FirebaseCrashlytics.instance.recordError(
+          e,
+          st,
+          reason: 'forceWriteTestLog:$event',
+          fatal: false,
+        ));
+      } catch (_) {}
     }
   }
 
