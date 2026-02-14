@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
@@ -43,6 +43,13 @@ const String _revenueCatIosApiKey = String.fromEnvironment(
   'REVENUECAT_IOS_API_KEY',
   defaultValue: 'appl_JaWUAzYMRRqsEAkwdcRvjJxRWnv',
 );
+const bool _forceFirestoreTest =
+    bool.fromEnvironment('FORCE_FIRESTORE_TEST', defaultValue: false);
+const bool _forcePurchaseDebug =
+    bool.fromEnvironment('FORCE_PURCHASE_DEBUG', defaultValue: false);
+const int _firestoreTimeoutSeconds =
+    int.fromEnvironment('FIRESTORE_TIMEOUT_SECONDS', defaultValue: 20);
+const Duration _firestoreTimeout = Duration(seconds: _firestoreTimeoutSeconds);
 const MethodChannel _cookieChannel =
     MethodChannel('com.grkmcomert.unfollowerscurrent/cookie');
 const MethodChannel _reviewChannel =
@@ -51,8 +58,7 @@ const MethodChannel _reviewChannel =
 Future<void> _waitForUmpConsentFlow() async {
   if (_umpConsentFlowCompleter.isCompleted) return;
   try {
-    await _umpConsentFlowCompleter.future
-        .timeout(const Duration(seconds: 12));
+    await _umpConsentFlowCompleter.future.timeout(const Duration(seconds: 12));
   } catch (_) {}
 }
 
@@ -133,8 +139,7 @@ void main() {
     } catch (e) {
       debugPrint('[FirebaseAuth] anonymous sign-in failed: $e');
     }
-    FirebaseMessaging.onBackgroundMessage(
-        _firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     runApp(const RootApp());
   }, (error, stack) {
     debugPrint("Global Hata Yakalandı: $error");
@@ -213,7 +218,8 @@ class _RootAppState extends State<RootApp> {
       requestSoundPermission: true,
     );
 
-    final InitializationSettings initializationSettings = InitializationSettings(
+    final InitializationSettings initializationSettings =
+        InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
     );
@@ -408,10 +414,8 @@ class _RootAppState extends State<RootApp> {
         fetchTimeout: const Duration(seconds: 15),
         minimumFetchInterval: Duration.zero,
       ));
-      await remoteConfig.setDefaults({
-        "show_real_app": false,
-        "app_enabled": true
-      });
+      await remoteConfig
+          .setDefaults({"show_real_app": false, "app_enabled": true});
       await remoteConfig.fetchAndActivate();
       _showRealApp = remoteConfig.getBool('show_real_app');
       _isAppEnabled = remoteConfig.getBool('app_enabled');
@@ -586,7 +590,6 @@ class UpdateRequiredApp extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class MaintenanceApp extends StatelessWidget {
@@ -745,7 +748,8 @@ const List<Map<String, String>> _analysisDidYouKnowFacts = [
         'An ant can lift up to 50 times its own weight—if you were an ant, you could lift a car by yourself.',
   },
   {
-    'tr': "Eyfel Kulesi yaz aylarında genleşme nedeniyle yaklaşık 15 santimetre kadar uzayabilir.",
+    'tr':
+        "Eyfel Kulesi yaz aylarında genleşme nedeniyle yaklaşık 15 santimetre kadar uzayabilir.",
     'en':
         'The Eiffel Tower can grow by about 15 centimeters in summer due to thermal expansion.',
   },
@@ -806,8 +810,7 @@ const List<Map<String, String>> _analysisDidYouKnowFacts = [
   {
     'tr':
         'Bal arıları insan yüzlerini tanıyabilir ve onları tek tek hafızalarına kaydedebilirler.',
-    'en':
-        'Honeybees can recognize human faces and remember them individually.',
+    'en': 'Honeybees can recognize human faces and remember them individually.',
   },
   {
     'tr':
@@ -887,9 +890,9 @@ class _ModernLoaderState extends State<ModernLoader>
   @override
   void initState() {
     super.initState();
-    _controller =
-        AnimationController(duration: const Duration(milliseconds: 550), vsync: this)
-          ..repeat();
+    _controller = AnimationController(
+        duration: const Duration(milliseconds: 550), vsync: this)
+      ..repeat();
     _startFactRotationIfNeeded();
   }
 
@@ -932,8 +935,7 @@ class _ModernLoaderState extends State<ModernLoader>
     final String label = isTr ? 'BUNU BİLİYOR MUYDUNUZ?' : 'DID YOU KNOW?';
     final Map<String, String> fact =
         _analysisDidYouKnowFacts[_factIndex % _analysisDidYouKnowFacts.length];
-    final String body =
-        (fact[isTr ? 'tr' : 'en'] ?? fact['en'] ?? '').trim();
+    final String body = (fact[isTr ? 'tr' : 'en'] ?? fact['en'] ?? '').trim();
     if (body.isEmpty) return const SizedBox.shrink();
 
     final Color panelBg = widget.isDark
@@ -1137,14 +1139,14 @@ class _ModernLoaderState extends State<ModernLoader>
                           : null,
                     )),
               ),
-
             if (widget.progress != null) ...[
               const SizedBox(height: 15),
               Builder(builder: (context) {
                 final double value = (widget.progress ?? 0.0).clamp(0.0, 1.0);
                 final int percent =
                     value >= 1.0 ? 100 : min(99, (value * 100).round());
-                final Color accent = widget.isDark ? Colors.blueAccent : Colors.blue;
+                final Color accent =
+                    widget.isDark ? Colors.blueAccent : Colors.blue;
                 return Column(
                   children: [
                     _buildRunningMascot(progress: value, accent: accent),
@@ -1197,12 +1199,13 @@ class _CatWalkerPainter extends CustomPainter {
     final Paint shadowPaint = Paint()
       ..color = Colors.black.withOpacity(isDark ? 0.35 : 0.18)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-    final Rect shadowRect =
-        Rect.fromCenter(center: Offset(w * 0.50, groundY + 1), width: w * 0.55, height: 6);
+    final Rect shadowRect = Rect.fromCenter(
+        center: Offset(w * 0.50, groundY + 1), width: w * 0.55, height: 6);
     canvas.drawOval(shadowRect, shadowPaint);
 
     final Rect bodyBounds = Rect.fromLTWH(10, 11, w - 22, 11);
-    final RRect body = RRect.fromRectAndRadius(bodyBounds, const Radius.circular(7));
+    final RRect body =
+        RRect.fromRectAndRadius(bodyBounds, const Radius.circular(7));
 
     final Color dark = _mix(baseColor, Colors.black, isDark ? 0.05 : 0.18);
     final Color light = _mix(baseColor, Colors.white, isDark ? 0.14 : 0.08);
@@ -1222,11 +1225,13 @@ class _CatWalkerPainter extends CustomPainter {
 
     final Offset headCenter = Offset(w - 12.2, 13.2);
     const double headR = 6.7;
-    final Rect headRect =
-        Rect.fromCircle(center: headCenter, radius: headR);
+    final Rect headRect = Rect.fromCircle(center: headCenter, radius: headR);
     final Paint headPaint = Paint()
       ..shader = LinearGradient(
-        colors: [_mix(light, Colors.white, 0.10), _mix(dark, Colors.black, 0.06)],
+        colors: [
+          _mix(light, Colors.white, 0.10),
+          _mix(dark, Colors.black, 0.06)
+        ],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ).createShader(headRect);
@@ -1248,8 +1253,10 @@ class _CatWalkerPainter extends CustomPainter {
     canvas.drawPath(ear1, outline);
     canvas.drawPath(ear2, outline);
 
-    final Paint eye = Paint()..color = _mix(baseColor, Colors.white, isDark ? 0.10 : 0.04);
-    canvas.drawCircle(Offset(headCenter.dx + 2.3, headCenter.dy - 0.6), 0.8, eye);
+    final Paint eye = Paint()
+      ..color = _mix(baseColor, Colors.white, isDark ? 0.10 : 0.04);
+    canvas.drawCircle(
+        Offset(headCenter.dx + 2.3, headCenter.dy - 0.6), 0.8, eye);
 
     final double tailWiggle = 1.6 * sin(t * 2 * pi + pi / 3);
     final Path tail = Path()
@@ -1547,7 +1554,8 @@ class _BioPlannerScreenState extends State<BioPlannerScreen> {
   }
 }
 
-final GlobalKey<ScaffoldMessengerState> _diagScaffoldKey = GlobalKey<ScaffoldMessengerState>();
+final GlobalKey<ScaffoldMessengerState> _diagScaffoldKey =
+    GlobalKey<ScaffoldMessengerState>();
 
 class UnfollowersApp extends StatelessWidget {
   const UnfollowersApp({super.key});
@@ -1662,10 +1670,18 @@ class _DashboardScreenState extends State<DashboardScreen>
   String? _lastIgWarning;
   bool _securityGuideVisible = false;
   bool _igWarningVisible = false;
+  final ValueNotifier<List<String>> _firebaseDiagnosticEvents =
+      ValueNotifier<List<String>>(<String>[]);
+  static const int _maxFirebaseDiagnosticEvents = 280;
+  bool _criticalDiagnosticVisible = false;
+  String? _lastCriticalDiagnosticFingerprint;
+  DateTime? _lastCriticalDiagnosticAt;
+  String _lastObservedPurchaseError = '';
 
   static const bool _forceTestAds = false;
   static const Duration _igRequestTimeout = Duration(seconds: 12);
   static const Duration _igRetryBaseDelay = Duration(milliseconds: 700);
+  static const Duration _firestoreAuthTimeout = Duration(seconds: 12);
   static const String _networkTimeOffsetKey = 'network_time_offset_ms';
   int? _networkTimeOffsetMs;
 
@@ -1709,7 +1725,8 @@ class _DashboardScreenState extends State<DashboardScreen>
           );
       Future<http.Response> fetchApp() => _igGet(
             Uri.parse("https://i.instagram.com/api/v1/feed/reels_tray/"),
-            headers: _buildAppHeaders(savedCookie!, appUa, dsUserId: savedUserId),
+            headers:
+                _buildAppHeaders(savedCookie!, appUa, dsUserId: savedUserId),
             minGap: const Duration(milliseconds: 240),
             jitterMaxMs: 220,
           );
@@ -1830,7 +1847,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       'cancel': 'İPTAL',
       'delete': 'SİL',
       'error_title': 'HATA',
-      'data_fetch_error': 'Veri çekilemedi: {err}\n\nÇözüm: Çıkış yapıp tekrar giriş deneyin.',
+      'data_fetch_error':
+          'Veri çekilemedi: {err}\n\nÇözüm: Çıkış yapıp tekrar giriş deneyin.',
       'followers': 'Takipçiler',
       'following': 'Takip Ettiklerin',
       'new_followers': 'Yeni Takipçiler',
@@ -1840,7 +1858,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       'legal_warning': 'Yasal Uyarı',
       'rate_us': 'Bizi Puanla',
       'rate_test_message': 'Bu kutucuk şu anda test aşamasındadır.',
-      'story_section_title': 'Hikayeleri Gizlice İzle veya Profil Fotoğraflarını Büyüt',
+      'story_section_title':
+          'Hikayeleri Gizlice İzle veya Profil Fotoğraflarını Büyüt',
       'story_login_required':
           'Hikayeleri gizli bir şekilde izlemek için lütfen giriş yapınız.',
       'story_ad_wait': 'Reklamdan sonra gösterilecektir, lütfen bekleyiniz.',
@@ -1879,7 +1898,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       'article4_title': 'Madde 4: Fikri Mülkiyet ve Bağımsızlık Bildirimi',
       'article4_text':
           "VERDICT, bağımsız bir geliştirici projesidir. 'Instagram', 'Facebook' ve 'Meta' markaları Meta Platforms, Inc.'in tescilli ticari markalarıdır. Bu uygulamanın söz konusu şirketlerle herhangi bir ticari ortaklığı, sponsorluk anlaşması veya resmi bağlantısı bulunmamaktadır.",
-      'article5_title': 'Madde 5: Hizmet Sürekliliği ve Platform Değişiklikleri',
+      'article5_title':
+          'Madde 5: Hizmet Sürekliliği ve Platform Değişiklikleri',
       'article5_text':
           "Instagram API’sinde veya web altyapısında meydana gelebilecek köklü değişiklikler, uygulamanın işlevselliğini kısmen veya tamamen yitirmesine neden olabilir. Geliştirici, 'mücbir sebep' (force majeure) olarak kabul edilen bu tür altyapısal değişikliklere bağlı olarak uygulamayı güncelleme veya hizmeti sürdürme konusunda herhangi bir taahhütte bulunmamaktadır.",
       'ad_wait_message':
@@ -1943,8 +1963,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'Remove Ads & Wait Times',
       'rate_test_message': 'This box is currently under test.',
       'story_section_title': 'Watch Stories Secretly or Zoom Profile Photos',
-      'story_login_required':
-          'Please log in to watch stories secretly.',
+      'story_login_required': 'Please log in to watch stories secretly.',
       'story_ad_wait': 'Will be shown after the ad, please wait.',
       'story_action_title': 'What would you like to do?',
       'story_view_photo': 'Enlarge profile photo',
@@ -1979,16 +1998,19 @@ class _DashboardScreenState extends State<DashboardScreen>
       'ok': 'OK',
       'legal_intro':
           'By downloading and using this application, every User is deemed to have read, understood, and irrevocably accepted the "Terms of Use and Disclaimer" text below in advance:',
-      'article1_title': 'Article 1: Data Privacy and Local Processing Architecture',
+      'article1_title':
+          'Article 1: Data Privacy and Local Processing Architecture',
       'article1_text':
           "VERDICT is 'client-side' software. The User's login credentials (username, password, session cookies) are under no circumstances transmitted to or stored on an external server. All data processing activities occur exclusively within the temporary memory (RAM) and local storage of the User's device. The application functions as a 'browser-wrapper' operating over the Instagram interface.",
       'article2_title': 'Article 2: Third-Party Platform Risks',
       'article2_text':
           "Instagram (Meta Platforms, Inc.) reserves the right to restrict the use of third-party software per its platform policies. All risks, including but not limited to 'action blocks', 'account restrictions', 'shadowbans', or 'account closures' that may arise from the use of the application, belong exclusively to the User. The VERDICT developer cannot be held liable for any direct or indirect damages resulting from such administrative sanctions.",
-      'article3_title': 'Article 3: Warranty Disclaimer and Limitation of Liability',
+      'article3_title':
+          'Article 3: Warranty Disclaimer and Limitation of Liability',
       'article3_text':
           "This software is provided 'AS-IS' and 'AS AVAILABLE'. The 100% accuracy, continuity, or merchantability of the analysis results provided by the software is not guaranteed. The User acknowledges that any results arising from legal or commercial transactions based on application data are their own responsibility; and declares and undertakes to hold the developer harmless from all claims, lawsuits, and complaints.",
-      'article4_title': 'Article 4: Intellectual Property and Independence Notice',
+      'article4_title':
+          'Article 4: Intellectual Property and Independence Notice',
       'article4_text':
           "VERDICT is an independent developer project. The 'Instagram', 'Facebook', and 'Meta' brands are registered trademarks of Meta Platforms, Inc. This application has no commercial partnership, sponsorship agreement, or official affiliation with the aforementioned companies.",
       'article5_title': 'Article 5: Service Continuity and Platform Changes',
@@ -1998,8 +2020,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'Analysis complete, results will be shown after the ad.',
       'analysis_failed_title': 'Analysis failed',
       'analysis_failed_reason': 'Reason: {reason}',
-      'analysis_failed_hint':
-          'Tip: Logging out and logging back in may help.',
+      'analysis_failed_hint': 'Tip: Logging out and logging back in may help.',
       'analysis_fast_no_change':
           'Quick check: Counts are the same. No changes detected.',
       'usage_metrics_title': 'Daily Metrics',
@@ -2054,8 +2075,13 @@ class _DashboardScreenState extends State<DashboardScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     PurchasesService.instance.isPremium.addListener(_onPremiumChanged);
+    PurchasesService.instance.lastPurchaseError
+        .addListener(_onPurchaseErrorChanged);
     _isPremium = PurchasesService.instance.isPremium.value;
+    _lastObservedPurchaseError =
+        PurchasesService.instance.lastPurchaseError.value.trim();
     _storyScrollController = ScrollController();
+    _logFirebaseDiagnostic('app', 'dashboard init state created');
     _loadStoredData();
     _loadLanguagePreference();
     _tryAutoLogin();
@@ -2066,6 +2092,13 @@ class _DashboardScreenState extends State<DashboardScreen>
       _checkRatingDialog();
       _maybeLoadBannerAfterConsent();
       _maybeRequestATT();
+
+      if (kDebugMode || _forceFirestoreTest) {
+        Future.delayed(const Duration(seconds: 5), () {
+          if (!mounted) return;
+          unawaited(_testFirestoreWrite());
+        });
+      }
     });
   }
 
@@ -2180,13 +2213,10 @@ class _DashboardScreenState extends State<DashboardScreen>
         'watchstoriessecretly': true,
       });
       await remoteConfig.fetchAndActivate();
-      final String bannedRaw =
-          remoteConfig.getString('bannedusers').trim();
-      final String removeAdsRaw =
-          remoteConfig.getString('removeadsfor').trim();
+      final String bannedRaw = remoteConfig.getString('bannedusers').trim();
+      final String removeAdsRaw = remoteConfig.getString('removeadsfor').trim();
       final bool removeAllAds = remoteConfig.getBool('removeallads');
-      final bool watchStories =
-          remoteConfig.getBool('watchstoriessecretly');
+      final bool watchStories = remoteConfig.getBool('watchstoriessecretly');
       final String announcementText =
           remoteConfig.getString('announcement_text').trim();
       _rateUrlAndroid = remoteConfig.getString('bizipuanlaandroid').trim();
@@ -2202,7 +2232,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       await _refreshUsernameForBanCheckIfNeeded();
       _applyUserFlags();
       if (mounted) setState(() {});
-    } catch (_) {} finally {
+    } catch (_) {
+    } finally {
       _remoteFlagsLoaded = true;
     }
   }
@@ -2290,13 +2321,16 @@ class _DashboardScreenState extends State<DashboardScreen>
 
       if (count == 2 && !hasRequested) {
         await prefs.setBool('has_rated_app', true);
-        unawaited(_launchRateUrl());
+        unawaited(_launchRateUrl(userInitiated: false));
       }
     } catch (_) {}
   }
 
-  Future<void> _launchRateUrl() async {
-    if (Platform.isIOS) {
+  Future<void> _launchRateUrl({bool userInitiated = true}) async {
+    // On iOS, `SKStoreReviewController.requestReview` is rate-limited by Apple
+    // and may show nothing even when it succeeds. For user-initiated taps,
+    // prefer opening the App Store review page so the action always "responds".
+    if (Platform.isIOS && !userInitiated) {
       try {
         await _reviewChannel.invokeMethod('requestReview');
       } catch (_) {}
@@ -2306,10 +2340,17 @@ class _DashboardScreenState extends State<DashboardScreen>
     final String rawUrl = Platform.isIOS ? _rateUrlIos : _rateUrlAndroid;
     final String trimmed = rawUrl.trim();
     if (trimmed.isEmpty) {
+      if (Platform.isIOS && userInitiated) {
+        try {
+          await _reviewChannel.invokeMethod('requestReview');
+          return;
+        } catch (_) {}
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-              _lang == 'tr' ? 'Mağaza linki bulunamadı.' : 'Store link not set.'),
+          content: Text(_lang == 'tr'
+              ? 'Mağaza linki bulunamadı.'
+              : 'Store link not set.'),
           backgroundColor: Colors.redAccent,
         ));
       }
@@ -2330,9 +2371,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(_lang == 'tr'
-              ? 'Link açılamadı.'
-              : 'Could not open the link.'),
+          content: Text(
+              _lang == 'tr' ? 'Link açılamadı.' : 'Could not open the link.'),
           backgroundColor: Colors.redAccent,
         ));
       }
@@ -2341,6 +2381,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Future<void> _restorePurchasesPressed() async {
     if (isProcessing) return;
+    _logFirebaseDiagnostic('purchase_restore', 'restore flow started');
 
     await PurchasesService.instance.configure(
       androidApiKey: _revenueCatAndroidApiKey,
@@ -2348,6 +2389,12 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
 
     if (!PurchasesService.instance.isConfigured) {
+      _logFirebaseDiagnostic(
+        'purchase_restore',
+        'restore blocked: purchases not configured',
+        isError: true,
+        popCritical: true,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(_t('purchases_not_configured')),
@@ -2398,9 +2445,14 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (!mounted) return;
 
     if (result.errorMessage != null) {
-      final String err = _lang == 'tr'
-          ? 'Lütfen tekrar deneyin.'
-          : 'Please try again.';
+      _logFirebaseDiagnostic(
+        'purchase_restore',
+        'restore failed: ${result.errorMessage}',
+        isError: true,
+        popCritical: true,
+      );
+      final String err =
+          _lang == 'tr' ? 'Lütfen tekrar deneyin.' : 'Please try again.';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(_t('restore_purchases_failed', {'err': err})),
         duration: const Duration(seconds: 4),
@@ -2410,6 +2462,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     }
 
     if (result.success) {
+      _logFirebaseDiagnostic('purchase_restore', 'restore success');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(_t('restore_purchases_success')),
         duration: const Duration(seconds: 3),
@@ -2418,6 +2471,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       return;
     }
 
+    _logFirebaseDiagnostic(
+      'purchase_restore',
+      'restore completed without entitlement',
+    );
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(_t('restore_purchases_none')),
       duration: const Duration(seconds: 3),
@@ -2622,8 +2679,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Future<DateTime> _getEstimatedNetworkTime() async {
     if (_networkTimeOffsetMs != null) {
-      return DateTime.now()
-          .add(Duration(milliseconds: _networkTimeOffsetMs!));
+      return DateTime.now().add(Duration(milliseconds: _networkTimeOffsetMs!));
     }
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -2639,14 +2695,14 @@ class _DashboardScreenState extends State<DashboardScreen>
   Future<DateTime> _getNetworkTime() async {
     try {
       final response = await http
-          .head(Uri.parse('https://raw.githubusercontent.com/grkmcomert/verdict-web/refs/heads/main/privacy-policy.txt'))
+          .head(Uri.parse(
+              'https://raw.githubusercontent.com/grkmcomert/verdict-web/refs/heads/main/privacy-policy.txt'))
           .timeout(const Duration(seconds: 2));
       final String? dateHeader = response.headers['date'];
       if (dateHeader != null) {
         final DateTime networkTime = HttpDate.parse(dateHeader).toLocal();
         final DateTime localNow = DateTime.now();
-        final int offsetMs =
-            networkTime.difference(localNow).inMilliseconds;
+        final int offsetMs = networkTime.difference(localNow).inMilliseconds;
         _networkTimeOffsetMs = offsetMs;
         try {
           final prefs = await SharedPreferences.getInstance();
@@ -2726,21 +2782,942 @@ class _DashboardScreenState extends State<DashboardScreen>
     return '$hrs:$mins:$secs';
   }
 
+  void _showDiagSnackBar(
+    String message, {
+    Color backgroundColor = Colors.red,
+    Duration duration = const Duration(seconds: 5),
+  }) {
+    final SnackBar sb = SnackBar(
+      content: Text(message),
+      backgroundColor: backgroundColor,
+      duration: duration,
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(sb);
+      return;
+    }
+    _diagScaffoldKey.currentState?.showSnackBar(sb);
+  }
+
+  String _buildFirebaseStatusSummary() {
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    final String uid = currentUser?.uid ?? '(none)';
+    final bool isAnon = currentUser?.isAnonymous ?? false;
+    final bool hasCookie = (savedCookie ?? '').trim().isNotEmpty;
+    final bool hasUserId = (savedUserId ?? '').trim().isNotEmpty;
+    return 'time=${DateTime.now().toIso8601String()}\n'
+        'firebase_auth_uid=$uid\n'
+        'firebase_auth_is_anonymous=$isAnon\n'
+        'app_is_logged_in=$isLoggedIn\n'
+        'session_cookie_present=$hasCookie\n'
+        'session_user_id_present=$hasUserId\n'
+        'current_username=${currentUsername.trim().isEmpty ? '(empty)' : currentUsername.trim()}\n'
+        'is_premium=$_isPremium\n'
+        'purchases_configured=${PurchasesService.instance.isConfigured}\n'
+        'last_purchase_error_empty=${PurchasesService.instance.lastPurchaseError.value.trim().isEmpty}\n'
+        'network_offset_ms=${_networkTimeOffsetMs ?? '(null)'}';
+  }
+
+  void _appendFirebaseDiagnosticEvent(String line) {
+    final List<String> next =
+        List<String>.from(_firebaseDiagnosticEvents.value);
+    next.insert(0, line);
+    if (next.length > _maxFirebaseDiagnosticEvents) {
+      next.removeRange(_maxFirebaseDiagnosticEvents, next.length);
+    }
+    _firebaseDiagnosticEvents.value = next;
+  }
+
+  void _logFirebaseDiagnostic(
+    String area,
+    String message, {
+    Object? error,
+    StackTrace? stackTrace,
+    bool isError = false,
+    bool popCritical = false,
+  }) {
+    final String cleanArea = area.trim().isEmpty ? 'general' : area.trim();
+    String cleanMessage = message.replaceAll('\r\n', '\n').trim();
+    if (cleanMessage.isEmpty) cleanMessage = '(empty message)';
+    if (cleanMessage.length > 2600) {
+      cleanMessage = '${cleanMessage.substring(0, 2600)}...';
+    }
+
+    final String level = isError ? 'ERROR' : 'INFO';
+    final StringBuffer buffer = StringBuffer()
+      ..writeln(
+          '[${DateTime.now().toIso8601String()}][$level][$cleanArea] $cleanMessage');
+    if (error != null) {
+      buffer.writeln('error=$error');
+    }
+    if (stackTrace != null) {
+      final List<String> stackLines = stackTrace.toString().split('\n');
+      final String compactStack = stackLines.take(8).join('\n').trim();
+      if (compactStack.isNotEmpty) {
+        buffer.writeln('stack=$compactStack');
+      }
+    }
+
+    final String entry = buffer.toString().trimRight();
+    debugPrint('[Diag][$cleanArea][$level] $cleanMessage');
+    _appendFirebaseDiagnosticEvent(entry);
+
+    if (popCritical && isError) {
+      _showCriticalDiagnosticOverlay(
+        title: cleanArea.toUpperCase(),
+        details: entry,
+      );
+    }
+  }
+
+  String _buildCombinedDiagnosticDump() {
+    final List<String> firebaseEvents = _firebaseDiagnosticEvents.value;
+    final List<String> purchaseEvents =
+        PurchasesService.instance.diagnosticEvents.value;
+    final StringBuffer buffer = StringBuffer()
+      ..writeln('==== STATUS ====')
+      ..writeln(_buildFirebaseStatusSummary())
+      ..writeln('')
+      ..writeln('==== FIREBASE EVENTS (${firebaseEvents.length}) ====');
+    for (final String line in firebaseEvents) {
+      buffer.writeln(line);
+      buffer.writeln('---');
+    }
+    buffer.writeln('');
+    buffer.writeln('==== PURCHASE EVENTS (${purchaseEvents.length}) ====');
+    for (final String line in purchaseEvents) {
+      buffer.writeln(line);
+      buffer.writeln('---');
+    }
+    return buffer.toString().trimRight();
+  }
+
+  Future<void> _runFirebaseAuthDiagnosticProbe() async {
+    _logFirebaseDiagnostic('auth_probe', 'manual probe started');
+    final User? user = await _ensureFirestoreAuthUser();
+    if (user == null) {
+      _logFirebaseDiagnostic(
+        'auth_probe',
+        'probe failed: ensureFirestoreAuthUser returned null',
+        isError: true,
+        popCritical: true,
+      );
+      _showDiagSnackBar(
+        _lang == 'tr'
+            ? 'Firebase Auth probe basarisiz.'
+            : 'Firebase Auth probe failed.',
+        backgroundColor: Colors.red,
+      );
+      return;
+    }
+    try {
+      final IdTokenResult tokenResult =
+          await user.getIdTokenResult(true).timeout(_firestoreAuthTimeout);
+      _logFirebaseDiagnostic(
+        'auth_probe',
+        'probe success uid=${user.uid} anon=${user.isAnonymous} tokenExp=${tokenResult.expirationTime?.toIso8601String() ?? '(null)'}',
+      );
+      _showDiagSnackBar(
+        _lang == 'tr'
+            ? 'Firebase Auth probe basarili.'
+            : 'Firebase Auth probe success.',
+        backgroundColor: Colors.green,
+      );
+    } catch (e, st) {
+      _logFirebaseDiagnostic(
+        'auth_probe',
+        'token fetch failed',
+        error: e,
+        stackTrace: st,
+        isError: true,
+        popCritical: true,
+      );
+      _showDiagSnackBar(
+        _lang == 'tr'
+            ? 'Firebase token probe basarisiz.'
+            : 'Firebase token probe failed.',
+        backgroundColor: Colors.red,
+      );
+    }
+  }
+
+  void _showCriticalDiagnosticOverlay({
+    required String title,
+    required String details,
+  }) {
+    if (!mounted) return;
+    final String cleanTitle = title.trim().isEmpty ? 'ERROR' : title.trim();
+    final String cleanDetails =
+        details.trim().isEmpty ? '(empty)' : details.trim();
+    final String fingerprint = '$cleanTitle|$cleanDetails';
+    final DateTime now = DateTime.now();
+
+    if (_criticalDiagnosticVisible) return;
+    if (_lastCriticalDiagnosticFingerprint == fingerprint &&
+        _lastCriticalDiagnosticAt != null &&
+        now.difference(_lastCriticalDiagnosticAt!) <
+            const Duration(seconds: 7)) {
+      return;
+    }
+
+    _lastCriticalDiagnosticFingerprint = fingerprint;
+    _lastCriticalDiagnosticAt = now;
+    _criticalDiagnosticVisible = true;
+
+    unawaited(showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'critical_diagnostic',
+      barrierColor: Colors.black.withOpacity(0.75),
+      pageBuilder: (ctx, _, __) {
+        return SafeArea(
+          child: Material(
+            color: Colors.red.shade900.withOpacity(0.95),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
+                  Text(
+                    _lang == 'tr'
+                        ? 'KRITIK TESHIS HATASI'
+                        : 'CRITICAL DIAGNOSTIC ERROR',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    cleanTitle,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Expanded(
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.35),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: SingleChildScrollView(
+                        child: SelectableText(
+                          cleanDetails,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'monospace',
+                            fontSize: 15,
+                            height: 1.25,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.white70),
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () => Clipboard.setData(
+                            ClipboardData(text: cleanDetails),
+                          ),
+                          child: Text(_lang == 'tr' ? 'KOPYALA' : 'COPY'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black87,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                            Future.delayed(const Duration(milliseconds: 120),
+                                () {
+                              if (!mounted) return;
+                              unawaited(
+                                  _openDiagnosticsConsole(initialTabIndex: 0));
+                            });
+                          },
+                          child:
+                              Text(_lang == 'tr' ? 'LOG EKRANI' : 'OPEN LOGS'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: Text(
+                        _lang == 'tr' ? 'KAPAT' : 'CLOSE',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    ).whenComplete(() {
+      _criticalDiagnosticVisible = false;
+    }));
+  }
+
+  Future<void> _openDiagnosticsConsole({int initialTabIndex = 0}) async {
+    if (!mounted) return;
+    final bool isTr = _lang == 'tr';
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => Dialog.fullscreen(
+        child: DefaultTabController(
+          length: 2,
+          initialIndex: initialTabIndex.clamp(0, 1),
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(
+                isTr
+                    ? 'Firebase + Satin Alim Loglari'
+                    : 'Firebase + Purchase Logs',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              bottom: TabBar(
+                tabs: [
+                  Tab(text: isTr ? 'Firebase' : 'Firebase'),
+                  Tab(text: isTr ? 'Store' : 'Store'),
+                ],
+              ),
+              actions: [
+                IconButton(
+                  tooltip: isTr ? 'Tumunu kopyala' : 'Copy all',
+                  onPressed: () => Clipboard.setData(
+                    ClipboardData(text: _buildCombinedDiagnosticDump()),
+                  ),
+                  icon: const Icon(Icons.copy_all_rounded),
+                ),
+                IconButton(
+                  tooltip: isTr ? 'Kapat' : 'Close',
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
+            ),
+            body: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDarkMode
+                        ? Colors.white10
+                        : Colors.black.withOpacity(0.04),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: SelectableText(
+                    _buildFirebaseStatusSummary(),
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                      color: isDarkMode ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: _runFirebaseAuthDiagnosticProbe,
+                                    icon: const Icon(
+                                        Icons.verified_user_outlined),
+                                    label: Text(
+                                      isTr ? 'Auth Probe' : 'Auth Probe',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: _testFirestoreWrite,
+                                    icon:
+                                        const Icon(Icons.cloud_upload_outlined),
+                                    label: Text(
+                                      isTr ? 'Write Test' : 'Write Test',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  tooltip: isTr
+                                      ? 'Firebase loglarini temizle'
+                                      : 'Clear Firebase logs',
+                                  onPressed: () {
+                                    _firebaseDiagnosticEvents.value =
+                                        <String>[];
+                                  },
+                                  icon:
+                                      const Icon(Icons.delete_outline_rounded),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Expanded(
+                            child: ValueListenableBuilder<List<String>>(
+                              valueListenable: _firebaseDiagnosticEvents,
+                              builder: (_, logs, __) {
+                                if (logs.isEmpty) {
+                                  return Center(
+                                    child: Text(
+                                      isTr
+                                          ? 'Firebase logu henuz yok.'
+                                          : 'No Firebase logs yet.',
+                                    ),
+                                  );
+                                }
+                                return ListView.separated(
+                                  padding: const EdgeInsets.all(12),
+                                  itemCount: logs.length,
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(height: 8),
+                                  itemBuilder: (_, index) {
+                                    return Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: isDarkMode
+                                            ? Colors.white10
+                                            : Colors.black.withOpacity(0.04),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: SelectableText(
+                                        logs[index],
+                                        style: TextStyle(
+                                          fontFamily: 'monospace',
+                                          fontSize: 11,
+                                          color: isDarkMode
+                                              ? Colors.white
+                                              : Colors.black87,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: _restorePurchasesPressed,
+                                    icon: const Icon(Icons.restore_rounded),
+                                    label: Text(
+                                      isTr ? 'Restore Test' : 'Restore Test',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: () async {
+                                      await PurchasesService.instance.configure(
+                                        androidApiKey: _revenueCatAndroidApiKey,
+                                        iosApiKey: _revenueCatIosApiKey,
+                                      );
+                                      if (!mounted) return;
+                                      final PurchaseAttemptResult result =
+                                          await PurchasesService.instance
+                                              .makePurchase();
+                                      if (!mounted) return;
+                                      if (result.cancelled) {
+                                        _showDiagSnackBar(
+                                          isTr
+                                              ? 'Satin alim iptal edildi.'
+                                              : 'Purchase cancelled.',
+                                          backgroundColor:
+                                              Colors.blueGrey.shade900,
+                                        );
+                                      } else if (result.success) {
+                                        _showDiagSnackBar(
+                                          isTr
+                                              ? 'Satin alim basarili.'
+                                              : 'Purchase successful.',
+                                          backgroundColor: Colors.green,
+                                        );
+                                      } else {
+                                        _showDiagSnackBar(
+                                          isTr
+                                              ? 'Satin alim basarisiz.'
+                                              : 'Purchase failed.',
+                                          backgroundColor: Colors.red,
+                                        );
+                                      }
+                                    },
+                                    icon: const Icon(Icons.payment_rounded),
+                                    label: Text(
+                                      isTr ? 'Purchase Test' : 'Purchase Test',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  tooltip: isTr
+                                      ? 'Store loglarini temizle'
+                                      : 'Clear store logs',
+                                  onPressed: () {
+                                    PurchasesService.instance
+                                        .clearLastPurchaseError();
+                                    PurchasesService.instance
+                                        .clearDiagnosticEvents();
+                                  },
+                                  icon:
+                                      const Icon(Icons.delete_outline_rounded),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Expanded(
+                            child: ValueListenableBuilder<List<String>>(
+                              valueListenable:
+                                  PurchasesService.instance.diagnosticEvents,
+                              builder: (_, logs, __) {
+                                if (logs.isEmpty) {
+                                  return Center(
+                                    child: Text(
+                                      isTr
+                                          ? 'Store logu henuz yok.'
+                                          : 'No store logs yet.',
+                                    ),
+                                  );
+                                }
+                                return ListView.separated(
+                                  padding: const EdgeInsets.all(12),
+                                  itemCount: logs.length,
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(height: 8),
+                                  itemBuilder: (_, index) {
+                                    return Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: isDarkMode
+                                            ? Colors.white10
+                                            : Colors.black.withOpacity(0.04),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: SelectableText(
+                                        logs[index],
+                                        style: TextStyle(
+                                          fontFamily: 'monospace',
+                                          fontSize: 11,
+                                          color: isDarkMode
+                                              ? Colors.white
+                                              : Colors.black87,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _onPurchaseErrorChanged() {
+    final String value =
+        PurchasesService.instance.lastPurchaseError.value.trim();
+    if (value == _lastObservedPurchaseError) return;
+    _lastObservedPurchaseError = value;
+    if (value.isEmpty) return;
+
+    _logFirebaseDiagnostic(
+      'purchase_error',
+      value,
+      isError: true,
+      popCritical: true,
+    );
+  }
+
+  bool _isRetryableFirestoreError(Object error) {
+    if (error is TimeoutException) return true;
+
+    if (error is FirebaseException) {
+      final String code = error.code.toLowerCase().trim();
+      if (code == 'permission-denied' || code == 'unauthenticated') {
+        return false;
+      }
+      return code == 'unavailable' ||
+          code == 'deadline-exceeded' ||
+          code == 'aborted' ||
+          code == 'internal' ||
+          code == 'resource-exhausted';
+    }
+
+    final String raw = error.toString().toLowerCase();
+    if (raw.contains('permission_denied') ||
+        raw.contains('permission-denied') ||
+        raw.contains('unauthenticated')) {
+      return false;
+    }
+    return raw.contains('timeout') ||
+        raw.contains('future not completed') ||
+        raw.contains('deadline_exceeded') ||
+        raw.contains('deadline-exceeded') ||
+        raw.contains('unavailable') ||
+        raw.contains('socketexception') ||
+        raw.contains('connection');
+  }
+
+  Future<void> _safeResetFirestoreNetwork(String reason) async {
+    _logFirebaseDiagnostic('firestore_network', 'reset start: $reason');
+    try {
+      await FirebaseFirestore.instance
+          .disableNetwork()
+          .timeout(const Duration(seconds: 4));
+    } catch (e) {
+      _logFirebaseDiagnostic(
+        'firestore_network',
+        'disableNetwork failed',
+        error: e,
+        isError: true,
+      );
+    }
+    await Future.delayed(const Duration(milliseconds: 280));
+    try {
+      await FirebaseFirestore.instance
+          .enableNetwork()
+          .timeout(const Duration(seconds: 6));
+    } catch (e) {
+      _logFirebaseDiagnostic(
+        'firestore_network',
+        'enableNetwork failed',
+        error: e,
+        isError: true,
+      );
+    }
+    _logFirebaseDiagnostic('firestore_network', 'reset complete: $reason');
+  }
+
+  Future<User?> _ensureFirestoreAuthUser() async {
+    _logFirebaseDiagnostic('firestore_auth', 'ensure auth user start');
+    User? currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser == null) {
+      try {
+        final UserCredential cred = await FirebaseAuth.instance
+            .signInAnonymously()
+            .timeout(_firestoreAuthTimeout);
+        currentUser = cred.user;
+        _logFirebaseDiagnostic(
+          'firestore_auth',
+          'anonymous sign-in success uid=${currentUser?.uid ?? '(null)'}',
+        );
+      } catch (e, st) {
+        _logFirebaseDiagnostic(
+          'firestore_auth',
+          'anonymous sign-in failed',
+          error: e,
+          stackTrace: st,
+          isError: true,
+          popCritical: true,
+        );
+        return null;
+      }
+    } else {
+      _logFirebaseDiagnostic(
+        'firestore_auth',
+        'existing auth user uid=${currentUser.uid}',
+      );
+    }
+
+    if (currentUser == null) {
+      _logFirebaseDiagnostic(
+        'firestore_auth',
+        'auth user is null after sign-in',
+        isError: true,
+        popCritical: true,
+      );
+      return null;
+    }
+
+    try {
+      await currentUser.getIdToken(true).timeout(_firestoreAuthTimeout);
+      _logFirebaseDiagnostic(
+        'firestore_auth',
+        'token refresh success uid=${currentUser.uid}',
+      );
+      return currentUser;
+    } catch (e, st) {
+      _logFirebaseDiagnostic(
+        'firestore_auth',
+        'token refresh failed; attempting re-auth',
+        error: e,
+        stackTrace: st,
+        isError: true,
+      );
+      try {
+        final UserCredential cred = await FirebaseAuth.instance
+            .signInAnonymously()
+            .timeout(_firestoreAuthTimeout);
+        currentUser = cred.user;
+      } catch (authErr, authStack) {
+        _logFirebaseDiagnostic(
+          'firestore_auth',
+          're-auth failed',
+          error: authErr,
+          stackTrace: authStack,
+          isError: true,
+          popCritical: true,
+        );
+        return null;
+      }
+      if (currentUser == null) {
+        _logFirebaseDiagnostic(
+          'firestore_auth',
+          're-auth returned null user',
+          isError: true,
+          popCritical: true,
+        );
+        return null;
+      }
+      try {
+        await currentUser.getIdToken(true).timeout(_firestoreAuthTimeout);
+      } catch (_) {}
+      _logFirebaseDiagnostic(
+        'firestore_auth',
+        're-auth success uid=${currentUser.uid}',
+      );
+      return currentUser;
+    }
+  }
+
+  Future<void> _runFirestoreWriteWithRetry(
+    Future<void> Function() op, {
+    required String label,
+    int maxAttempts = 3,
+  }) async {
+    Object? lastError;
+    StackTrace? lastStackTrace;
+
+    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await op().timeout(_firestoreTimeout);
+        _logFirebaseDiagnostic(
+          'firestore_write',
+          '$label success attempt=$attempt',
+        );
+        return;
+      } catch (e, st) {
+        lastError = e;
+        lastStackTrace = st;
+        final bool retryable = _isRetryableFirestoreError(e);
+        _logFirebaseDiagnostic(
+          'firestore_write',
+          '$label failed attempt=$attempt/$maxAttempts retryable=$retryable',
+          error: e,
+          stackTrace: st,
+          isError: true,
+          popCritical: !retryable || attempt >= maxAttempts,
+        );
+        if (!retryable || attempt >= maxAttempts) break;
+        await _safeResetFirestoreNetwork('$label attempt $attempt');
+        await Future.delayed(Duration(milliseconds: 240 * attempt));
+      }
+    }
+
+    if (lastError != null && lastStackTrace != null) {
+      Error.throwWithStackTrace(lastError, lastStackTrace);
+    }
+    throw Exception('firestore_write_failed:$label');
+  }
+
+  Future<void> _testFirestoreWrite() async {
+    _logFirebaseDiagnostic('firestore_test', 'manual write test started');
+
+    final User? currentUser = await _ensureFirestoreAuthUser();
+    if (currentUser == null) {
+      _logFirebaseDiagnostic(
+        'firestore_test',
+        'aborted: no auth user',
+        isError: true,
+        popCritical: true,
+      );
+      _showDiagSnackBar(
+        _lang == 'tr'
+            ? 'Firebase Auth hatasi: kullanici dogrulanamadi.'
+            : 'Firebase auth error: user verification failed.',
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 5),
+      );
+      return;
+    }
+
+    try {
+      final docRef = FirebaseFirestore.instance
+          .collection('test_collection')
+          .doc('test_doc');
+
+      await _runFirestoreWriteWithRetry(
+        () => docRef.set({
+          'test_field': 'Hello Firestore!',
+          'timestamp': FieldValue.serverTimestamp(),
+          'random': DateTime.now().millisecondsSinceEpoch,
+          'user_uid': currentUser.uid,
+        }),
+        label: 'test_collection/test_doc set',
+      );
+
+      final snapshot = await docRef
+          .get(const GetOptions(source: Source.server))
+          .timeout(_firestoreTimeout);
+      _logFirebaseDiagnostic(
+        'firestore_test',
+        'server read success data=${snapshot.data()}',
+      );
+
+      _showDiagSnackBar(
+        _lang == 'tr'
+            ? 'Firestore test yazma basarili.'
+            : 'Firestore test write successful.',
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 3),
+      );
+    } catch (e, st) {
+      _logFirebaseDiagnostic(
+        'firestore_test',
+        'write test failed',
+        error: e,
+        stackTrace: st,
+        isError: true,
+        popCritical: true,
+      );
+      _showDiagSnackBar(
+        _lang == 'tr'
+            ? 'Firestore test hatasi olustu.'
+            : 'Firestore test failed.',
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 5),
+      );
+      try {
+        unawaited(FirebaseCrashlytics.instance.recordError(
+          e,
+          st,
+          reason: 'testFirestoreWrite',
+          fatal: false,
+        ));
+      } catch (_) {}
+    }
+  }
+
   Future<void> _incrementFirestoreCounter(String counterName) async {
+    _logFirebaseDiagnostic(
+      'firestore_counter',
+      'counter write start name=$counterName',
+    );
+    final User? currentUser = await _ensureFirestoreAuthUser();
+    if (currentUser == null) {
+      _logFirebaseDiagnostic(
+        'firestore_counter',
+        'counter write blocked: no auth user',
+        isError: true,
+        popCritical: true,
+      );
+      _showDiagSnackBar(
+        _lang == 'tr'
+            ? 'Firestore auth hatasi: kullanici dogrulanamadi.'
+            : 'Firestore auth error: user verification failed.',
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 5),
+      );
+      return;
+    }
+
     try {
       final String today = DateTime.now().toString().substring(0, 10);
-      await FirebaseFirestore.instance
-          .collection('daily_stats')
-          .doc(today)
-          .set({
-            counterName: FieldValue.increment(1),
-            'last_updated_at': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true))
-          .timeout(const Duration(seconds: 10));
-      debugPrint('[Firestore] $counterName incremented');
+      await _runFirestoreWriteWithRetry(
+        () => FirebaseFirestore.instance
+            .collection('daily_stats')
+            .doc(today)
+            .set({
+          counterName: FieldValue.increment(1),
+          'last_updated_at': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true)),
+        label: 'daily_stats/$today set($counterName)',
+      );
+      _logFirebaseDiagnostic(
+        'firestore_counter',
+        'counter write success name=$counterName uid=${currentUser.uid}',
+      );
     } catch (e, st) {
-      debugPrint('[Firestore] $counterName increment failed: $e');
-      debugPrint('$st');
+      _logFirebaseDiagnostic(
+        'firestore_counter',
+        'counter write failed name=$counterName',
+        error: e,
+        stackTrace: st,
+        isError: true,
+        popCritical: true,
+      );
+      _showDiagSnackBar(
+        _lang == 'tr'
+            ? 'Firestore sayac yazma hatasi.'
+            : 'Firestore counter write failed.',
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 5),
+      );
       try {
         unawaited(FirebaseCrashlytics.instance.recordError(
           e,
@@ -2757,7 +3734,32 @@ class _DashboardScreenState extends State<DashboardScreen>
     required String username,
   }) async {
     final String cleanUserId = userId.trim();
-    if (cleanUserId.isEmpty || cleanUserId == 'null') return;
+    if (cleanUserId.isEmpty || cleanUserId == 'null') {
+      _logFirebaseDiagnostic(
+        'ig_users_write',
+        'skipped: invalid userId',
+        isError: true,
+      );
+      return;
+    }
+
+    final User? currentUser = await _ensureFirestoreAuthUser();
+    if (currentUser == null) {
+      _logFirebaseDiagnostic(
+        'ig_users_write',
+        'blocked: no auth user for ig_users/$cleanUserId',
+        isError: true,
+        popCritical: true,
+      );
+      _showDiagSnackBar(
+        _lang == 'tr'
+            ? 'Firestore auth yok: ig_users yazilamadi.'
+            : 'Firestore auth missing: ig_users write blocked.',
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 5),
+      );
+      return;
+    }
 
     String version = '8.0.0';
     try {
@@ -2767,29 +3769,51 @@ class _DashboardScreenState extends State<DashboardScreen>
     } catch (_) {}
 
     try {
+      _logFirebaseDiagnostic(
+        'ig_users_write',
+        'write start doc=ig_users/$cleanUserId authUid=${currentUser.uid} username=$username',
+      );
       final docRef =
           FirebaseFirestore.instance.collection('ig_users').doc(cleanUserId);
-      await docRef.set({
-            'username': username,
-            'userId': cleanUserId,
-            'platform': Platform.isAndroid ? 'android' : 'ios',
-            'is_premium': PurchasesService.instance.isPremium.value,
-            'last_seen': FieldValue.serverTimestamp(),
-            'version': version,
-          }, SetOptions(merge: true))
-          .timeout(const Duration(seconds: 10));
+      await _runFirestoreWriteWithRetry(
+        () => docRef.set({
+          'username': username,
+          'userId': cleanUserId,
+          'platform': Platform.isAndroid ? 'android' : 'ios',
+          'is_premium': PurchasesService.instance.isPremium.value,
+          'last_seen': FieldValue.serverTimestamp(),
+          'version': version,
+        }, SetOptions(merge: true)),
+        label: 'ig_users/$cleanUserId set',
+      );
       try {
         await docRef
             .get(const GetOptions(source: Source.server))
-            .timeout(const Duration(seconds: 10));
+            .timeout(_firestoreTimeout);
       } catch (_) {}
-      debugPrint('[ForceWrite] ig_users/$cleanUserId written');
+      _logFirebaseDiagnostic(
+        'ig_users_write',
+        'write success doc=ig_users/$cleanUserId',
+      );
       try {
         FirebaseCrashlytics.instance.log('ForceWrite ig_users/$cleanUserId ok');
       } catch (_) {}
     } catch (e, st) {
-      debugPrint('[ForceWrite] ig_users/$cleanUserId write failed: $e');
-      debugPrint('$st');
+      _logFirebaseDiagnostic(
+        'ig_users_write',
+        'write failed doc=ig_users/$cleanUserId',
+        error: e,
+        stackTrace: st,
+        isError: true,
+        popCritical: true,
+      );
+      _showDiagSnackBar(
+        _lang == 'tr'
+            ? 'Firestore ig_users yazma hatasi.'
+            : 'Firestore ig_users write failed.',
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 5),
+      );
       try {
         unawaited(FirebaseCrashlytics.instance.recordError(
           e,
@@ -2809,25 +3833,25 @@ class _DashboardScreenState extends State<DashboardScreen>
       showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
-              title: Text(_t('next_analysis')),
-              content: Text(_t('next_analysis_ready')),
-              actions: [
-                TextButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    child: Text(_t('cancel')))
-              ]));
+                  title: Text(_t('next_analysis')),
+                  content: Text(_t('next_analysis_ready')),
+                  actions: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: Text(_t('cancel')))
+                  ]));
     } else {
       showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
-              title: Text(_t('please_wait')),
-              content: Text(
-                  _t('remaining_time', {'time': _formatDuration(remaining)})),
-              actions: [
-                TextButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    child: Text(_t('cancel')))
-              ]));
+                  title: Text(_t('please_wait')),
+                  content: Text(_t(
+                      'remaining_time', {'time': _formatDuration(remaining)})),
+                  actions: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: Text(_t('cancel')))
+                  ]));
     }
   }
 
@@ -2846,15 +3870,19 @@ class _DashboardScreenState extends State<DashboardScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
-        title: Text(_t('clear_data_title'), style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
-        content: Text(_t('clear_data_content'), style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87)),
+        title: Text(_t('clear_data_title'),
+            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
+        content: Text(_t('clear_data_content'),
+            style:
+                TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
               child: Text(_t('cancel'))),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: Text(_t('delete'), style: const TextStyle(color: Colors.red))),
+              child: Text(_t('delete'),
+                  style: const TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -2871,8 +3899,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Future<String?> _readCookieFromWebViewStore() async {
     try {
-      final String? cookieString = await _cookieChannel
-          .invokeMethod<String>('getCookies', {'url': 'https://www.instagram.com/'});
+      final String? cookieString = await _cookieChannel.invokeMethod<String>(
+          'getCookies', {'url': 'https://www.instagram.com/'});
       final String cookie = (cookieString ?? '').trim();
       if (cookie.isEmpty) return null;
       final String sessionId = _extractCookieValue(cookie, 'sessionid').trim();
@@ -2895,7 +3923,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     String? updatedUserId = savedUserId;
     if (updateUserId) {
-      final String fromCookie = _extractCookieValue(cookie, 'ds_user_id').trim();
+      final String fromCookie =
+          _extractCookieValue(cookie, 'ds_user_id').trim();
       if (fromCookie.isNotEmpty) {
         updatedUserId = fromCookie;
       }
@@ -2931,8 +3960,9 @@ class _DashboardScreenState extends State<DashboardScreen>
           WidgetsBinding.instance.platformDispatcher.platformBrightness ==
               Brightness.dark;
       setState(() {
-        isDarkMode =
-            hasPref ? (prefs.getBool('is_dark_mode') ?? systemDark) : systemDark;
+        isDarkMode = hasPref
+            ? (prefs.getBool('is_dark_mode') ?? systemDark)
+            : systemDark;
       });
     }
     if (cookie != null && userId != null) {
@@ -2955,13 +3985,18 @@ class _DashboardScreenState extends State<DashboardScreen>
         currentUsername = username ?? fallback;
         savedUserAgent = ua;
       }
+      _logFirebaseDiagnostic(
+        'session',
+        'auto-login restored userId=$userId username=$currentUsername',
+      );
       unawaited(TelemetryService.instance.recordLogin(
         userId: userId,
         username: currentUsername,
         isPremium: PurchasesService.instance.isPremium.value,
       ));
       unawaited(_incrementFirestoreCounter('login_count'));
-      unawaited(_forceWriteIgUserDoc(userId: userId, username: currentUsername));
+      unawaited(
+          _forceWriteIgUserDoc(userId: userId, username: currentUsername));
       await _refreshSessionCookieFromWebViewStore();
       await _refreshUsernameForBanCheckIfNeeded();
       _applyUserFlags();
@@ -3029,9 +4064,10 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Future<void> _launchPrivacyPolicyURL() async {
-    final Uri url = Uri.parse('https://raw.githubusercontent.com/grkmcomert/verdict-web/refs/heads/main/privacy-policy.txt');
+    final Uri url = Uri.parse(
+        'https://raw.githubusercontent.com/grkmcomert/verdict-web/refs/heads/main/privacy-policy.txt');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-       debugPrint("Link açılamadı");
+      debugPrint("Link açılamadı");
     }
   }
 
@@ -3062,8 +4098,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (!Platform.isIOS) return;
     await _waitForUmpConsentFlow();
     try {
-      final status =
-          await AppTrackingTransparency.trackingAuthorizationStatus;
+      final status = await AppTrackingTransparency.trackingAuthorizationStatus;
       if (status == TrackingStatus.notDetermined) {
         await AppTrackingTransparency.requestTrackingAuthorization();
       }
@@ -3079,12 +4114,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                     isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
                 title: Text(_t('withdraw_consent_confirm_title'),
                     style: TextStyle(
-                        color:
-                            isDarkMode ? Colors.white : Colors.black87)),
+                        color: isDarkMode ? Colors.white : Colors.black87)),
                 content: Text(_t('withdraw_consent_confirm_body'),
                     style: TextStyle(
-                        color:
-                            isDarkMode ? Colors.white70 : Colors.black87)),
+                        color: isDarkMode ? Colors.white70 : Colors.black87)),
                 actions: [
                   TextButton(
                       onPressed: () => Navigator.pop(ctx, false),
@@ -3134,7 +4167,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     bool ok = false;
     try {
       final status = await ConsentInformation.instance.getConsentStatus();
-      ok = status == ConsentStatus.obtained || status == ConsentStatus.notRequired;
+      ok = status == ConsentStatus.obtained ||
+          status == ConsentStatus.notRequired;
     } catch (_) {
       ok = false;
     }
@@ -3206,8 +4240,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blueGrey.shade900,
                     foregroundColor: Colors.white,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -3241,201 +4275,224 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
 
     return Theme(
-      data: themed,
-      child: Scaffold(
-        backgroundColor: bgColor,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-                child: Column(
-                  children: [
-                    Stack(
-                      alignment: Alignment.center,
+        data: themed,
+        child: Scaffold(
+          backgroundColor: bgColor,
+          body: SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 15),
+                    child: Column(
                       children: [
-                        Align(
-                            alignment: Alignment.centerLeft,
-                            child: Row(mainAxisSize: MainAxisSize.min, children: [
-                              IconButton(
-                                  icon: Icon(
-                                      isDarkMode
-                                          ? Icons.light_mode
-                                          : Icons.dark_mode,
-                                      color: headerColor),
-                                  onPressed: _toggleDarkMode),
-                              IconButton(
-                                icon: Row(
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Align(
+                                alignment: Alignment.centerLeft,
+                                child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(Icons.language, color: headerColor),
-                                      const SizedBox(width: 6),
-                                      Text(_lang.toUpperCase(),
-                                          style: TextStyle(
-                                              color: headerColor,
-                                              fontWeight: FontWeight.bold))
-                                    ]),
-                                onPressed: _toggleLanguage,
-                              ),
-                              if (_privacyOptionsRequired)
-                                IconButton(
-                                  icon: Icon(Icons.privacy_tip_outlined,
-                                      color: headerColor),
-                                  onPressed: _showPrivacyOptionsForm,
-                                ),
-                            ])),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('VERDICT',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 26,
-                                    color: headerColor,
-                                    letterSpacing: 3.0)),
-                            Text(_t('tagline'),
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 8,
-                                    color: headerColor.withOpacity(0.6))),
+                                      IconButton(
+                                          icon: Icon(
+                                              isDarkMode
+                                                  ? Icons.light_mode
+                                                  : Icons.dark_mode,
+                                              color: headerColor),
+                                          onPressed: _toggleDarkMode),
+                                      IconButton(
+                                        icon: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.language,
+                                                  color: headerColor),
+                                              const SizedBox(width: 6),
+                                              Text(_lang.toUpperCase(),
+                                                  style: TextStyle(
+                                                      color: headerColor,
+                                                      fontWeight:
+                                                          FontWeight.bold))
+                                            ]),
+                                        onPressed: _toggleLanguage,
+                                      ),
+                                      if (_privacyOptionsRequired)
+                                        IconButton(
+                                          icon: Icon(Icons.privacy_tip_outlined,
+                                              color: headerColor),
+                                          onPressed: _showPrivacyOptionsForm,
+                                        ),
+                                      IconButton(
+                                        icon: Icon(Icons.bug_report_outlined,
+                                            color: headerColor),
+                                        tooltip: _lang == 'tr'
+                                            ? 'Teshis loglari'
+                                            : 'Diagnostics',
+                                        onPressed: () {
+                                          unawaited(_openDiagnosticsConsole(
+                                              initialTabIndex: 0));
+                                        },
+                                      ),
+                                    ])),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('VERDICT',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 26,
+                                        color: headerColor,
+                                        letterSpacing: 3.0)),
+                                Text(_t('tagline'),
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 8,
+                                        color: headerColor.withOpacity(0.6))),
+                              ],
+                            ),
+                            Align(
+                                alignment: Alignment.centerRight,
+                                child: IconButton(
+                                    icon: const Icon(
+                                        Icons.delete_sweep_outlined,
+                                        color: Colors.redAccent),
+                                    onPressed: (isProcessing || _isClearingData)
+                                        ? null
+                                        : _clearCache)),
                           ],
                         ),
-                        Align(
-                            alignment: Alignment.centerRight,
-                            child: IconButton(
-                                icon: const Icon(Icons.delete_sweep_outlined,
-                                    color: Colors.redAccent),
-                                onPressed: (isProcessing || _isClearingData)
-                                    ? null
-                                    : _clearCache)),
+                        const SizedBox(height: 20),
+                        if (!_adsDisabled)
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                                color: isDarkMode
+                                    ? Colors.white10
+                                    : Colors.black.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: primaryColor.withOpacity(0.1))),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (_isAdLoaded && _bannerAd != null)
+                                    SizedBox(
+                                      width: _bannerAd!.size.width.toDouble(),
+                                      height: _bannerAd!.size.height.toDouble(),
+                                      child: AdWidget(ad: _bannerAd!),
+                                    )
+                                  else if (_bannerAdError != null)
+                                    const SizedBox(height: 50)
+                                  else
+                                    const SizedBox(
+                                        height: 50,
+                                        child: Center(
+                                            child: SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                        strokeWidth: 2))))
+                                ]),
+                          ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-
-                    if (!_adsDisabled)
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                            color: isDarkMode
-                                ? Colors.white10
-                                : Colors.black.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                                color: primaryColor.withOpacity(0.1))),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child:
-                            Column(mainAxisSize: MainAxisSize.min, children: [
-                          if (_isAdLoaded && _bannerAd != null)
-                            SizedBox(
-                              width: _bannerAd!.size.width.toDouble(),
-                              height: _bannerAd!.size.height.toDouble(),
-                              child: AdWidget(ad: _bannerAd!),
-                            )
-                          else if (_bannerAdError != null)
-                            const SizedBox(height: 50)
-                          else
-                            const SizedBox(
-                                height: 50,
-                                child: Center(
-                                    child: SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 2))))
-                        ]),
-                      ),
-                  ],
-                ),
-              ),
-              Center(
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 500),
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Column(
-                    children: [
-                      if (isLoggedIn && _isAdminUser) ...[
-                        _buildInfoBox(Icons.admin_panel_settings,
-                            _t('admin_active_note'), primaryColor),
-                        const SizedBox(height: 10),
-                      ],
-                      if (_announcementText.trim().isNotEmpty) ...[
-                        _buildInfoBox(
-                            Icons.info_outline, _announcementText, primaryColor),
-                        const SizedBox(height: 10),
-                      ],
-                      _buildInfoBox(
-                          Icons.info_outline, _t('free_app_note'), primaryColor),
-                      const SizedBox(height: 10),
-                      if (!isLoggedIn)
-                        _buildInfoBox(Icons.lock_outline, _t('login_prompt'),
-                            Colors.redAccent)
-                      else
-                        _buildInfoBox(
-                            Icons.verified_user,
-                            _t('welcome', {'username': currentUsername}),
-                            Colors.green),
-                      if (_remoteFlagsLoaded && _watchStoriesEnabled) ...[
-                        const SizedBox(height: 12),
-                        _buildStorySection(),
-                        const SizedBox(height: 18),
-                      ],
-                      if (isProcessing)
-                        Container(
-                          height: 330,
-                          alignment: Alignment.center,
-                          child: ModernLoader(
-                            text: _isRewardedLoading
-                                ? _t('loading_ad')
-                                : (_progressValue >= 0.97
-                                    ? _t('processing_data')
-                                    : _t('fetching_data')),
-                            isDark: isDarkMode,
-                            progress: _progressValue,
-                            lang: _lang,
-                          ),
-                        )
-                      else
-                        _buildGrid(cardColor, textColor),
-                      SizedBox(height: isProcessing ? 10 : 18),
-                      if (isProcessing) ...[
-                        Text(_t('analysis_secure'),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 10,
-                                color:
-                                    isDarkMode ? Colors.grey : Colors.blueGrey,
-                                fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 30),
-                      ] else ...[
-                        Column(children: [
-                          _buildAnalysisReadyNowAboveButton(),
-                          _buildNextAnalysisInfo(),
-                          const SizedBox(height: 10),
-                          _buildMainButton(isDarkMode),
-                          const SizedBox(height: 8),
-                          Text(_t('analysis_secure'),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: 10,
-                                  color: isDarkMode
-                                      ? Colors.grey
-                                      : Colors.blueGrey,
-                                  fontWeight: FontWeight.w600)),
-                        ]),
-                        const SizedBox(height: 30),
-                      ],
-                    ],
                   ),
-                ),
+                  Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 500),
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Column(
+                        children: [
+                          if (isLoggedIn && _isAdminUser) ...[
+                            _buildInfoBox(Icons.admin_panel_settings,
+                                _t('admin_active_note'), primaryColor),
+                            const SizedBox(height: 10),
+                          ],
+                          if (_announcementText.trim().isNotEmpty) ...[
+                            _buildInfoBox(Icons.info_outline, _announcementText,
+                                primaryColor),
+                            const SizedBox(height: 10),
+                          ],
+                          _buildInfoBox(Icons.info_outline, _t('free_app_note'),
+                              primaryColor),
+                          const SizedBox(height: 10),
+                          if (!isLoggedIn)
+                            _buildInfoBox(Icons.lock_outline,
+                                _t('login_prompt'), Colors.redAccent)
+                          else
+                            _buildInfoBox(
+                                Icons.verified_user,
+                                _t('welcome', {'username': currentUsername}),
+                                Colors.green),
+                          if (_remoteFlagsLoaded && _watchStoriesEnabled) ...[
+                            const SizedBox(height: 12),
+                            _buildStorySection(),
+                            const SizedBox(height: 18),
+                          ],
+                          if (isProcessing)
+                            Container(
+                              height: 330,
+                              alignment: Alignment.center,
+                              child: ModernLoader(
+                                text: _isRewardedLoading
+                                    ? _t('loading_ad')
+                                    : (_progressValue >= 0.97
+                                        ? _t('processing_data')
+                                        : _t('fetching_data')),
+                                isDark: isDarkMode,
+                                progress: _progressValue,
+                                lang: _lang,
+                              ),
+                            )
+                          else
+                            Column(
+                              children: [
+                                _buildGrid(cardColor, textColor),
+                                _buildPurchaseErrorDebugBox(),
+                              ],
+                            ),
+                          SizedBox(height: isProcessing ? 10 : 18),
+                          if (isProcessing) ...[
+                            Text(_t('analysis_secure'),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    color: isDarkMode
+                                        ? Colors.grey
+                                        : Colors.blueGrey,
+                                    fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 30),
+                          ] else ...[
+                            Column(children: [
+                              _buildAnalysisReadyNowAboveButton(),
+                              _buildNextAnalysisInfo(),
+                              const SizedBox(height: 10),
+                              _buildMainButton(isDarkMode),
+                              const SizedBox(height: 8),
+                              Text(_t('analysis_secure'),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      color: isDarkMode
+                                          ? Colors.grey
+                                          : Colors.blueGrey,
+                                      fontWeight: FontWeight.w600)),
+                            ]),
+                            const SizedBox(height: 30),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    ));
+        ));
   }
 
   Widget _buildRestorePurchasesMiniButton({
@@ -3630,8 +4687,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               child: Column(
                 children: [
                   SizedBox(
-                    height:
-                        max(0.0, cardHeight - (miniButtonHeight + miniGap)),
+                    height: max(0.0, cardHeight - (miniButtonHeight + miniGap)),
                     child: _buildBigCard('legal_warning', "", Colors.blueGrey,
                         Icons.info_outline, cardColor, textColor,
                         showCount: false),
@@ -3701,7 +4757,11 @@ class _DashboardScreenState extends State<DashboardScreen>
           }
         } else if (titleKey ==
             'Tüm Reklam Birimlerini ve Bekleme Sürelerini Kaldır') {
+          _logFirebaseDiagnostic(
+              'purchase', 'purchase flow started from card tap');
           if (PurchasesService.instance.isPremium.value) {
+            _logFirebaseDiagnostic(
+                'purchase', 'purchase skipped: premium already active');
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text(_lang == 'tr'
@@ -3718,6 +4778,22 @@ class _DashboardScreenState extends State<DashboardScreen>
             androidApiKey: _revenueCatAndroidApiKey,
             iosApiKey: _revenueCatIosApiKey,
           );
+          if (!PurchasesService.instance.isConfigured) {
+            _logFirebaseDiagnostic(
+              'purchase',
+              'purchase blocked: service not configured',
+              isError: true,
+              popCritical: true,
+            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(_t('purchases_not_configured')),
+                duration: const Duration(seconds: 3),
+                backgroundColor: Colors.redAccent,
+              ));
+            }
+            return;
+          }
 
           if (!mounted) return;
           showDialog(
@@ -3761,6 +4837,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           if (!mounted) return;
 
           if (result.cancelled) {
+            _logFirebaseDiagnostic('purchase', 'purchase cancelled by user');
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(_lang == 'tr'
                   ? 'Satın alma iptal edildi.'
@@ -3772,6 +4849,8 @@ class _DashboardScreenState extends State<DashboardScreen>
           }
 
           if (result.success) {
+            _logFirebaseDiagnostic(
+                'purchase', 'purchase success: premium active');
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(_lang == 'tr'
                   ? 'Premium aktif ✅ Reklamlar ve bekleme süreleri kapatıldı.'
@@ -3782,6 +4861,12 @@ class _DashboardScreenState extends State<DashboardScreen>
             return;
           }
 
+          _logFirebaseDiagnostic(
+            'purchase',
+            'purchase failed resultError=${result.errorMessage ?? '(null)'}',
+            isError: true,
+            popCritical: true,
+          );
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(_lang == 'tr'
                 ? 'Satın alma başarısız. Lütfen tekrar deneyin.'
@@ -3830,26 +4915,25 @@ class _DashboardScreenState extends State<DashboardScreen>
                       blurRadius: 10,
                       offset: const Offset(0, 4))
                 ]),
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  iconNode,
-                  const SizedBox(height: 8),
-                  Text(title,
-                      style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: txtColor.withOpacity(0.6)),
-                      textAlign: TextAlign.center),
-                  if (showCount)
-                    Text(count,
-                        style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900,
-                            color: color)),
-                  if (!showCount && footerIcon != null)
-                    Icon(footerIcon, color: Colors.blueGrey, size: 20)
-                ]),
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              iconNode,
+              const SizedBox(height: 8),
+              Text(title,
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: txtColor.withOpacity(0.6)),
+                  textAlign: TextAlign.center),
+              if (showCount)
+                Text(count,
+                    style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: color)),
+              if (!showCount && footerIcon != null)
+                Icon(footerIcon, color: Colors.blueGrey, size: 20)
+            ]),
           ),
           if (badgeCount != 0)
             Positioned(
@@ -3875,14 +4959,13 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Widget _buildMainButton(bool isDark) {
     return Container(
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.blueGrey.withOpacity(0.2),
-                blurRadius: 15,
-                offset: const Offset(0, 8))
-          ]),
+      decoration:
+          BoxDecoration(borderRadius: BorderRadius.circular(20), boxShadow: [
+        BoxShadow(
+            color: Colors.blueGrey.withOpacity(0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 8))
+      ]),
       child: ElevatedButton.icon(
         onPressed: _isClearingData
             ? null
@@ -3890,29 +4973,31 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ? () =>
                     unawaited(_refreshData(startProcessingImmediately: true))
                 : () async {
-                final dynamic result = await Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                        builder: (context) =>
-                            InstagramApiPage(isDark: isDarkMode, lang: _lang)));
-                if (result is! Map) return;
-                final Map<String, dynamic> payload =
-                    result.map((k, v) => MapEntry(k.toString(), v));
-                final String status =
-                    (payload['status'] ?? '').toString().trim().toLowerCase();
-                final String cookie =
-                    (payload['cookie'] ?? '').toString().trim();
-                final String userId =
-                    (payload['user_id'] ?? '').toString().trim();
-                final bool hasSessionPayload = cookie.isNotEmpty &&
-                    (userId.isNotEmpty ||
-                        _extractCookieValue(cookie, 'ds_user_id')
-                            .trim()
-                            .isNotEmpty);
-                if (status == 'success' || hasSessionPayload) {
-                  await _handleLoginSuccess(payload);
-                }
-              }),
+                    final dynamic result = await Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                            builder: (context) => InstagramApiPage(
+                                isDark: isDarkMode, lang: _lang)));
+                    if (result is! Map) return;
+                    final Map<String, dynamic> payload =
+                        result.map((k, v) => MapEntry(k.toString(), v));
+                    final String status = (payload['status'] ?? '')
+                        .toString()
+                        .trim()
+                        .toLowerCase();
+                    final String cookie =
+                        (payload['cookie'] ?? '').toString().trim();
+                    final String userId =
+                        (payload['user_id'] ?? '').toString().trim();
+                    final bool hasSessionPayload = cookie.isNotEmpty &&
+                        (userId.isNotEmpty ||
+                            _extractCookieValue(cookie, 'ds_user_id')
+                                .trim()
+                                .isNotEmpty);
+                    if (status == 'success' || hasSessionPayload) {
+                      await _handleLoginSuccess(payload);
+                    }
+                  }),
         icon: Icon(
             _isClearingData
                 ? Icons.hourglass_top_rounded
@@ -3921,7 +5006,9 @@ class _DashboardScreenState extends State<DashboardScreen>
         label: Text(
             _isClearingData
                 ? _t('please_wait')
-                : (isLoggedIn ? _t('refresh_data') : _t('login_with_instagram')),
+                : (isLoggedIn
+                    ? _t('refresh_data')
+                    : _t('login_with_instagram')),
             style: const TextStyle(fontWeight: FontWeight.bold)),
         style: ElevatedButton.styleFrom(
             minimumSize: const Size(double.infinity, 70),
@@ -3972,8 +5059,9 @@ class _DashboardScreenState extends State<DashboardScreen>
 
       final int elapsedMs = DateTime.now().difference(start).inMilliseconds;
 
-      final double cap = (_analysisProgressCap <= 0.0 ? 0.92 : _analysisProgressCap)
-          .clamp(0.0, 0.985);
+      final double cap =
+          (_analysisProgressCap <= 0.0 ? 0.92 : _analysisProgressCap)
+              .clamp(0.0, 0.985);
       final double ceiling = (cap - 0.010).clamp(0.0, 0.985);
       if (ceiling <= 0) return;
 
@@ -4021,7 +5109,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
       final DateTime? finishEndAt = _progressFinishEndAt;
       if (finishEndAt != null) {
-        final int timeLeftMs = finishEndAt.difference(DateTime.now()).inMilliseconds;
+        final int timeLeftMs =
+            finishEndAt.difference(DateTime.now()).inMilliseconds;
         if (timeLeftMs <= 0) {
           setState(() => _progressValue = target);
           _stopProgressPump();
@@ -4054,8 +5143,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     _progressFinishEndAt = DateTime.now().add(duration);
     _setProgressValue(1.0);
 
-    final DateTime deadline = DateTime.now()
-        .add(duration + const Duration(milliseconds: 250));
+    final DateTime deadline =
+        DateTime.now().add(duration + const Duration(milliseconds: 250));
     while (mounted &&
         isProcessing &&
         _progressValue < 0.999 &&
@@ -4168,32 +5257,32 @@ class _DashboardScreenState extends State<DashboardScreen>
                       ],
                     ));
 
-              if (wantWatch == true) {
-                  final adResult = await _showRewardedAdWithResult();
-                  if (adResult["status"] == false) {
-                    if (mounted) {
-                      final String msg = _lang == 'tr'
-                          ? 'Reklam açılamadı. Lütfen tekrar deneyin.'
-                          : 'Ad could not be shown. Please try again.';
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(msg),
-                        backgroundColor: Colors.red,
-                        duration: const Duration(seconds: 4),
-                      ));
-                    }
-                    return;
-                  }
-              } else {
-                 stopProcessingUi();
-                 return;
+            if (wantWatch == true) {
+              final adResult = await _showRewardedAdWithResult();
+              if (adResult["status"] == false) {
+                if (mounted) {
+                  final String msg = _lang == 'tr'
+                      ? 'Reklam açılamadı. Lütfen tekrar deneyin.'
+                      : 'Ad could not be shown. Please try again.';
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(msg),
+                    backgroundColor: Colors.red,
+                    duration: const Duration(seconds: 4),
+                  ));
+                }
+                return;
               }
             } else {
               stopProcessingUi();
               return;
             }
+          } else {
+            stopProcessingUi();
+            return;
           }
         }
-      } catch (_) {}
+      }
+    } catch (_) {}
 
     if (!processingStarted && mounted) {
       startProcessingUi();
@@ -4214,11 +5303,11 @@ class _DashboardScreenState extends State<DashboardScreen>
 
       // Kullanıcı adını güncelle
       if (info['username'] != null) {
-          String freshUser = info['username'].toString();
-          if (currentUsername != freshUser) {
-             setState(() => currentUsername = freshUser);
-             prefs.setString('session_username', freshUser);
-          }
+        String freshUser = info['username'].toString();
+        if (currentUsername != freshUser) {
+          setState(() => currentUsername = freshUser);
+          prefs.setString('session_username', freshUser);
+        }
       }
       _applyUserFlags();
       if (_isBanned) return;
@@ -4240,7 +5329,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             : 'Instagram returned no data.');
         return;
       }
-      
+
       // HIZLI KONTROL KALDIRILDI - Her seferinde veri çekecek.
 
       Map<String, String> nFollowers = {};
@@ -4298,7 +5387,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       }
 
       if (nFollowers.isNotEmpty || nFollowing.isNotEmpty) {
-        final bool mustWatchAdToShowResults = !_adsDisabled && !_justWatchedReward;
+        final bool mustWatchAdToShowResults =
+            !_adsDisabled && !_justWatchedReward;
         if (mustWatchAdToShowResults) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -4351,8 +5441,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             ? 'Instagram bu işlemi geçici olarak kısıtladı. Biraz bekleyip tekrar deneyin.'
             : 'Instagram temporarily restricted this action. Please wait a bit and try again.';
         unawaited(_showIgWarningGuide(igMsg));
-      } else
-      if (raw.contains('http_401') || raw.contains('http_403')) {
+      } else if (raw.contains('http_401') || raw.contains('http_403')) {
         reason = _lang == 'tr'
             ? 'Oturum süresi doldu veya doğrulama gerekli.'
             : 'Session expired or verification required.';
@@ -4362,8 +5451,9 @@ class _DashboardScreenState extends State<DashboardScreen>
             : 'Too many requests were sent.';
       } else if (raw.contains('checkpoint_required') ||
           raw.contains('challenge_required')) {
-        final String code =
-            raw.contains('checkpoint_required') ? 'checkpoint_required' : 'challenge_required';
+        final String code = raw.contains('checkpoint_required')
+            ? 'checkpoint_required'
+            : 'challenge_required';
         reason = _lang == 'tr'
             ? 'Instagram güvenlik doğrulaması istedi (şüpheli giriş / hesap kilidi). Instagram uygulamasından doğrulayın ve tekrar deneyin.'
             : 'Instagram requires a security verification (suspicious login / account lock). Verify in the Instagram app and try again.';
@@ -4372,7 +5462,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         reason = _lang == 'tr'
             ? 'Instagram oturumu geçersiz veya doğrulama bekliyor.'
             : 'Instagram session is invalid or pending verification.';
-      } else if (raw.contains('invalid_json') || raw.contains('invalid_payload')) {
+      } else if (raw.contains('invalid_json') ||
+          raw.contains('invalid_payload')) {
         reason = _lang == 'tr'
             ? 'Instagram beklenmeyen bir yanıt döndürdü.'
             : 'Instagram returned an unexpected response.';
@@ -4676,7 +5767,8 @@ class _DashboardScreenState extends State<DashboardScreen>
             terminalError = security;
             return null;
           }
-          final String message = body['message']?.toString().toLowerCase() ?? '';
+          final String message =
+              body['message']?.toString().toLowerCase() ?? '';
           if (message.contains('login')) {
             terminalError = 'session_invalid';
             return null;
@@ -4754,7 +5846,6 @@ class _DashboardScreenState extends State<DashboardScreen>
       required int totalExpected,
       required Map<String, String> targetMap,
       Function(int count)? onProgress}) async {
-
     final String endpoint = type == 'followers'
         ? 'friendships/$userId/followers'
         : 'friendships/$userId/following';
@@ -4800,7 +5891,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         try {
           decoded = jsonDecode(response.body);
         } catch (_) {
-          final String? security = _detectIgSecurityBlockFromText(response.body);
+          final String? security =
+              _detectIgSecurityBlockFromText(response.body);
           if (security != null) {
             terminalError = security;
             throw Exception(terminalError);
@@ -4850,7 +5942,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
         if (status == 'fail') {
           final String rawMsg = data['message']?.toString().trim() ?? '';
-          terminalError = rawMsg.isNotEmpty ? 'ig_warning:$rawMsg' : 'ig_warning';
+          terminalError =
+              rawMsg.isNotEmpty ? 'ig_warning:$rawMsg' : 'ig_warning';
           throw Exception(terminalError);
         }
 
@@ -4866,9 +5959,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         if (onProgress != null) onProgress(currentCount);
 
         final String? nextCursor = data['next_max_id']?.toString();
-        nextMaxId = (nextCursor != null && nextCursor.isNotEmpty)
-            ? nextCursor
-            : null;
+        nextMaxId =
+            (nextCursor != null && nextCursor.isNotEmpty) ? nextCursor : null;
         hasNext = nextMaxId != null;
       } else {
         final String? security = _detectIgSecurityBlockFromText(response.body);
@@ -4908,11 +6000,16 @@ class _DashboardScreenState extends State<DashboardScreen>
       userId = _extractCookieValue(cookie, 'ds_user_id').trim();
     }
     final String usernameRaw = (payload['username'] ?? '').toString().trim();
-    final String userAgentRaw =
-        (payload['user_agent'] ?? '').toString().trim();
+    final String userAgentRaw = (payload['user_agent'] ?? '').toString().trim();
     final String userAgent =
         userAgentRaw.isNotEmpty ? userAgentRaw : _defaultIgUserAgent;
     if (cookie.isEmpty || userId.isEmpty || userId == 'null') {
+      _logFirebaseDiagnostic(
+        'session',
+        'login payload invalid: cookie/userId missing',
+        isError: true,
+        popCritical: true,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(_lang == 'tr'
@@ -4924,8 +6021,9 @@ class _DashboardScreenState extends State<DashboardScreen>
       }
       return;
     }
-    final String username =
-        usernameRaw.isNotEmpty ? usernameRaw : (_lang == 'tr' ? 'Kullanıcı' : 'User');
+    final String username = usernameRaw.isNotEmpty
+        ? usernameRaw
+        : (_lang == 'tr' ? 'Kullanıcı' : 'User');
 
     unawaited(() async {
       try {
@@ -4992,8 +6090,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     Future<void> maybeYield(
         int done, int total, double start, double end) async {
       if (done <= 0 || done % yieldEvery != 0) return;
-      final double fraction =
-          total <= 0 ? 1.0 : (done / total).clamp(0.0, 1.0);
+      final double fraction = total <= 0 ? 1.0 : (done / total).clamp(0.0, 1.0);
       _setProgressValue(start + ((end - start) * fraction));
       await Future.delayed(const Duration(milliseconds: 1));
     }
@@ -5216,8 +6313,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         _safeMapCast(jsonDecode(prefs.getString('following_map') ?? '{}'));
     final Map<String, String> storedUnfollowers =
         _safeMapCast(jsonDecode(prefs.getString('unfollowers_map') ?? '{}'));
-    final Map<String, String> storedLeftFollowing = _safeMapCast(
-        jsonDecode(prefs.getString('left_following_map') ?? '{}'));
+    final Map<String, String> storedLeftFollowing =
+        _safeMapCast(jsonDecode(prefs.getString('left_following_map') ?? '{}'));
     final Map<String, String> storedNewFollowers =
         _safeMapCast(jsonDecode(prefs.getString('new_followers_map') ?? '{}'));
     final bool hasStoredAnalysis = lastUpdateMs != null ||
@@ -5280,6 +6377,105 @@ class _DashboardScreenState extends State<DashboardScreen>
                     fontWeight: FontWeight.w600,
                     color: isDarkMode ? Colors.white : color)))
       ]),
+    );
+  }
+
+  Widget _buildPurchaseErrorDebugBox() {
+    final bool isTr = _lang == 'tr';
+    final Color border = Colors.redAccent;
+    final String title = isTr
+        ? 'Satın alma hata detayı (Apple)'
+        : 'Purchase error details (Apple)';
+    final String placeholder = isTr ? 'Henüz hata yok.' : 'No error yet.';
+
+    final ButtonStyle miniBtn = TextButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      minimumSize: const Size(0, 0),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      foregroundColor: isDarkMode ? Colors.white70 : Colors.black87,
+    );
+
+    return ValueListenableBuilder<String>(
+      valueListenable: PurchasesService.instance.lastPurchaseError,
+      builder: (context, err, _) {
+        final bool allowed = kDebugMode || _isAdminUser || _forcePurchaseDebug;
+        if (!allowed) return const SizedBox.shrink();
+
+        final String text = err.trim();
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: border.withOpacity(isDarkMode ? 0.16 : 0.06),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: border.withOpacity(0.25)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.bug_report_outlined, color: border, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: isDarkMode ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      style: miniBtn,
+                      onPressed: text.isEmpty
+                          ? null
+                          : () => Clipboard.setData(ClipboardData(text: text)),
+                      child: Text(isTr ? 'KOPYALA' : 'COPY',
+                          style: const TextStyle(fontSize: 11)),
+                    ),
+                    TextButton(
+                      style: miniBtn,
+                      onPressed: text.isEmpty
+                          ? null
+                          : () => PurchasesService.instance
+                              .clearLastPurchaseError(),
+                      child: Text(isTr ? 'TEMİZLE' : 'CLEAR',
+                          style: const TextStyle(fontSize: 11)),
+                    ),
+                    TextButton(
+                      style: miniBtn,
+                      onPressed: () {
+                        unawaited(_openDiagnosticsConsole(initialTabIndex: 1));
+                      },
+                      child: Text(isTr ? 'LOG EKRANI' : 'OPEN LOGS',
+                          style: const TextStyle(fontSize: 11)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 180),
+                  child: SingleChildScrollView(
+                    child: SelectableText(
+                      text.isEmpty ? placeholder : text,
+                      style: TextStyle(
+                        fontSize: 11,
+                        height: 1.25,
+                        fontFamily: 'monospace',
+                        color: isDarkMode ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -5377,7 +6573,9 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     final String igBlock = cleanIg.isEmpty
         ? ''
-        : (isTr ? 'Instagram mesajı:\n$cleanIg' : 'Instagram message:\n$cleanIg');
+        : (isTr
+            ? 'Instagram mesajı:\n$cleanIg'
+            : 'Instagram message:\n$cleanIg');
 
     final String steps = isTr
         ? 'Ne yapabilirsin?\n'
@@ -5441,7 +6639,9 @@ class _DashboardScreenState extends State<DashboardScreen>
   void _showAnalysisWarning(String reason) {
     if (!mounted) return;
     final String message =
-        "${_t('analysis_failed_title')}\n${_t('analysis_failed_reason', {'reason': reason})}\n${_t('analysis_failed_hint')}";
+        "${_t('analysis_failed_title')}\n${_t('analysis_failed_reason', {
+          'reason': reason
+        })}\n${_t('analysis_failed_hint')}";
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),
       duration: const Duration(seconds: 5),
@@ -5455,8 +6655,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || isLoggedIn) return;
       if (!_storyScrollController.hasClients) return;
-      _storyAutoTimer = Timer.periodic(const Duration(milliseconds: 1800),
-          (timer) {
+      _storyAutoTimer =
+          Timer.periodic(const Duration(milliseconds: 1800), (timer) {
         if (!mounted || isLoggedIn) {
           _stopStoryAutoScroll();
           return;
@@ -5510,16 +6710,14 @@ class _DashboardScreenState extends State<DashboardScreen>
   List<_StoryProfile> _getStoryProfiles() {
     if (isLoggedIn) {
       final source = followingMap.isNotEmpty ? followingMap : followersMap;
-      final List<_StoryProfile> list = source.entries
-          .map((e) {
-            final String unameLower = e.key.toLowerCase();
-            return _StoryProfile(
-                username: e.key,
-                imageUrl: e.value,
-                hasStory: _storyUsersWithActive.contains(unameLower),
-                pk: _storyUserPks[unameLower]);
-          })
-          .toList();
+      final List<_StoryProfile> list = source.entries.map((e) {
+        final String unameLower = e.key.toLowerCase();
+        return _StoryProfile(
+            username: e.key,
+            imageUrl: e.value,
+            hasStory: _storyUsersWithActive.contains(unameLower),
+            pk: _storyUserPks[unameLower]);
+      }).toList();
 
       final Set<String> seen = source.keys.map((e) => e.toLowerCase()).toSet();
       int added = 0;
@@ -5753,8 +6951,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                   : Center(
                       child: Text(_t('story_no_data'),
                           style: TextStyle(
-                              color:
-                                  isDarkMode ? Colors.white54 : Colors.black54))))
+                              color: isDarkMode
+                                  ? Colors.white54
+                                  : Colors.black54))))
               : ListView.separated(
                   controller: _storyScrollController,
                   scrollDirection: Axis.horizontal,
@@ -5789,8 +6988,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 children: [
                   Text(_t('story_action_title'),
                       style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: sheetTextColor)),
+                          fontWeight: FontWeight.bold, color: sheetTextColor)),
                   const SizedBox(height: 10),
                   ListTile(
                     leading: Icon(Icons.photo, color: sheetIconColor),
@@ -5942,7 +7140,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => const Center(child: CircularProgressIndicator(color: Colors.white)),
+      builder: (ctx) =>
+          const Center(child: CircularProgressIndicator(color: Colors.white)),
     );
 
     String url = profile.imageUrl;
@@ -5957,65 +7156,66 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (!mounted) return;
 
     await showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (ctx) => Dialog(
-        insetPadding: EdgeInsets.zero,
-        backgroundColor: Colors.black,
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Center(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final double minH = constraints.maxHeight * 0.6;
-                      final double minW = constraints.maxWidth * 0.9;
-                      return SizedBox(
-                        height: minH,
-                        width: minW,
-                        child: InteractiveViewer(
-                          minScale: 1.0,
-                          maxScale: 4.0,
-                          child: Image.network(
-                            url,
-                            fit: BoxFit.contain,
-                            filterQuality: FilterQuality.high,
-                            headers: savedCookie != null
-                                ? {
-                                    'Cookie': savedCookie!,
-                                    'User-Agent': _resolveUserAgent(),
-                                    'Accept': '*/*',
-                                  }
-                                : null,
-                          ),
+        context: context,
+        barrierDismissible: true,
+        builder: (ctx) => Dialog(
+              insetPadding: EdgeInsets.zero,
+              backgroundColor: Colors.black,
+              child: SafeArea(
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Center(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final double minH = constraints.maxHeight * 0.6;
+                            final double minW = constraints.maxWidth * 0.9;
+                            return SizedBox(
+                              height: minH,
+                              width: minW,
+                              child: InteractiveViewer(
+                                minScale: 1.0,
+                                maxScale: 4.0,
+                                child: Image.network(
+                                  url,
+                                  fit: BoxFit.contain,
+                                  filterQuality: FilterQuality.high,
+                                  headers: savedCookie != null
+                                      ? {
+                                          'Cookie': savedCookie!,
+                                          'User-Agent': _resolveUserAgent(),
+                                          'Accept': '*/*',
+                                        }
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 16,
+                      right: 16,
+                      bottom: 16,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: () => Navigator.pop(ctx),
+                        child: Text(_t('story_close'),
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Positioned(
-                left: 16,
-                right: 16,
-                bottom: 16,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text(_t('story_close'),
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ));
+            ));
   }
 
   Future<String?> _getUserId(String username) async {
@@ -6038,7 +7238,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         final data = jsonDecode(response.body);
         final user = data['data']['user'];
         if (user != null) {
-           return user['id'].toString();
+          return user['id'].toString();
         }
       }
 
@@ -6052,9 +7252,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         final data = jsonDecode(response2.body);
         return data['user']['pk'].toString();
       } else {
-         _lastIgWarning = _extractIgWarning(response2.body);
+        _lastIgWarning = _extractIgWarning(response2.body);
       }
-
     } catch (_) {}
     return null;
   }
@@ -6063,8 +7262,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     try {
       final data = jsonDecode(body);
       if (data is Map) {
-        final String? msg =
-            data['message']?.toString() ??
+        final String? msg = data['message']?.toString() ??
             data['error_title']?.toString() ??
             data['detail']?.toString();
         if (msg != null && msg.trim().isNotEmpty) return msg.trim();
@@ -6085,7 +7283,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     try {
       var response = await http.get(
-        Uri.parse("https://i.instagram.com/api/v1/feed/reels_media/?reel_ids=$targetUserId"),
+        Uri.parse(
+            "https://i.instagram.com/api/v1/feed/reels_media/?reel_ids=$targetUserId"),
         headers: headers,
       );
 
@@ -6107,7 +7306,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
       if (items.isEmpty) {
         response = await http.get(
-          Uri.parse("https://i.instagram.com/api/v1/feed/user/$targetUserId/reel_media/"),
+          Uri.parse(
+              "https://i.instagram.com/api/v1/feed/user/$targetUserId/reel_media/"),
           headers: headers,
         );
 
@@ -6160,22 +7360,23 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Future<void> _openSecretStoryViewer(_StoryProfile profile) async {
     showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) =>
-          const Center(child: CircularProgressIndicator(color: Colors.white))
-    );
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const Center(
+            child: CircularProgressIndicator(color: Colors.white)));
 
     try {
       String? targetId = profile.pk ?? await _getUserId(profile.username);
 
       if (targetId == null) {
-         if (mounted) Navigator.pop(context);
-         final String msg = _lastIgWarning?.trim().isNotEmpty == true
-             ? _lastIgWarning!
-             : "Kullanıcı verisi alınamadı (Gizli profil veya API hatası)";
-         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
-         return;
+        if (mounted) Navigator.pop(context);
+        final String msg = _lastIgWarning?.trim().isNotEmpty == true
+            ? _lastIgWarning!
+            : "Kullanıcı verisi alınamadı (Gizli profil veya API hatası)";
+        if (mounted)
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(msg), backgroundColor: Colors.red));
+        return;
       }
 
       List<StoryItem> stories = await _fetchStoryItems(targetId);
@@ -6183,8 +7384,11 @@ class _DashboardScreenState extends State<DashboardScreen>
       if (mounted) Navigator.pop(context);
 
       if (stories.isEmpty) {
-         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('story_no_data')), backgroundColor: Colors.orange));
-         return;
+        if (mounted)
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(_t('story_no_data')),
+              backgroundColor: Colors.orange));
+        return;
       }
 
       if (mounted) {
@@ -6201,7 +7405,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     )));
       }
     } catch (e) {
-       if (mounted && Navigator.canPop(context)) Navigator.pop(context);
+      if (mounted && Navigator.canPop(context)) Navigator.pop(context);
     }
   }
 
@@ -6220,12 +7424,10 @@ class _DashboardScreenState extends State<DashboardScreen>
     }
     final remaining = _remainingToNextAnalysis;
     if (remaining == null) return const SizedBox.shrink();
-    final String label = '${_t('next_analysis')}: ${_formatDuration(remaining)}';
+    final String label =
+        '${_t('next_analysis')}: ${_formatDuration(remaining)}';
     return GestureDetector(
-        onTap: _showRemainingDialog,
-        child: Text(
-            label,
-            style: style));
+        onTap: _showRemainingDialog, child: Text(label, style: style));
   }
 
   Widget _buildAnalysisReadyNowAboveButton() {
@@ -6264,6 +7466,8 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   void dispose() {
     PurchasesService.instance.isPremium.removeListener(_onPremiumChanged);
+    PurchasesService.instance.lastPurchaseError
+        .removeListener(_onPurchaseErrorChanged);
     WidgetsBinding.instance.removeObserver(this);
     _cancelCountdown();
     _cancelLegalHoldTimer();
@@ -6272,6 +7476,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     _stopProgressPump();
     _stopAnalysisProgressTimeline();
     _storyScrollController.dispose();
+    _firebaseDiagnosticEvents.dispose();
     _bannerAd?.dispose();
     super.dispose();
   }
@@ -6333,8 +7538,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         const Icon(Icons.info_outline, color: Colors.blueAccent),
         const SizedBox(width: 10),
         Text(_t('legal_warning'),
-            style: TextStyle(
-                color: isDarkMode ? Colors.white : Colors.black87))
+            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87))
       ]),
       content: SingleChildScrollView(
           child:
@@ -6490,7 +7694,6 @@ class _SecretStoryViewerPageState extends State<SecretStoryViewerPage> {
                 },
               ),
             ),
-
             Positioned(
               top: 10,
               left: 10,
@@ -6524,10 +7727,9 @@ class _SecretStoryViewerPageState extends State<SecretStoryViewerPage> {
                       Container(
                         padding: const EdgeInsets.all(1.5),
                         decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white24
-                        ),
-                        child: const Icon(Icons.visibility_off, color: Colors.white, size: 16),
+                            shape: BoxShape.circle, color: Colors.white24),
+                        child: const Icon(Icons.visibility_off,
+                            color: Colors.white, size: 16),
                       ),
                       const SizedBox(width: 8),
                       Text(widget.username,
@@ -6546,7 +7748,6 @@ class _SecretStoryViewerPageState extends State<SecretStoryViewerPage> {
                 ],
               ),
             ),
-
             Positioned(
               top: 25,
               right: 10,
@@ -6559,20 +7760,18 @@ class _SecretStoryViewerPageState extends State<SecretStoryViewerPage> {
                 ),
               ),
             ),
-
             Positioned(
               left: 20,
               right: 20,
               bottom: 20,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.1),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30)),
-                  side: const BorderSide(color: Colors.white30)
-                ),
+                    backgroundColor: Colors.white.withOpacity(0.1),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30)),
+                    side: const BorderSide(color: Colors.white30)),
                 onPressed: () => Navigator.pop(context),
                 child: Text(widget.closeLabel,
                     style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -6649,7 +7848,7 @@ class _StoryItemViewState extends State<_StoryItemView> {
           </body>
           </html>
         ''');
-        
+
       _videoController = controller;
     }
   }
@@ -6660,7 +7859,7 @@ class _StoryItemViewState extends State<_StoryItemView> {
       return Stack(
         children: [
           if (!_isVideoInitialized)
-             const Center(child: CircularProgressIndicator(color: Colors.white)),
+            const Center(child: CircularProgressIndicator(color: Colors.white)),
           IgnorePointer(
             ignoring: true,
             child: WebViewWidget(controller: _videoController),
@@ -6678,7 +7877,8 @@ class _StoryItemViewState extends State<_StoryItemView> {
                 const Icon(Icons.broken_image, color: Colors.white70),
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) return child;
-              return const Center(child: CircularProgressIndicator(color: Colors.white));
+              return const Center(
+                  child: CircularProgressIndicator(color: Colors.white));
             },
           ),
         ],
@@ -6790,8 +7990,7 @@ class DetailListPage extends StatelessWidget {
 class InstagramApiPage extends StatefulWidget {
   final bool isDark;
   final String lang;
-  const InstagramApiPage(
-      {super.key, required this.isDark, required this.lang});
+  const InstagramApiPage({super.key, required this.isDark, required this.lang});
   @override
   State<InstagramApiPage> createState() => _InstagramApiPageState();
 }
@@ -6896,7 +8095,8 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
         }
         try {
           final appInfoResponse = await http.get(
-            Uri.parse("https://i.instagram.com/api/v1/users/$targetUserId/info/"),
+            Uri.parse(
+                "https://i.instagram.com/api/v1/users/$targetUserId/info/"),
             headers: _buildAppHeaders(cookieString, userAgent,
                 dsUserId: targetUserId),
           );
@@ -6963,13 +8163,13 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Text(widget.lang == 'tr'
-                        ? 'Oturum doğrulandı, yönlendiriliyorsunuz...'
-                        : 'Session verified, redirecting...',
+                    Text(
+                        widget.lang == 'tr'
+                            ? 'Oturum doğrulandı, yönlendiriliyorsunuz...'
+                            : 'Session verified, redirecting...',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color:
-                              widget.isDark ? Colors.white : Colors.black87,
+                          color: widget.isDark ? Colors.white : Colors.black87,
                           fontWeight: FontWeight.w600,
                         ))
                   ]))

@@ -1,0 +1,44 @@
+name: Build IPA Only
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-ipa:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build iOS app (no codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Package unsigned IPA
+        run: |
+          APP_PATH="build/ios/iphoneos/Runner.app"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "Runner.app not found at: $APP_PATH"
+            exit 1
+          fi
+
+          rm -rf Payload
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          /usr/bin/zip -qry VERDICT-unsigned.ipa Payload
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: verdict-ipa-only
+          path: VERDICT-unsigned.ipa
+          if-no-files-found: error
