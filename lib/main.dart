@@ -1117,115 +1117,108 @@ class _ModernLoaderState extends State<ModernLoader> {
 
     return SizedBox(
       height: totalHeight,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween<double>(end: clamped),
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        builder: (context, animatedProgress, _) {
-          final double p = animatedProgress.clamp(0.0, 1.0);
-          return LayoutBuilder(builder: (context, constraints) {
-            final double maxX = max(0.0, constraints.maxWidth - catWidth);
-            final double x = (maxX * p).clamp(0.0, maxX);
-            final double phase = (p * 16.0) % 1.0;
-            final double bob = -1.1 * sin(phase * 2 * pi);
-            final double tilt = 0.028 * sin(phase * 2 * pi);
+      child: LayoutBuilder(builder: (context, constraints) {
+        final double p = clamped;
+        final double maxX = max(0.0, constraints.maxWidth - catWidth);
+        final double barEndX =
+            (constraints.maxWidth * p).clamp(0.0, constraints.maxWidth);
+        final double x = (barEndX - (catWidth * 0.5)).clamp(0.0, maxX);
+        final double phase = (p * 16.0) % 1.0;
+        final double bob = -1.1 * sin(phase * 2 * pi);
+        final double tilt = 0.028 * sin(phase * 2 * pi);
 
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: barTop,
-                  child: Container(
-                    height: barHeight,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          accent.withOpacity(widget.isDark ? 0.16 : 0.12),
-                          accent.withOpacity(widget.isDark ? 0.06 : 0.03),
-                        ],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: accent.withOpacity(widget.isDark ? 0.25 : 0.14),
-                        width: 0.7,
-                      ),
-                    ),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: FractionallySizedBox(
-                        alignment: Alignment.centerLeft,
-                        widthFactor: p,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Color.lerp(accent, Colors.white, 0.18) ??
-                                    accent,
-                                accent,
-                                Color.lerp(accent, Colors.black, 0.12) ??
-                                    accent,
-                              ],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: accent
-                                    .withOpacity(widget.isDark ? 0.45 : 0.30),
-                                blurRadius: 6,
-                                offset: const Offset(0, 1),
-                              ),
-                            ],
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              left: 0,
+              right: 0,
+              top: barTop,
+              child: Container(
+                height: barHeight,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      accent.withOpacity(widget.isDark ? 0.16 : 0.12),
+                      accent.withOpacity(widget.isDark ? 0.06 : 0.03),
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: accent.withOpacity(widget.isDark ? 0.25 : 0.14),
+                    width: 0.7,
+                  ),
+                ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: p,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color.lerp(accent, Colors.white, 0.18) ?? accent,
+                            accent,
+                            Color.lerp(accent, Colors.black, 0.12) ?? accent,
+                          ],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                accent.withOpacity(widget.isDark ? 0.45 : 0.30),
+                            blurRadius: 6,
+                            offset: const Offset(0, 1),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ),
                 ),
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: CustomPaint(
-                      painter: _ProgressTrailParticlesPainter(
-                        progress: p,
-                        phase: phase,
-                        catCenterX: x + (catWidth * 0.5),
-                        barTop: barTop,
-                        barHeight: barHeight,
-                        accentColor: accent,
-                        isDark: widget.isDark,
-                      ),
+              ),
+            ),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: CustomPaint(
+                  painter: _ProgressTrailParticlesPainter(
+                    progress: p,
+                    phase: phase,
+                    catCenterX: x + (catWidth * 0.5),
+                    barTop: barTop,
+                    barHeight: barHeight,
+                    accentColor: accent,
+                    isDark: widget.isDark,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: x,
+              top: barTop - catHeight + 1,
+              child: Transform.translate(
+                offset: Offset(0, bob),
+                child: Transform.rotate(
+                  angle: tilt,
+                  child: CustomPaint(
+                    size: const Size(catWidth, catHeight),
+                    painter: _CatWalkerPainter(
+                      phase: phase,
+                      baseColor: catBase,
+                      accentColor: accent,
+                      isDark: widget.isDark,
                     ),
                   ),
                 ),
-                Positioned(
-                  left: x,
-                  top: barTop - catHeight + 1,
-                  child: Transform.translate(
-                    offset: Offset(0, bob),
-                    child: Transform.rotate(
-                      angle: tilt,
-                      child: CustomPaint(
-                        size: const Size(catWidth, catHeight),
-                        painter: _CatWalkerPainter(
-                          phase: phase,
-                          baseColor: catBase,
-                          accentColor: accent,
-                          isDark: widget.isDark,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          });
-        },
-      ),
+              ),
+            ),
+          ],
+        );
+      }),
     );
   }
 
@@ -1961,7 +1954,6 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Duration? _remainingToNextAnalysis;
   Timer? _countdownTimer;
-  Timer? _legalHoldTimer;
   Timer? _consentWatchTimer;
   Timer? _storyAutoTimer;
   Timer? _progressPumpTimer;
@@ -5022,11 +5014,20 @@ class _DashboardScreenState extends State<DashboardScreen>
   };
 
   String _t(String key, [Map<String, String>? args]) {
-    String res = _legalLocalized[_lang]?[key] ??
-        _localized[_lang]?[key] ??
-        _legalLocalized['en']?[key] ??
-        _localized['en']?[key] ??
-        key;
+    final List<String?> candidates = <String?>[
+      _legalLocalized[_lang]?[key],
+      _localized[_lang]?[key],
+      _legalLocalized['en']?[key],
+      _localized['en']?[key],
+      key,
+    ];
+    String res = key;
+    for (final String? candidate in candidates) {
+      if (candidate == null) continue;
+      if (candidate.trim().isEmpty) continue;
+      res = candidate;
+      break;
+    }
     if (args != null) {
       args.forEach((k, v) {
         res = res.replaceAll('{$k}', v);
@@ -8416,15 +8417,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     final Widget iconNode = iconWidget ?? Icon(icon, color: color, size: 35);
 
     return GestureDetector(
-      onTapDown: (details) {
-        if (titleKey == 'legal_warning') _startLegalHoldTimer();
-      },
-      onTapUp: (_) {
-        if (titleKey == 'legal_warning') _cancelLegalHoldTimer();
-      },
-      onTapCancel: () {
-        if (titleKey == 'legal_warning') _cancelLegalHoldTimer();
-      },
       onTap: () async {
         if (titleKey == 'legal_warning') {
           showDialog(
@@ -8466,8 +8458,16 @@ class _DashboardScreenState extends State<DashboardScreen>
             _logFirebaseDiagnostic(
                 'purchase', 'purchase skipped: premium already active');
             if (mounted) {
+              final String premiumAlreadyActiveText =
+                  _t('premium_already_active').trim().isEmpty
+                      ? localizeTrEn(_lang, 'Premium üyeliğiniz aktif.',
+                          'Your Premium membership is active.')
+                      : _t('premium_already_active');
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(_t('premium_already_active')),
+                content: Text(
+                  premiumAlreadyActiveText,
+                  style: const TextStyle(color: Colors.white),
+                ),
                 duration: const Duration(seconds: 2),
                 backgroundColor: Colors.blueGrey.shade900,
               ));
@@ -9129,7 +9129,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
         _setAnalysisProgressCap(0.985);
         await Future.delayed(const Duration(milliseconds: 16));
-        await _processData(nFollowers, nFollowing);
+        final bool noChangeDetected = await _processData(nFollowers, nFollowing);
         unawaited(TelemetryService.instance.recordAnalysisCompleted(
           followersCount: fetchedFollowers,
           followingCount: fetchedFollowing,
@@ -9140,10 +9140,17 @@ class _DashboardScreenState extends State<DashboardScreen>
         await _finishProgressUi();
 
         if (_justWatchedReward) setState(() => _justWatchedReward = false);
-        if (mounted)
+        if (mounted) {
+          final String completionText = noChangeDetected
+              ? _t('analysis_fast_no_change')
+              : _t('data_updated');
+          final Color completionColor =
+              noChangeDetected ? Colors.blueGrey.shade900 : Colors.green;
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(_t('data_updated')),
-              backgroundColor: Colors.green));
+            content: Text(completionText),
+            backgroundColor: completionColor,
+          ));
+        }
       }
     } catch (e) {
       String reason = localizeTrEn(_lang, 'Beklenmeyen bir hata oluştu.',
@@ -9786,7 +9793,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     unawaited(_loadStoryTray());
   }
 
-  Future<void> _processData(
+  Future<bool> _processData(
       Map<String, String> nFollowers, Map<String, String> nFollowing) async {
     _setProgressValue(0.975);
     await Future.delayed(const Duration(milliseconds: 16));
@@ -9803,7 +9810,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     final bool allowLeftFollowing = nFollowing.length < oldFollowing.length;
     Map<String, String> newFollowers = {};
-    bool isFirstRun = oldFollowers.isEmpty;
+    final bool isFirstRun = oldFollowers.isEmpty && oldFollowing.isEmpty;
 
     const int yieldEvery = 750;
     Future<void> maybeYield(
@@ -9960,8 +9967,12 @@ class _DashboardScreenState extends State<DashboardScreen>
     await prefs.setInt('last_update_time', realNow.millisecondsSinceEpoch);
     _setProgressValue(0.999);
     unawaited(_incrementFirestoreCounter('query_count'));
+    final bool noChangeDetected = !isFirstRun &&
+        _mapsHaveSameUsers(oldFollowers, nFollowers) &&
+        _mapsHaveSameUsers(oldFollowing, nFollowing);
     _hasAnalyzed = true;
     _loadStoredData();
+    return noChangeDetected;
   }
 
   String _resolveUserAgent() {
@@ -10070,6 +10081,15 @@ class _DashboardScreenState extends State<DashboardScreen>
       });
     }
     return output;
+  }
+
+  bool _mapsHaveSameUsers(Map<String, String> a, Map<String, String> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (final String user in a.keys) {
+      if (!b.containsKey(user)) return false;
+    }
+    return true;
   }
 
   int? _toIntOrNull(dynamic value) {
@@ -11122,7 +11142,6 @@ class _DashboardScreenState extends State<DashboardScreen>
         .removeListener(_onPurchaseErrorChanged);
     WidgetsBinding.instance.removeObserver(this);
     _cancelCountdown();
-    _cancelLegalHoldTimer();
     _consentWatchTimer?.cancel();
     _storyAutoTimer?.cancel();
     _stopProgressPump();
@@ -11131,54 +11150,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     _firebaseDiagnosticEvents.dispose();
     _bannerAd?.dispose();
     super.dispose();
-  }
-
-  void _startLegalHoldTimer() {
-    _cancelLegalHoldTimer();
-    _legalHoldTimer =
-        Timer(const Duration(seconds: 5), () => _promptSecretPin());
-  }
-
-  void _cancelLegalHoldTimer() {
-    _legalHoldTimer?.cancel();
-    _legalHoldTimer = null;
-  }
-
-  Future<void> _promptSecretPin() async {
-    final TextEditingController pCtrl = TextEditingController();
-    final entered = await showDialog<String?>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-                title: Text(_t('legal_warning')),
-                content: TextField(
-                    controller: pCtrl,
-                    obscureText: true,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(hintText: _t('enter_pin'))),
-                actions: [
-                  TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: Text(_t('cancel'))),
-                  TextButton(
-                      onPressed: () => Navigator.pop(ctx, pCtrl.text),
-                      child: Text(_t('ok')))
-                ]));
-    if (entered != null) _handlePinEntry(entered.trim());
-  }
-
-  Future<void> _handlePinEntry(String pin) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (pin == '3333') {
-      await prefs.remove('last_update_time');
-      _startCountdownFromStoredTime();
-      _bannerAd?.dispose();
-      if (mounted)
-        setState(() {
-          _adsHidden = true;
-          _bannerAd = null;
-          _isAdLoaded = false;
-        });
-    }
   }
 
   Widget _buildDetailedLegalDialog(BuildContext context,
