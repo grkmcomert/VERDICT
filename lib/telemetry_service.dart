@@ -7,6 +7,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'turkey_time.dart';
 
 class TelemetryService {
   TelemetryService._();
@@ -83,7 +84,6 @@ class TelemetryService {
         'locale': cleaned,
         if (languageCode.isNotEmpty) 'language_code': languageCode,
         if (countryCode.isNotEmpty) 'country_code': countryCode,
-        if (countryCode.isNotEmpty) 'country_source': 'locale',
       };
     } catch (_) {
       return {};
@@ -147,32 +147,21 @@ class TelemetryService {
       if (Platform.isAndroid) {
         final AndroidDeviceInfo info = await _deviceInfo.androidInfo;
         _cachedDeviceFields = {
-          'platform': 'android',
           'device_model': info.model,
           'device_brand': info.brand,
-          'device_manufacturer': info.manufacturer,
-          'os_version': Platform.operatingSystemVersion,
         };
       } else if (Platform.isIOS) {
         final IosDeviceInfo info = await _deviceInfo.iosInfo;
         _cachedDeviceFields = {
-          'platform': 'ios',
           'device_model': info.model,
           'device_machine': info.utsname.machine,
-          'os_version': '${info.systemName} ${info.systemVersion}',
         };
       } else {
-        _cachedDeviceFields = {
-          'platform': Platform.operatingSystem,
-          'os_version': Platform.operatingSystemVersion,
-        };
+        _cachedDeviceFields = {};
       }
     } catch (e) {
       debugPrint('[TelemetryService] device_info error: $e');
-      _cachedDeviceFields = {
-        'platform': Platform.operatingSystem,
-        'os_version': Platform.operatingSystemVersion,
-      };
+      _cachedDeviceFields = {};
     }
 
     return _cachedDeviceFields!;
@@ -185,8 +174,6 @@ class TelemetryService {
       final info = await PackageInfo.fromPlatform();
       _cachedAppFields = {
         'app_version': info.version,
-        'app_build': info.buildNumber,
-        'app_package': info.packageName,
       };
     } catch (e) {
       debugPrint('[TelemetryService] package_info error: $e');
@@ -200,6 +187,44 @@ class TelemetryService {
     final int now = DateTime.now().millisecondsSinceEpoch;
     final int rand = Random.secure().nextInt(1 << 32);
     return '${now}_${rand.toRadixString(16)}';
+  }
+
+  String _userDocIdFromUsername(String username) {
+    String value = username.trim().toLowerCase();
+    if (value.startsWith('@')) value = value.substring(1);
+    value = value.replaceAll('/', '_').replaceAll(RegExp(r'\s+'), '');
+    if (value == '.' || value == '..') return '';
+    return value;
+  }
+
+  Map<String, dynamic> _cleanupUserFields() {
+    return <String, dynamic>{
+      'app_build': FieldValue.delete(),
+      'app_package': FieldValue.delete(),
+      'country_source': FieldValue.delete(),
+      'updated_at': FieldValue.delete(),
+      'last_session_id': FieldValue.delete(),
+      'user_id': FieldValue.delete(),
+      'userId': FieldValue.delete(),
+      'last_seen_at': FieldValue.delete(),
+      'platform': FieldValue.delete(),
+      'os_version': FieldValue.delete(),
+      'device_manufacturer': FieldValue.delete(),
+      'last_analysis_duration_ms': FieldValue.delete(),
+      'last_analysis_followers_count': FieldValue.delete(),
+      'last_analysis_following_count': FieldValue.delete(),
+    };
+  }
+
+  Map<String, dynamic> _cleanupSessionFields() {
+    return <String, dynamic>{
+      'updated_at': FieldValue.delete(),
+      'user_id': FieldValue.delete(),
+      'last_seen_at': FieldValue.delete(),
+      'platform': FieldValue.delete(),
+      'os_version': FieldValue.delete(),
+      'device_manufacturer': FieldValue.delete(),
+    };
   }
 
   Future<bool> recordLogin({
@@ -221,7 +246,6 @@ class TelemetryService {
     final Map<String, dynamic> locale = _getLocaleFields();
 
     return await _writeLogin(
-      userId: cleanUserId,
       username: username,
       sessionId: sessionId,
       isPremium: isPremium,
@@ -241,7 +265,6 @@ class TelemetryService {
     final Map<String, dynamic> locale = _getLocaleFields();
 
     return await _writeLogout(
-      userId: ctx.userId,
       username: ctx.username,
       sessionId: ctx.sessionId.isEmpty ? null : ctx.sessionId,
       device: device,
@@ -261,7 +284,6 @@ class TelemetryService {
     final Map<String, dynamic> locale = _getLocaleFields();
 
     return await _writeRewardedAdWatched(
-      userId: ctx.userId,
       username: ctx.username,
       sessionId: ctx.sessionId,
       device: device,
@@ -280,7 +302,6 @@ class TelemetryService {
     final Map<String, dynamic> locale = _getLocaleFields();
 
     return await _writeSeen(
-      userId: ctx.userId,
       username: ctx.username,
       sessionId: ctx.sessionId.isEmpty ? null : ctx.sessionId,
       device: device,
@@ -303,7 +324,6 @@ class TelemetryService {
     final Map<String, dynamic> locale = _getLocaleFields();
 
     return await _writeAnalysisCompleted(
-      userId: ctx.userId,
       username: ctx.username,
       sessionId: ctx.sessionId.isEmpty ? null : ctx.sessionId,
       followersCount: followersCount,
@@ -316,7 +336,6 @@ class TelemetryService {
   }
 
   Future<bool> _writeLogin({
-    required String userId,
     required String username,
     required String sessionId,
     required bool isPremium,
@@ -325,40 +344,40 @@ class TelemetryService {
     required Map<String, dynamic> locale,
   }) async {
     try {
-      final now = FieldValue.serverTimestamp();
+      final String now = nowTurkeyIso8601();
+      final String userDocId = _userDocIdFromUsername(username);
+      if (userDocId.isEmpty) return false;
       final userRef =
-          FirebaseFirestore.instance.collection(usersCollection).doc(userId);
+          FirebaseFirestore.instance.collection(usersCollection).doc(userDocId);
 
       await userRef
           .set({
-            'user_id': userId,
             'username': username,
             ...device,
             ...app,
             ...locale,
             'is_premium': isPremium,
+            'last_seen': now,
             'last_login_at': now,
-            'last_seen_at': now,
-            'last_session_id': sessionId,
-            'updated_at': now,
+            ..._cleanupUserFields(),
           }, SetOptions(merge: true))
           .timeout(_writeTimeout);
 
       await userRef
           .collection('sessions')
           .doc(sessionId)
-          .set({
-            'session_id': sessionId,
-            'user_id': userId,
-            'username': username,
-            ...device,
-            ...app,
-            ...locale,
-            'is_premium_at_login': isPremium,
-            'login_at': now,
-            'updated_at': now,
-          }, SetOptions(merge: true))
-          .timeout(_writeTimeout);
+            .set({
+              'username': username,
+              'session_id': sessionId,
+              ...device,
+              ...app,
+              ...locale,
+              'is_premium_at_login': isPremium,
+              'last_seen': now,
+              'login_at': now,
+              ..._cleanupSessionFields(),
+            }, SetOptions(merge: true))
+            .timeout(_writeTimeout);
 
       unawaited(_clearLastError());
       return true;
@@ -370,7 +389,6 @@ class TelemetryService {
   }
 
   Future<bool> _writeLogout({
-    required String userId,
     required String username,
     required String? sessionId,
     required Map<String, dynamic> device,
@@ -378,20 +396,21 @@ class TelemetryService {
     required Map<String, dynamic> locale,
   }) async {
     try {
-      final now = FieldValue.serverTimestamp();
+      final String now = nowTurkeyIso8601();
+      final String userDocId = _userDocIdFromUsername(username);
+      if (userDocId.isEmpty) return false;
       final userRef =
-          FirebaseFirestore.instance.collection(usersCollection).doc(userId);
+          FirebaseFirestore.instance.collection(usersCollection).doc(userDocId);
 
       await userRef
           .set({
-            'user_id': userId,
             'username': username,
             ...device,
             ...app,
             ...locale,
+            'last_seen': now,
             'last_logout_at': now,
-            'last_seen_at': now,
-            'updated_at': now,
+            ..._cleanupUserFields(),
           }, SetOptions(merge: true))
           .timeout(_writeTimeout);
 
@@ -400,9 +419,11 @@ class TelemetryService {
             .collection('sessions')
             .doc(sessionId)
             .set({
+              'username': username,
+              'last_seen': now,
               'logout_at': now,
               ...locale,
-              'updated_at': now,
+              ..._cleanupSessionFields(),
             }, SetOptions(merge: true))
             .timeout(_writeTimeout);
       }
@@ -416,7 +437,6 @@ class TelemetryService {
   }
 
   Future<bool> _writeRewardedAdWatched({
-    required String userId,
     required String username,
     required String sessionId,
     required Map<String, dynamic> device,
@@ -424,37 +444,40 @@ class TelemetryService {
     required Map<String, dynamic> locale,
   }) async {
     try {
-      final now = FieldValue.serverTimestamp();
+      final String now = nowTurkeyIso8601();
+      final String userDocId = _userDocIdFromUsername(username);
+      if (userDocId.isEmpty) return false;
       final userRef =
-          FirebaseFirestore.instance.collection(usersCollection).doc(userId);
+          FirebaseFirestore.instance.collection(usersCollection).doc(userDocId);
       final sessionRef = userRef.collection('sessions').doc(sessionId);
 
       await userRef
           .set({
-            'user_id': userId,
             'username': username,
             ...device,
             ...app,
             ...locale,
             'has_watched_rewarded_ad': true,
             'rewarded_ad_watched_count': FieldValue.increment(1),
+            'last_seen': now,
             'last_rewarded_ad_at': now,
-            'last_seen_at': now,
-            'updated_at': now,
+            ..._cleanupUserFields(),
           }, SetOptions(merge: true))
           .timeout(_writeTimeout);
 
       await sessionRef
-          .set({
-            ...device,
-            ...app,
-            ...locale,
-            'has_watched_rewarded_ad': true,
-            'rewarded_ad_watched_count': FieldValue.increment(1),
-            'last_rewarded_ad_at': now,
-            'updated_at': now,
-          }, SetOptions(merge: true))
-          .timeout(_writeTimeout);
+            .set({
+              'username': username,
+              ...device,
+              ...app,
+              ...locale,
+              'has_watched_rewarded_ad': true,
+              'rewarded_ad_watched_count': FieldValue.increment(1),
+              'last_seen': now,
+              'last_rewarded_ad_at': now,
+              ..._cleanupSessionFields(),
+            }, SetOptions(merge: true))
+            .timeout(_writeTimeout);
 
       unawaited(_clearLastError());
       return true;
@@ -466,7 +489,6 @@ class TelemetryService {
   }
 
   Future<bool> _writeSeen({
-    required String userId,
     required String username,
     required String? sessionId,
     required Map<String, dynamic> device,
@@ -474,19 +496,20 @@ class TelemetryService {
     required Map<String, dynamic> locale,
   }) async {
     try {
-      final now = FieldValue.serverTimestamp();
+      final String now = nowTurkeyIso8601();
+      final String userDocId = _userDocIdFromUsername(username);
+      if (userDocId.isEmpty) return false;
       final userRef =
-          FirebaseFirestore.instance.collection(usersCollection).doc(userId);
+          FirebaseFirestore.instance.collection(usersCollection).doc(userDocId);
 
       await userRef
           .set({
-            'user_id': userId,
             'username': username,
             ...device,
             ...app,
             ...locale,
-            'last_seen_at': now,
-            'updated_at': now,
+            'last_seen': now,
+            ..._cleanupUserFields(),
           }, SetOptions(merge: true))
           .timeout(_writeTimeout);
 
@@ -495,13 +518,12 @@ class TelemetryService {
             .collection('sessions')
             .doc(sessionId)
             .set({
-              'user_id': userId,
               'username': username,
               ...device,
               ...app,
               ...locale,
-              'last_seen_at': now,
-              'updated_at': now,
+              'last_seen': now,
+              ..._cleanupSessionFields(),
             }, SetOptions(merge: true))
             .timeout(_writeTimeout);
       }
@@ -515,7 +537,6 @@ class TelemetryService {
   }
 
   Future<bool> _writeAnalysisCompleted({
-    required String userId,
     required String username,
     required String? sessionId,
     required int followersCount,
@@ -526,25 +547,22 @@ class TelemetryService {
     required Map<String, dynamic> locale,
   }) async {
     try {
-      final now = FieldValue.serverTimestamp();
+      final String now = nowTurkeyIso8601();
+      final String userDocId = _userDocIdFromUsername(username);
+      if (userDocId.isEmpty) return false;
       final userRef =
-          FirebaseFirestore.instance.collection(usersCollection).doc(userId);
+          FirebaseFirestore.instance.collection(usersCollection).doc(userDocId);
 
       await userRef
           .set({
-            'user_id': userId,
             'username': username,
             ...device,
             ...app,
             ...locale,
             'analysis_count': FieldValue.increment(1),
+            'last_seen': now,
             'last_analysis_at': now,
-            'last_analysis_followers_count': followersCount,
-            'last_analysis_following_count': followingCount,
-            if (duration != null)
-              'last_analysis_duration_ms': duration.inMilliseconds,
-            'last_seen_at': now,
-            'updated_at': now,
+            ..._cleanupUserFields(),
           }, SetOptions(merge: true))
           .timeout(_writeTimeout);
 
@@ -553,13 +571,15 @@ class TelemetryService {
             .collection('sessions')
             .doc(sessionId)
             .set({
+              'username': username,
               ...app,
               ...locale,
+              'last_seen': now,
               'analysis_at': now,
               'analysis_followers_count': followersCount,
               'analysis_following_count': followingCount,
               if (duration != null) 'analysis_duration_ms': duration.inMilliseconds,
-              'updated_at': now,
+              ..._cleanupSessionFields(),
             }, SetOptions(merge: true))
             .timeout(_writeTimeout);
       }

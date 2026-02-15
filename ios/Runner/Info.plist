@@ -6,6 +6,24 @@
     <array>
         <string>en</string>
         <string>tr</string>
+        <string>de</string>
+        <string>ko</string>
+        <string>ja</string>
+        <string>ru</string>
+        <string>pt</string>
+        <string>ar</string>
+        <string>es</string>
+        <string>es-MX</string>
+        <string>hi</string>
+        <string>hu</string>
+        <string>zh-Hans</string>
+        <string>id</string>
+        <string>nl</string>
+        <string>fr</string>
+        <string>it</string>
+        <string>vi</string>
+        <string>th</string>
+        <string>pl</string>
     </array>
 
     <key>GADApplicationIdentifier</key>

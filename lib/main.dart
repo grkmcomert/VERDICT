@@ -25,8 +25,12 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'firebase_options.dart';
 import 'purchases_service.dart';
 import 'telemetry_service.dart';
+import 'turkey_time.dart';
+import 'tr_en_phrase_localizations.dart';
+import 'did_you_know_phrase_localizations.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -43,13 +47,13 @@ const String _revenueCatIosApiKey = String.fromEnvironment(
   'REVENUECAT_IOS_API_KEY',
   defaultValue: 'appl_JaWUAzYMRRqsEAkwdcRvjJxRWnv',
 );
-const bool _forceFirestoreTest =
-    bool.fromEnvironment('FORCE_FIRESTORE_TEST', defaultValue: false);
-const bool _forcePurchaseDebug =
-    bool.fromEnvironment('FORCE_PURCHASE_DEBUG', defaultValue: false);
+const bool _forceFirestoreTest = false;
+const bool _userFacingFirebaseDiagnosticsEnabled = false;
 const int _firestoreTimeoutSeconds =
     int.fromEnvironment('FIRESTORE_TIMEOUT_SECONDS', defaultValue: 20);
 const Duration _firestoreTimeout = Duration(seconds: _firestoreTimeoutSeconds);
+const String _firestoreSetupBaseUrl =
+    'https://console.cloud.google.com/datastore/setup?project=';
 const MethodChannel _cookieChannel =
     MethodChannel('com.grkmcomert.unfollowerscurrent/cookie');
 const MethodChannel _reviewChannel =
@@ -60,6 +64,46 @@ Future<void> _waitForUmpConsentFlow() async {
   try {
     await _umpConsentFlowCompleter.future.timeout(const Duration(seconds: 12));
   } catch (_) {}
+}
+
+const Map<String, String> _startupTextByLangCode = <String, String>{
+  'tr': 'VERDICT Başlatılıyor...',
+  'en': 'Starting VERDICT...',
+  'de': 'VERDICT wird gestartet...',
+  'ko': '\uC2DC\uC791 \uC911: VERDICT...',
+  'ja': 'VERDICT\u3092\u8D77\u52D5\u4E2D...',
+  'ru': '\u0417\u0430\u043F\u0443\u0441\u043A VERDICT...',
+  'pt': 'Iniciando VERDICT...',
+  'ar': '\u062C\u0627\u0631\u064D \u062A\u0634\u063A\u064A\u0644 VERDICT...',
+  'es': 'Iniciando VERDICT...',
+  'es-mx': 'Iniciando VERDICT...',
+  'hi': 'VERDICT \u0936\u0941\u0930\u0942 \u0939\u094B \u0930\u0939\u093E \u0939\u0948...',
+  'hu': 'VERDICT indul...',
+  'zh-hans': '\u6B63\u5728\u542F\u52A8 VERDICT...',
+  'id': 'Memulai VERDICT...',
+  'nl': 'VERDICT wordt gestart...',
+  'fr': 'Demarrage de VERDICT...',
+  'it': 'Avvio di VERDICT...',
+  'vi': 'Dang khoi dong VERDICT...',
+  'th': '\u0E01\u0E33\u0E25\u0E31\u0E07\u0E40\u0E23\u0E34\u0E48\u0E21 VERDICT...',
+  'pl': 'Uruchamianie VERDICT...',
+};
+
+String _startupTextForLocale(String localeRaw) {
+  final String locale = localeRaw.trim().toLowerCase().replaceAll('-', '_');
+  if (locale.isEmpty) return _startupTextByLangCode['en']!;
+
+  String code = locale.split('_').first.trim();
+  if (code == 'es' &&
+      (locale.startsWith('es_mx') || locale.startsWith('es_419'))) {
+    code = 'es-mx';
+  } else if (code == 'zh') {
+    code = 'zh-hans';
+  } else if (code == 'in') {
+    code = 'id';
+  }
+
+  return _startupTextByLangCode[code] ?? _startupTextByLangCode['en']!;
 }
 
 String _extractCookieValue(String cookieHeader, String name) {
@@ -108,7 +152,24 @@ Map<String, String> _buildAppHeaders(String cookie, String userAgent,
 }
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  await _initializeFirebaseApp();
+}
+
+Future<void> _initializeFirebaseApp() async {
+  if (Firebase.apps.isNotEmpty) return;
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+}
+
+Future<String> _resolveStartupLocaleSource() async {
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String pref =
+        (prefs.getString('language_code') ?? '').trim().toLowerCase();
+    if (pref.isNotEmpty) return pref;
+  } catch (_) {}
+  return Platform.localeName;
 }
 
 void main() {
@@ -122,7 +183,7 @@ void main() {
       );
       await PurchasesService.instance.checkPurchaseStatus();
     }());
-    await Firebase.initializeApp();
+    await _initializeFirebaseApp();
     try {
       final FirebaseApp app = Firebase.app();
       debugPrint('[Firebase] Initialized projectId=${app.options.projectId}');
@@ -140,14 +201,16 @@ void main() {
       debugPrint('[FirebaseAuth] anonymous sign-in failed: $e');
     }
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    runApp(const RootApp());
+    final String startupLocaleSource = await _resolveStartupLocaleSource();
+    runApp(RootApp(initialStartupLocaleSource: startupLocaleSource));
   }, (error, stack) {
     debugPrint("Global Hata Yakalandı: $error");
   });
 }
 
 class RootApp extends StatefulWidget {
-  const RootApp({super.key});
+  final String initialStartupLocaleSource;
+  const RootApp({super.key, required this.initialStartupLocaleSource});
 
   @override
   State<RootApp> createState() => _RootAppState();
@@ -158,6 +221,7 @@ class _RootAppState extends State<RootApp> {
   static const int _dailyReminderDaysToSchedule = 30;
 
   bool _isLoading = true;
+  late final String _startupLocaleSource;
   bool _showRealApp = false;
   bool _isAppEnabled = true;
   bool _isUpdateRequired = false;
@@ -167,6 +231,7 @@ class _RootAppState extends State<RootApp> {
   @override
   void initState() {
     super.initState();
+    _startupLocaleSource = widget.initialStartupLocaleSource;
     _initializeApp();
   }
 
@@ -187,10 +252,13 @@ class _RootAppState extends State<RootApp> {
       await _fetchConfig();
     } catch (e) {
       debugPrint("Config Hatası: $e");
-      final bool isTr = Platform.localeName.toLowerCase().startsWith('tr');
-      _debugError = isTr
-          ? 'Bağlantı hatası. Lütfen tekrar deneyin.'
-          : 'Connection error. Please try again.';
+      final String langCode =
+          Platform.localeName.toLowerCase().split(RegExp(r'[_-]')).first.trim();
+      _debugError = localizeTrEn(
+        langCode,
+        'Bağlantı hatası. Lütfen tekrar deneyin.',
+        'Connection error. Please try again.',
+      );
     }
 
     try {
@@ -206,7 +274,6 @@ class _RootAppState extends State<RootApp> {
       });
     }
   }
-
   Future<void> _initNotifications() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -251,47 +318,13 @@ class _RootAppState extends State<RootApp> {
   Future<void> _initFirebaseMessaging() async {
     try {
       final messaging = FirebaseMessaging.instance;
-      await messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-
+      await messaging.setAutoInitEnabled(false);
+      await messaging.deleteToken();
       await messaging.setForegroundNotificationPresentationOptions(
-        alert: true,
-        badge: true,
-        sound: true,
+        alert: false,
+        badge: false,
+        sound: false,
       );
-
-      final token = await messaging.getToken();
-      if (token != null) {
-        debugPrint("FCM Token: $token");
-      }
-
-      messaging.onTokenRefresh.listen((t) {
-        debugPrint("FCM Token Refresh: $t");
-      });
-
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-        final notification = message.notification;
-        if (notification == null) return;
-
-        await flutterLocalNotificationsPlugin.show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'fcm_default_channel',
-              'FCM Notifications',
-              channelDescription: 'Foreground FCM notifications',
-              importance: Importance.max,
-              priority: Priority.high,
-            ),
-            iOS: DarwinNotificationDetails(),
-          ),
-        );
-      });
     } catch (e) {
       debugPrint("FCM init error: $e");
     }
@@ -300,11 +333,15 @@ class _RootAppState extends State<RootApp> {
   Future<void> _scheduleDailyNotification() async {
     try {
       final String locale = Platform.localeName;
-      final bool isTr = locale.toLowerCase().startsWith('tr');
-      final String title = isTr ? 'Analiz Vakti!' : 'Analysis Time!';
-      final String body = isTr
-          ? 'Verileri güncelleme zamanı! Takipçi listendeki değişiklikleri görmek için şimdi analiz et.'
-          : 'Time to update data! Analyze now to see changes in your follower list.';
+      final String langCode =
+          locale.toLowerCase().split(RegExp(r'[_-]')).first.trim();
+      final String title =
+          localizeTrEn(langCode, 'Analiz Vakti!', 'Analysis Time!');
+      final String body = localizeTrEn(
+        langCode,
+        'Verileri güncelleme zamanı! Takipçi listendeki değişiklikleri görmek için şimdi analiz et.',
+        'Time to update data! Analyze now to see changes in your follower list.',
+      );
       final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
       for (int i = 0; i < _dailyReminderDaysToSchedule; i++) {
         await flutterLocalNotificationsPlugin.cancel(_dailyReminderBaseId + i);
@@ -423,10 +460,13 @@ class _RootAppState extends State<RootApp> {
     } catch (e) {
       _showRealApp = false;
       _isAppEnabled = true;
-      final bool isTr = Platform.localeName.toLowerCase().startsWith('tr');
-      _debugError = isTr
-          ? 'Bağlantı hatası. Lütfen tekrar deneyin.'
-          : 'Connection error. Please try again.';
+      final String langCode =
+          Platform.localeName.toLowerCase().split(RegExp(r'[_-]')).first.trim();
+      _debugError = localizeTrEn(
+        langCode,
+        'Bağlantı hatası. Lütfen tekrar deneyin.',
+        'Connection error. Please try again.',
+      );
     }
   }
 
@@ -455,11 +495,16 @@ class _RootAppState extends State<RootApp> {
           allowedVersions.contains(currentFull);
       _isUpdateRequired = !matches;
       if (_isUpdateRequired) {
-        final String locale = Platform.localeName;
-        final bool isTr = locale.toLowerCase().startsWith('tr');
-        _updateMessage = isTr
-            ? 'Yeni güncelleme mevcut! Lütfen mağazayı kontrol edin.'
-            : 'A new update is available. Please check the store.';
+        final String langCode = Platform.localeName
+            .toLowerCase()
+            .split(RegExp(r'[_-]'))
+            .first
+            .trim();
+        _updateMessage = localizeTrEn(
+          langCode,
+          'Yeni güncelleme mevcut! Lütfen mağazayı kontrol edin.',
+          'A new update is available. Please check the store.',
+        );
       }
       if (mounted) setState(() {});
     } catch (_) {
@@ -471,11 +516,12 @@ class _RootAppState extends State<RootApp> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const MaterialApp(
+      final String startupText = _startupTextForLocale(_startupLocaleSource);
+      return MaterialApp(
         debugShowCheckedModeBanner: false,
         home: Scaffold(
             backgroundColor: Colors.white,
-            body: ModernLoader(text: "VERDICT Başlatılıyor...")),
+            body: ModernLoader(text: startupText)),
       );
     }
     if (_isUpdateRequired) {
@@ -507,9 +553,15 @@ class UpdateRequiredApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String langCode =
+        Platform.localeName.toLowerCase().split(RegExp(r'[_-]')).first.trim();
     final String bodyText = message.isNotEmpty
         ? message
-        : "İyi haber! Güncelleme mevcut. Mağazamızı kontrol edip yeni sürümü indir!";
+        : localizeTrEn(
+            langCode,
+            'İyi haber! Güncelleme mevcut. Mağazamızı kontrol edip yeni sürümü indir!',
+            'Good news! An update is available. Check our store and download the latest version!',
+          );
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -548,7 +600,11 @@ class UpdateRequiredApp extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        "İyi haber! Güncelleme mevcut",
+                        localizeTrEn(
+                          langCode,
+                          'İyi haber! Güncelleme mevcut',
+                          'Good news! Update available',
+                        ),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontSize: 18,
@@ -575,9 +631,13 @@ class UpdateRequiredApp extends StatelessWidget {
                               borderRadius: BorderRadius.circular(14),
                             ),
                           ),
-                          child: const Text("KAPAT",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w800, fontSize: 12)),
+                          child: Text(
+                            localizeTrEn(langCode, 'KAPAT', 'CLOSE'),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
                       )
                     ],
@@ -596,6 +656,8 @@ class MaintenanceApp extends StatelessWidget {
   const MaintenanceApp({super.key});
   @override
   Widget build(BuildContext context) {
+    final String langCode =
+        Platform.localeName.toLowerCase().split(RegExp(r'[_-]')).first.trim();
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -607,7 +669,9 @@ class MaintenanceApp extends StatelessWidget {
               Icon(Icons.build_circle_outlined,
                   size: 80, color: Colors.blueGrey.shade700),
               const SizedBox(height: 20),
-              Text("SİSTEM BAKIMDA",
+              Text(
+                  localizeTrEn(
+                      langCode, 'SİSTEM BAKIMDA', 'SYSTEM UNDER MAINTENANCE'),
                   style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w900,
@@ -880,9 +944,21 @@ const List<Map<String, String>> _analysisDidYouKnowFacts = [
   },
 ];
 
-class _ModernLoaderState extends State<ModernLoader>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+String _localizeDidYouKnowFact(String lang, Map<String, String> fact) {
+  final String code = lang.trim().toLowerCase();
+  final String tr = (fact['tr'] ?? '').trim();
+  final String en = (fact['en'] ?? '').trim();
+  if (tr.isEmpty && en.isEmpty) return '';
+  if (code == 'tr') return tr;
+  if (code == 'en') return en;
+
+  final String? supplemental = localizeDidYouKnowPhrase(code, en);
+  if (supplemental != null && supplemental.isNotEmpty) return supplemental;
+
+  return localizeTrEn(code, tr, en).trim();
+}
+
+class _ModernLoaderState extends State<ModernLoader> {
   final Random _factRand = Random();
   Timer? _factTimer;
   int _factIndex = 0;
@@ -890,16 +966,12 @@ class _ModernLoaderState extends State<ModernLoader>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-        duration: const Duration(milliseconds: 550), vsync: this)
-      ..repeat();
     _startFactRotationIfNeeded();
   }
 
   @override
   void dispose() {
     _factTimer?.cancel();
-    _controller.dispose();
     super.dispose();
   }
 
@@ -931,11 +1003,14 @@ class _ModernLoaderState extends State<ModernLoader>
     if (widget.progress == null) return const SizedBox.shrink();
     if (_analysisDidYouKnowFacts.isEmpty) return const SizedBox.shrink();
 
-    final bool isTr = widget.lang.toLowerCase() == 'tr';
-    final String label = isTr ? 'BUNU BİLİYOR MUYDUNUZ?' : 'DID YOU KNOW?';
+    final String label = localizeTrEn(
+      widget.lang,
+      'BUNU BİLİYOR MUYDUNUZ?',
+      'DID YOU KNOW?',
+    );
     final Map<String, String> fact =
         _analysisDidYouKnowFacts[_factIndex % _analysisDidYouKnowFacts.length];
-    final String body = (fact[isTr ? 'tr' : 'en'] ?? fact['en'] ?? '').trim();
+    final String body = _localizeDidYouKnowFact(widget.lang, fact);
     if (body.isEmpty) return const SizedBox.shrink();
 
     final Color panelBg = widget.isDark
@@ -1032,64 +1107,125 @@ class _ModernLoaderState extends State<ModernLoader>
     required Color accent,
   }) {
     final double clamped = progress.clamp(0.0, 1.0);
-    const double barHeight = 6;
-    const double catWidth = 46;
-    const double catHeight = 28;
-    const double totalHeight = 44;
-    const double barTop = 32;
+    const double barHeight = 8;
+    const double catWidth = 40;
+    const double catHeight = 42;
+    const double totalHeight = 62;
+    const double barTop = 48;
     final Color catBase =
         widget.isDark ? const Color(0xFFF3F4F6) : const Color(0xFF111827);
 
     return SizedBox(
       height: totalHeight,
-      child: LayoutBuilder(builder: (context, constraints) {
-        final double maxX = max(0.0, constraints.maxWidth - catWidth);
-        final double x = (maxX * clamped).clamp(0.0, maxX);
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned(
-              left: 0,
-              right: 0,
-              top: barTop,
-              child: LinearProgressIndicator(
-                value: clamped,
-                backgroundColor: accent.withOpacity(0.18),
-                valueColor: AlwaysStoppedAnimation<Color>(accent),
-                minHeight: barHeight,
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            Positioned(
-              left: x,
-              top: barTop - catHeight + 2,
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, _) {
-                  final double t = _controller.value;
-                  final double bob = -1.2 * sin(t * 2 * pi);
-                  final double tilt = 0.03 * sin(t * 2 * pi);
-                  return Transform.translate(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(end: clamped),
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        builder: (context, animatedProgress, _) {
+          final double p = animatedProgress.clamp(0.0, 1.0);
+          return LayoutBuilder(builder: (context, constraints) {
+            final double maxX = max(0.0, constraints.maxWidth - catWidth);
+            final double x = (maxX * p).clamp(0.0, maxX);
+            final double phase = (p * 16.0) % 1.0;
+            final double bob = -1.1 * sin(phase * 2 * pi);
+            final double tilt = 0.028 * sin(phase * 2 * pi);
+
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: barTop,
+                  child: Container(
+                    height: barHeight,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          accent.withOpacity(widget.isDark ? 0.16 : 0.12),
+                          accent.withOpacity(widget.isDark ? 0.06 : 0.03),
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: accent.withOpacity(widget.isDark ? 0.25 : 0.14),
+                        width: 0.7,
+                      ),
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: p,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Color.lerp(accent, Colors.white, 0.18) ??
+                                    accent,
+                                accent,
+                                Color.lerp(accent, Colors.black, 0.12) ??
+                                    accent,
+                              ],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: accent
+                                    .withOpacity(widget.isDark ? 0.45 : 0.30),
+                                blurRadius: 6,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      painter: _ProgressTrailParticlesPainter(
+                        progress: p,
+                        phase: phase,
+                        catCenterX: x + (catWidth * 0.5),
+                        barTop: barTop,
+                        barHeight: barHeight,
+                        accentColor: accent,
+                        isDark: widget.isDark,
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: x,
+                  top: barTop - catHeight + 1,
+                  child: Transform.translate(
                     offset: Offset(0, bob),
                     child: Transform.rotate(
                       angle: tilt,
                       child: CustomPaint(
                         size: const Size(catWidth, catHeight),
                         painter: _CatWalkerPainter(
-                          phase: t,
+                          phase: phase,
                           baseColor: catBase,
                           accentColor: accent,
                           isDark: widget.isDark,
                         ),
                       ),
                     ),
-                  );
-                },
-              ),
-            ),
-          ],
-        );
-      }),
+                  ),
+                ),
+              ],
+            );
+          });
+        },
+      ),
     );
   }
 
@@ -1100,7 +1236,9 @@ class _ModernLoaderState extends State<ModernLoader>
         widget.isDark ? Colors.white : Colors.blueGrey.shade800;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
+        padding: EdgeInsets.symmetric(
+          horizontal: widget.progress != null ? 24 : 34,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -1172,6 +1310,112 @@ class _ModernLoaderState extends State<ModernLoader>
   }
 }
 
+class _ProgressTrailParticlesPainter extends CustomPainter {
+  final double progress;
+  final double phase;
+  final double catCenterX;
+  final double barTop;
+  final double barHeight;
+  final Color accentColor;
+  final bool isDark;
+
+  const _ProgressTrailParticlesPainter({
+    required this.progress,
+    required this.phase,
+    required this.catCenterX,
+    required this.barTop,
+    required this.barHeight,
+    required this.accentColor,
+    required this.isDark,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0.0) return;
+
+    // Keep particles tighter and above the bar center so they stay distinct
+    // from the percentage label while remaining clearly visible.
+    // Move particle trail ~0.7cm lower from previous position.
+    final double centerY = barTop + (barHeight * 0.5) - 18.0;
+    final double trailLength = min(catCenterX, 150.0);
+    if (trailLength < 3) return;
+
+    final double startX = max(0.0, catCenterX - trailLength);
+    final Rect streakRect =
+        Rect.fromLTWH(startX, centerY - 2.8, trailLength, 5.6);
+    final Paint streak = Paint()
+      ..shader = LinearGradient(
+        colors: [
+          accentColor.withOpacity(0.0),
+          accentColor.withOpacity(isDark ? 0.40 : 0.30),
+          accentColor.withOpacity(isDark ? 0.75 : 0.58),
+        ],
+        stops: const [0.0, 0.58, 1.0],
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+      ).createShader(streakRect);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(streakRect, const Radius.circular(999)),
+      streak,
+    );
+
+    final Rect glowRect =
+        Rect.fromLTWH(startX, centerY - 8.5, trailLength, 17.0);
+    final Paint glow = Paint()
+      ..shader = LinearGradient(
+        colors: [
+          accentColor.withOpacity(0.0),
+          accentColor.withOpacity(isDark ? 0.24 : 0.16),
+          accentColor.withOpacity(isDark ? 0.46 : 0.34),
+        ],
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+      ).createShader(glowRect);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(glowRect, const Radius.circular(999)),
+      glow,
+    );
+
+    for (int i = 0; i < 32; i++) {
+      final double life = ((phase * 2.0) + (i * 0.097)) % 1.0;
+      final double x = catCenterX - 8 - (life * trailLength) - ((i % 4) * 2.0);
+      if (x < 0 || x > size.width) continue;
+
+      final double y = centerY -
+          2.8 +
+          sin((phase * 2 * pi) + (i * 0.82)) * 2.9 +
+          ((i % 5) - 2) * 0.78;
+      final double radius = (1.0 - life) * (i.isEven ? 3.4 : 2.5);
+      if (radius <= 0.12) continue;
+
+      final double opacity =
+          (1.0 - life) * (1.0 - life) * (isDark ? 0.95 : 0.80);
+      final Color particleColor = Color.lerp(
+        accentColor,
+        Colors.white,
+        0.38 + (0.12 * sin((i + 1) * 0.67).abs()),
+      )!
+          .withOpacity(opacity);
+
+      final Paint particle = Paint()
+        ..color = particleColor
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, i.isEven ? 2.9 : 2.2);
+      canvas.drawCircle(Offset(x, y), radius, particle);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ProgressTrailParticlesPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.phase != phase ||
+        oldDelegate.catCenterX != catCenterX ||
+        oldDelegate.barTop != barTop ||
+        oldDelegate.barHeight != barHeight ||
+        oldDelegate.accentColor != accentColor ||
+        oldDelegate.isDark != isDark;
+  }
+}
+
 class _CatWalkerPainter extends CustomPainter {
   final double phase;
   final Color baseColor;
@@ -1193,134 +1437,202 @@ class _CatWalkerPainter extends CustomPainter {
     final double h = size.height;
     final double t = phase % 1.0;
     final double walk = sin(t * 2 * pi);
-
     final double groundY = h - 4.0;
 
-    final Paint shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(isDark ? 0.35 : 0.18)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-    final Rect shadowRect = Rect.fromCenter(
-        center: Offset(w * 0.50, groundY + 1), width: w * 0.55, height: 6);
-    canvas.drawOval(shadowRect, shadowPaint);
-
-    final Rect bodyBounds = Rect.fromLTWH(10, 11, w - 22, 11);
-    final RRect body =
-        RRect.fromRectAndRadius(bodyBounds, const Radius.circular(7));
-
-    final Color dark = _mix(baseColor, Colors.black, isDark ? 0.05 : 0.18);
-    final Color light = _mix(baseColor, Colors.white, isDark ? 0.14 : 0.08);
-    final Paint bodyPaint = Paint()
-      ..shader = LinearGradient(
-        colors: [light, dark],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ).createShader(Offset.zero & size);
-    canvas.drawRRect(body, bodyPaint);
+    final Color dark = _mix(baseColor, Colors.black, isDark ? 0.06 : 0.18);
+    final Color light = _mix(baseColor, Colors.white, isDark ? 0.18 : 0.12);
 
     final Paint outline = Paint()
-      ..color = Colors.black.withOpacity(isDark ? 0.35 : 0.10)
+      ..color = Colors.black.withOpacity(isDark ? 0.40 : 0.14)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.8;
-    canvas.drawRRect(body, outline);
+      ..strokeWidth = 0.85;
 
-    final Offset headCenter = Offset(w - 12.2, 13.2);
-    const double headR = 6.7;
-    final Rect headRect = Rect.fromCircle(center: headCenter, radius: headR);
+    final Paint shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(isDark ? 0.30 : 0.16)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(w * 0.50, groundY + 0.6),
+        width: 16.0 + (2.0 * walk.abs()),
+        height: 5.5,
+      ),
+      shadowPaint,
+    );
+
+    final Rect torsoRect = Rect.fromCenter(
+      center: Offset(w * 0.50, h * 0.60),
+      width: 12.2,
+      height: 15.2,
+    );
+    final RRect torso =
+        RRect.fromRectAndRadius(torsoRect, const Radius.circular(6.8));
+    final Paint torsoPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [light, dark],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ).createShader(torsoRect);
+    canvas.drawRRect(torso, torsoPaint);
+    canvas.drawRRect(torso, outline);
+
+    final Offset headCenter = Offset(w * 0.53, 10.2);
+    const double headRadius = 7.2;
+    final Rect headRect =
+        Rect.fromCircle(center: headCenter, radius: headRadius);
     final Paint headPaint = Paint()
       ..shader = LinearGradient(
         colors: [
           _mix(light, Colors.white, 0.10),
-          _mix(dark, Colors.black, 0.06)
+          _mix(dark, Colors.black, 0.06),
         ],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ).createShader(headRect);
-    canvas.drawCircle(headCenter, headR, headPaint);
-    canvas.drawCircle(headCenter, headR, outline);
+    canvas.drawCircle(headCenter, headRadius, headPaint);
+    canvas.drawCircle(headCenter, headRadius, outline);
 
-    final Path ear1 = Path()
-      ..moveTo(headCenter.dx - 3.8, headCenter.dy - 5.8)
-      ..lineTo(headCenter.dx - 1.2, headCenter.dy - 9.2)
-      ..lineTo(headCenter.dx + 0.6, headCenter.dy - 5.4)
+    final Path leftEar = Path()
+      ..moveTo(headCenter.dx - 5.1, headCenter.dy - 4.2)
+      ..lineTo(headCenter.dx - 2.8, headCenter.dy - 9.8)
+      ..lineTo(headCenter.dx - 0.9, headCenter.dy - 4.2)
       ..close();
-    final Path ear2 = Path()
-      ..moveTo(headCenter.dx + 0.4, headCenter.dy - 5.4)
-      ..lineTo(headCenter.dx + 2.4, headCenter.dy - 9.0)
-      ..lineTo(headCenter.dx + 4.7, headCenter.dy - 5.4)
+    final Path rightEar = Path()
+      ..moveTo(headCenter.dx + 0.9, headCenter.dy - 4.2)
+      ..lineTo(headCenter.dx + 2.8, headCenter.dy - 9.8)
+      ..lineTo(headCenter.dx + 5.1, headCenter.dy - 4.2)
       ..close();
-    canvas.drawPath(ear1, headPaint);
-    canvas.drawPath(ear2, headPaint);
-    canvas.drawPath(ear1, outline);
-    canvas.drawPath(ear2, outline);
+    canvas.drawPath(leftEar, headPaint);
+    canvas.drawPath(rightEar, headPaint);
+    canvas.drawPath(leftEar, outline);
+    canvas.drawPath(rightEar, outline);
 
-    final Paint eye = Paint()
-      ..color = _mix(baseColor, Colors.white, isDark ? 0.10 : 0.04);
+    final Paint nearEye = Paint()
+      ..color = _mix(baseColor, Colors.white, isDark ? 0.14 : 0.07);
+    final Paint farEye = Paint()
+      ..color = _mix(baseColor, Colors.white, isDark ? 0.09 : 0.04);
     canvas.drawCircle(
-        Offset(headCenter.dx + 2.3, headCenter.dy - 0.6), 0.8, eye);
+        Offset(headCenter.dx + 2.0, headCenter.dy - 0.4), 1.0, nearEye);
+    canvas.drawCircle(
+        Offset(headCenter.dx + 0.2, headCenter.dy - 0.6), 0.56, farEye);
 
-    final double tailWiggle = 1.6 * sin(t * 2 * pi + pi / 3);
+    final Rect snoutRect = Rect.fromCenter(
+      center: Offset(headCenter.dx + 4.6, headCenter.dy + 1.2),
+      width: 4.9,
+      height: 4.2,
+    );
+    final Paint snoutPaint = Paint()..color = _mix(light, Colors.white, 0.15);
+    canvas.drawOval(snoutRect, snoutPaint);
+    canvas.drawOval(snoutRect, outline);
+
+    final Paint nose = Paint()
+      ..color = _mix(accentColor, Colors.white, 0.22).withOpacity(0.85);
+    final Path nosePath = Path()
+      ..moveTo(headCenter.dx + 5.2, headCenter.dy + 1.3)
+      ..lineTo(headCenter.dx + 4.2, headCenter.dy + 2.2)
+      ..lineTo(headCenter.dx + 5.8, headCenter.dy + 2.2)
+      ..close();
+    canvas.drawPath(nosePath, nose);
+
+    final Paint whiskerPaint = Paint()
+      ..color = Colors.black.withOpacity(isDark ? 0.30 : 0.16)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.55
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(headCenter.dx + 5.8, headCenter.dy + 1.6),
+      Offset(headCenter.dx + 8.2, headCenter.dy + 0.8),
+      whiskerPaint,
+    );
+    canvas.drawLine(
+      Offset(headCenter.dx + 5.7, headCenter.dy + 2.2),
+      Offset(headCenter.dx + 8.4, headCenter.dy + 2.2),
+      whiskerPaint,
+    );
+
+    final double armSwing = 1.9 * sin(t * 2 * pi);
+    final Paint limbPaint = Paint()
+      ..color = baseColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.7
+      ..strokeCap = StrokeCap.round;
+    final Paint limbOutline = Paint()
+      ..color = Colors.black.withOpacity(isDark ? 0.34 : 0.13)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8
+      ..strokeCap = StrokeCap.round;
+
+    final Offset shoulderLeft =
+        Offset(torsoRect.left + 0.7, torsoRect.top + 3.8);
+    final Offset shoulderRight =
+        Offset(torsoRect.right - 0.7, torsoRect.top + 3.8);
+    final Offset handLeft =
+        Offset(shoulderLeft.dx - 1.4, torsoRect.center.dy + 2.0 + armSwing);
+    final Offset handRight =
+        Offset(shoulderRight.dx + 1.4, torsoRect.center.dy + 2.0 - armSwing);
+    canvas.drawLine(shoulderLeft, handLeft, limbPaint);
+    canvas.drawLine(shoulderRight, handRight, limbPaint);
+    canvas.drawLine(shoulderLeft, handLeft, limbOutline);
+    canvas.drawLine(shoulderRight, handRight, limbOutline);
+
+    final double leftLift = max(0.0, walk);
+    final double rightLift = max(0.0, -walk);
+    final double hipY = torsoRect.bottom - 0.8;
+    final Offset hipLeft = Offset(w * 0.50 - 3.4, hipY);
+    final Offset hipRight = Offset(w * 0.50 + 3.4, hipY);
+    final Offset footLeft = Offset(w * 0.50 - 3.9, groundY - (leftLift * 3.2));
+    final Offset footRight =
+        Offset(w * 0.50 + 3.9, groundY - (rightLift * 3.2));
+    canvas.drawLine(hipLeft, footLeft, limbPaint);
+    canvas.drawLine(hipRight, footRight, limbPaint);
+    canvas.drawLine(hipLeft, footLeft, limbOutline);
+    canvas.drawLine(hipRight, footRight, limbOutline);
+
+    final Paint shoePaint = Paint()
+      ..color = _mix(baseColor, Colors.black, isDark ? 0.16 : 0.30);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: footLeft, width: 5.3, height: 2.0),
+        const Radius.circular(999),
+      ),
+      shoePaint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: footRight, width: 5.3, height: 2.0),
+        const Radius.circular(999),
+      ),
+      shoePaint,
+    );
+
+    final double tailSwing = 2.1 * sin((t * 2 * pi) + (pi / 2));
+    final Offset tailBase =
+        Offset(torsoRect.left + 0.4, torsoRect.center.dy + 1.2);
     final Path tail = Path()
-      ..moveTo(bodyBounds.left + 1.4, bodyBounds.top + 6.5)
+      ..moveTo(tailBase.dx, tailBase.dy)
       ..quadraticBezierTo(
-        bodyBounds.left - 7.5,
-        bodyBounds.top + 2.0 + tailWiggle,
-        bodyBounds.left - 4.0,
-        bodyBounds.top - 3.2 + tailWiggle,
-      )
-      ..quadraticBezierTo(
-        bodyBounds.left - 2.5,
-        bodyBounds.top - 6.2 + tailWiggle,
-        bodyBounds.left + 1.6,
-        bodyBounds.top - 4.6 + tailWiggle,
+        tailBase.dx - 7.5,
+        tailBase.dy - 4.2 + tailSwing,
+        tailBase.dx - 5.4,
+        tailBase.dy - 8.2 + tailSwing,
       );
     final Paint tailPaint = Paint()
       ..color = baseColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.0
+      ..strokeWidth = 2.8
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
     canvas.drawPath(tail, tailPaint);
-    canvas.drawPath(
-      tail,
-      outline
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.9,
-    );
+    canvas.drawPath(tail, limbOutline);
 
-    final double legMaxH = 8.0;
-    final double legMinH = 4.6;
-    final double baseline = groundY;
-
-    double legLift(double phaseOffset) {
-      final double s = sin(t * 2 * pi + phaseOffset);
-      return (s + 1.0) / 2.0;
-    }
-
-    final double liftA = legLift(0);
-    final double liftB = legLift(pi);
-
-    final List<double> legXs = [
-      bodyBounds.left + 4.5,
-      bodyBounds.left + 10.0,
-      bodyBounds.left + 15.5,
-      bodyBounds.left + 21.0,
-    ];
-    final List<double> lifts = [liftA, liftB, liftB, liftA];
-    final Paint legPaint = Paint()..color = baseColor;
-
-    for (int i = 0; i < legXs.length; i++) {
-      final double lift = lifts[i];
-      final double legH = legMaxH - ((legMaxH - legMinH) * lift);
-      final Rect r = Rect.fromLTWH(legXs[i], baseline - legH, 3.0, legH);
-      final RRect rr = RRect.fromRectAndRadius(r, const Radius.circular(1.2));
-      canvas.drawRRect(rr, legPaint);
-    }
-
-    final double collarPulse = 0.30 + (0.12 * (0.5 + 0.5 * walk));
+    final double collarPulse = 0.34 + (0.14 * (0.5 + 0.5 * walk));
     final Paint collar = Paint()..color = accentColor.withOpacity(collarPulse);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromLTWH(headCenter.dx - 6.2, headCenter.dy + 3.9, 10.0, 2.2),
+        Rect.fromCenter(
+          center: Offset(w * 0.50, torsoRect.top + 1.7),
+          width: 8.7,
+          height: 2.0,
+        ),
         const Radius.circular(999),
       ),
       collar,
@@ -1406,9 +1718,12 @@ class _BioPlannerScreenState extends State<BioPlannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final String langCode =
+        Platform.localeName.toLowerCase().split(RegExp(r'[_-]')).first.trim();
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Bio Planner"),
+        title:
+            Text(localizeTrEn(langCode, 'Biyografi Planlayici', 'Bio Planner')),
         centerTitle: true,
         elevation: 0,
       ),
@@ -1652,11 +1967,517 @@ class _DashboardScreenState extends State<DashboardScreen>
   Timer? _progressPumpTimer;
   int _consentWatchTries = 0;
 
+  static const List<String> _supportedLanguageCodes = <String>[
+    'tr',
+    'en',
+    'de',
+    'ko',
+    'ja',
+    'ru',
+    'pt',
+    'ar',
+    'es',
+    'es-mx',
+    'hi',
+    'hu',
+    'zh-hans',
+    'id',
+    'nl',
+    'fr',
+    'it',
+    'vi',
+    'th',
+    'pl',
+  ];
+
+  static const Map<String, String> _languageNativeNames = <String, String>{
+    'tr': 'T\u00fcrk\u00e7e',
+    'en': 'English',
+    'de': 'Deutsch',
+    'ko': '\ud55c\uad6d\uc5b4',
+    'ja': '\u65e5\u672c\u8a9e',
+    'ru': '\u0420\u0443\u0441\u0441\u043a\u0438\u0439',
+    'pt': 'Portugu\u00eas',
+    'ar': '\u0627\u0644\u0639\u0631\u0628\u064a\u0629',
+    'es': 'Espa\u00f1ol (Espa\u00f1a)',
+    'es-mx': 'Espa\u00f1ol (M\u00e9xico)',
+    'hi': '\u0939\u093f\u0928\u094d\u0926\u0940',
+    'hu': 'Magyar',
+    'zh-hans': '\u7b80\u4f53\u4e2d\u6587',
+    'id': 'Bahasa Indonesia',
+    'nl': 'Nederlands',
+    'fr': 'Fran\u00e7ais',
+    'it': 'Italiano',
+    'vi': 'Ti\u1ebfng Vi\u1ec7t',
+    'th': '\u0e44\u0e17\u0e22',
+    'pl': 'Polski',
+  };
+
+  final Map<String, Map<String, String>> _legalLocalized = {
+    'tr': {
+      "legal_intro":
+          "Bu uygulamayı indirip kullanan her kullanıcı, aşağıdaki Kullanım Koşulları ve Feragatname metnini okumuş, anlamış ve kabul etmiş sayılır.",
+      "article1_title": "Madde 1: Veri Gizliliği ve Yerel İşleme Mimarisi",
+      "article1_text":
+          "VERDICT istemci taraflı çalışır. Giriş bilgileriniz hiçbir şekilde geliştirici sunucularına gönderilmez veya depolanmaz. Veri işleme yalnızca cihazınızın yerel belleğinde gerçekleştirilir.",
+      "article2_title": "Madde 2: Üçüncü Taraf Platform Riskleri",
+      "article2_text":
+          "Instagram platform politikaları kapsamında üçüncü taraf uygulamaları kısıtlayabilir. Kullanıma bağlı oluşabilecek işlem engeli, hesap kısıtlaması veya hesap kapatılması gibi riskler kullanıcıya aittir.",
+      "article3_title":
+          "Madde 3: Garanti Feragatnamesi ve Sorumluluk Reddi",
+      "article3_text":
+          "Yazılım olduğu gibi ve mevcut haliyle sunulur. Analiz sonuçlarının kesinliği, sürekliliği veya ticari uygunluğu garanti edilmez. Uygulama verilerine dayanarak alınan kararların sorumluluğu kullanıcıya aittir.",
+      "article4_title": "Madde 4: Fikri Mülkiyet ve Bağımsızlık Bildirimi",
+      "article4_text":
+          "VERDICT bağımsız bir geliştirici projesidir. Instagram, Facebook ve Meta adları Meta Platforms, Inc. şirketinin ticari markalarıdır. Bu uygulamanın söz konusu şirketlerle resmi bir bağı bulunmaz.",
+      "article5_title":
+          "Madde 5: Hizmet Sürekliliği ve Platform Değişiklikleri",
+      "article5_text":
+          "Instagram API veya web altyapısındaki köklü değişiklikler uygulamanın kısmen veya tamamen çalışmamasına neden olabilir. Geliştirici bu tür altyapısal değişikliklerde güncelleme veya kesintisiz hizmet taahhüdü vermez.",
+    },
+    'en': {
+      "legal_intro":
+          "By downloading and using this app, each user is deemed to have read, understood, and accepted the Terms of Use and Disclaimer below.",
+      "article1_title":
+          "Article 1: Data Privacy and Local Processing Architecture",
+      "article1_text":
+          "VERDICT operates client-side. Your login credentials are never transmitted to or stored on developer-owned servers. Data processing is performed only in your device's local storage and memory.",
+      "article2_title": "Article 2: Third-Party Platform Risks",
+      "article2_text":
+          "Instagram may restrict third-party apps under its platform policies. Risks such as action blocks, account restrictions, shadow bans, or account closure remain the sole responsibility of the user.",
+      "article3_title":
+          "Article 3: Warranty Disclaimer and Limitation of Liability",
+      "article3_text":
+          "This software is provided as-is and as-available. Accuracy, continuity, and fitness of analysis results are not guaranteed. Decisions made based on app data are the user's responsibility.",
+      "article4_title":
+          "Article 4: Intellectual Property and Independence Notice",
+      "article4_text":
+          "VERDICT is an independent project. Instagram, Facebook, and Meta are trademarks of Meta Platforms, Inc. This app has no official partnership, sponsorship, or affiliation with those companies.",
+      "article5_title": "Article 5: Service Continuity and Platform Changes",
+      "article5_text":
+          "Major changes to Instagram APIs or web infrastructure may partially or fully break app functionality. The developer does not guarantee ongoing updates or uninterrupted service under such conditions.",
+    },
+    'de': {
+      "legal_intro":
+          "Mit dem Herunterladen und der Nutzung dieser App erklären Sie, dass Sie die folgenden Nutzungsbedingungen und Haftungsausschlüsse gelesen, verstanden und akzeptiert haben.",
+      "article1_title":
+          "Artikel 1: Datenschutz und lokale Verarbeitungsarchitektur",
+      "article1_text":
+          "VERDICT arbeitet clientseitig. Ihre Anmeldedaten werden nicht an Server des Entwicklers übertragen oder dort gespeichert. Die Verarbeitung erfolgt ausschließlich lokal auf Ihrem Gerät.",
+      "article2_title": "Artikel 2: Risiken von Drittplattformen",
+      "article2_text":
+          "Instagram kann die Nutzung von Drittanbieter-Software gemäß seinen Richtlinien einschränken. Risiken wie Aktionssperren, Kontoeinschränkungen oder Kontoschließungen liegen in der Verantwortung des Nutzers.",
+      "article3_title":
+          "Artikel 3: Gewährleistungsausschluss und Haftungsbegrenzung",
+      "article3_text":
+          "Die Software wird ohne Gewähr im aktuellen Zustand bereitgestellt. Für Genauigkeit, Verfügbarkeit oder wirtschaftliche Eignung der Analysen wird keine Garantie übernommen.",
+      "article4_title":
+          "Artikel 4: Geistiges Eigentum und Unabhängigkeitserklärung",
+      "article4_text":
+          "VERDICT ist ein unabhängiges Projekt. Instagram, Facebook und Meta sind Marken der Meta Platforms, Inc. Es besteht keine offizielle Verbindung zu diesen Unternehmen.",
+      "article5_title":
+          "Artikel 5: Dienstkontinuität und Plattformänderungen",
+      "article5_text":
+          "Grundlegende Änderungen an Instagram-APIs oder der Web-Infrastruktur können die Funktion der App teilweise oder vollständig beeinträchtigen. Der Entwickler garantiert in solchen Fällen keine fortlaufenden Updates.",
+    },
+    'ko': {
+      "legal_intro":
+          "이 앱을 다운로드하고 사용하는 사용자는 아래 이용 조건 및 면책 고지를 읽고 이해했으며 동의한 것으로 간주됩니다.",
+      "article1_title": "제1조: 데이터 프라이버시 및 로컬 처리 구조",
+      "article1_text":
+          "VERDICT는 클라이언트 측에서 동작합니다. 로그인 정보는 개발자 서버로 전송되거나 저장되지 않습니다. 모든 처리는 사용자 기기 내부에서만 수행됩니다.",
+      "article2_title": "제2조: 제3자 플랫폼 관련 위험",
+      "article2_text":
+          "Instagram 정책에 따라 제3자 앱 사용이 제한될 수 있습니다. 사용 중 발생할 수 있는 차단, 제한, 계정 정지 등의 위험은 사용자 책임입니다.",
+      "article3_title": "제3조: 보증 부인 및 책임 제한",
+      "article3_text":
+          "본 소프트웨어는 현재 상태 그대로 제공됩니다. 분석 결과의 정확성, 지속성, 적합성은 보장되지 않으며, 결과를 바탕으로 한 판단의 책임은 사용자에게 있습니다.",
+      "article4_title": "제4조: 지식재산권 및 독립성 고지",
+      "article4_text":
+          "VERDICT는 독립 개발 프로젝트입니다. Instagram, Facebook, Meta는 Meta Platforms, Inc.의 상표이며, 본 앱은 해당 회사들과 공식 제휴 관계가 없습니다.",
+      "article5_title": "제5조: 서비스 지속성 및 플랫폼 변경",
+      "article5_text":
+          "Instagram API 또는 웹 인프라가 크게 변경되면 앱 기능이 일부 또는 전부 중단될 수 있습니다. 개발자는 이러한 경우 지속적인 업데이트를 보장하지 않습니다.",
+    },
+    'ja': {
+      "legal_intro":
+          "本アプリをダウンロードして利用した時点で、以下の利用条件および免責事項を読み、理解し、同意したものとみなされます。",
+      "article1_title": "第1条: データプライバシーとローカル処理構成",
+      "article1_text":
+          "VERDICTはクライアント側で動作します。ログイン情報が開発者の外部サーバーへ送信・保存されることはありません。処理は端末内でのみ実行されます。",
+      "article2_title": "第2条: サードパーティプラットフォームのリスク",
+      "article2_text":
+          "Instagramのポリシーにより、第三者アプリの利用が制限される場合があります。利用に伴う制限やアカウントへの影響は、ユーザー自身の責任となります。",
+      "article3_title": "第3条: 保証の否認および責任の制限",
+      "article3_text":
+          "本ソフトウェアは現状有姿で提供されます。分析結果の正確性・継続性・適合性は保証されません。結果に基づく判断およびその影響はユーザーの責任です。",
+      "article4_title": "第4条: 知的財産および独立性に関する通知",
+      "article4_text":
+          "VERDICTは独立した開発プロジェクトです。Instagram、Facebook、MetaはMeta Platforms, Inc.の商標であり、本アプリは各社と公式な提携関係を持ちません。",
+      "article5_title": "第5条: サービス継続性とプラットフォーム変更",
+      "article5_text":
+          "Instagram APIやWeb基盤の大幅な変更により、アプリ機能の一部または全部が利用できなくなる場合があります。開発者はそのような場合の継続的な更新を保証しません。",
+    },
+    'ru': {
+      "legal_intro":
+          "Загружая и используя это приложение, пользователь подтверждает, что заранее прочитал, понял и принял приведенные ниже Условия использования и отказ от ответственности.",
+      "article1_title":
+          "Статья 1: Конфиденциальность данных и локальная обработка",
+      "article1_text":
+          "VERDICT работает на стороне клиента. Данные входа не передаются и не хранятся на серверах разработчика. Вся обработка выполняется только локально на устройстве пользователя.",
+      "article2_title": "Статья 2: Риски сторонних платформ",
+      "article2_text":
+          "Instagram может ограничивать использование сторонних приложений в соответствии со своими правилами. Риски блокировок, ограничений и иных санкций несет пользователь.",
+      "article3_title":
+          "Статья 3: Отказ от гарантий и ограничение ответственности",
+      "article3_text":
+          "Приложение предоставляется как есть. Точность, стабильность и пригодность результатов анализа не гарантируются. Любые решения на основе данных приложения пользователь принимает на свой риск.",
+      "article4_title":
+          "Статья 4: Интеллектуальная собственность и независимость",
+      "article4_text":
+          "VERDICT является независимым проектом. Instagram, Facebook и Meta являются товарными знаками Meta Platforms, Inc. Приложение не имеет официальной связи с указанными компаниями.",
+      "article5_title":
+          "Статья 5: Непрерывность сервиса и изменения платформы",
+      "article5_text":
+          "Существенные изменения Instagram API или веб-инфраструктуры могут частично или полностью нарушить работу приложения. Разработчик не гарантирует выпуск обновлений в таких случаях.",
+    },
+    'pt': {
+      "legal_intro":
+          "Ao baixar e usar este aplicativo, o usuário declara que leu, compreendeu e aceitou os Termos de Uso e o Aviso de Isenção abaixo.",
+      "article1_title":
+          "Artigo 1: Privacidade de dados e processamento local",
+      "article1_text":
+          "O VERDICT funciona no lado do cliente. As credenciais de login não são enviadas nem armazenadas em servidores do desenvolvedor. O processamento ocorre apenas no seu dispositivo.",
+      "article2_title": "Artigo 2: Riscos de plataformas de terceiros",
+      "article2_text":
+          "O Instagram pode restringir aplicativos de terceiros conforme suas políticas. Riscos como bloqueios de ação, limitações de conta ou encerramento da conta são de responsabilidade do usuário.",
+      "article3_title":
+          "Artigo 3: Isenção de garantia e limitação de responsabilidade",
+      "article3_text":
+          "Este software é fornecido no estado em que se encontra. Não há garantia de precisão, continuidade ou adequação comercial dos resultados de análise.",
+      "article4_title":
+          "Artigo 4: Propriedade intelectual e aviso de independência",
+      "article4_text":
+          "VERDICT é um projeto independente. Instagram, Facebook e Meta são marcas registradas da Meta Platforms, Inc. Este app não possui vínculo oficial com essas empresas.",
+      "article5_title":
+          "Artigo 5: Continuidade do serviço e mudanças de plataforma",
+      "article5_text":
+          "Mudanças significativas na API do Instagram ou na infraestrutura web podem comprometer parcial ou totalmente o funcionamento do app. O desenvolvedor não garante atualização contínua nesses cenários.",
+    },
+    'ar': {
+      "legal_intro":
+          "عند تنزيل هذا التطبيق واستخدامه، يُعد المستخدم قد قرأ وفهم ووافق على شروط الاستخدام وإخلاء المسؤولية الواردة أدناه.",
+      "article1_title": "المادة 1: خصوصية البيانات والمعالجة المحلية",
+      "article1_text":
+          "يعمل VERDICT على جانب العميل. لا يتم إرسال بيانات تسجيل الدخول أو حفظها على خوادم المطور. تتم المعالجة محلياً على جهاز المستخدم فقط.",
+      "article2_title": "المادة 2: مخاطر المنصات الخارجية",
+      "article2_text":
+          "قد يقيّد Instagram استخدام تطبيقات الطرف الثالث وفق سياساته. أي مخاطر مثل حظر الإجراءات أو تقييد الحساب أو إغلاقه تقع على عاتق المستخدم.",
+      "article3_title": "المادة 3: إخلاء الضمان وتحديد المسؤولية",
+      "article3_text":
+          "يتم تقديم هذا التطبيق كما هو. لا يوجد ضمان لدقة النتائج أو استمراريتها أو ملاءمتها التجارية. يتحمل المستخدم مسؤولية القرارات المبنية على بيانات التطبيق.",
+      "article4_title": "المادة 4: الملكية الفكرية وإشعار الاستقلالية",
+      "article4_text":
+          "VERDICT مشروع مستقل. إن Instagram وFacebook وMeta علامات تجارية مملوكة لشركة Meta Platforms, Inc. ولا توجد أي شراكة رسمية بين التطبيق وتلك الجهات.",
+      "article5_title": "المادة 5: استمرارية الخدمة وتغييرات المنصة",
+      "article5_text":
+          "قد تؤدي التغييرات الجذرية في Instagram API أو البنية التحتية للويب إلى تعطّل وظائف التطبيق جزئياً أو كلياً. ولا يلتزم المطور بضمان تحديثات مستمرة في هذه الحالات.",
+    },
+    'es': {
+      "legal_intro":
+          "Al descargar y usar esta aplicación, el usuario declara que ha leído, comprendido y aceptado los Términos de uso y el Descargo de responsabilidad que se indican a continuación.",
+      "article1_title":
+          "Artículo 1: Privacidad de datos y procesamiento local",
+      "article1_text":
+          "VERDICT funciona del lado del cliente. Las credenciales de inicio de sesión no se envían ni se almacenan en servidores del desarrollador. Todo el procesamiento ocurre localmente en su dispositivo.",
+      "article2_title": "Artículo 2: Riesgos de plataformas de terceros",
+      "article2_text":
+          "Instagram puede restringir el uso de aplicaciones de terceros según sus políticas. Riesgos como bloqueos de acciones, limitaciones de cuenta o cierre de cuenta son responsabilidad del usuario.",
+      "article3_title":
+          "Artículo 3: Descargo de garantía y limitación de responsabilidad",
+      "article3_text":
+          "Este software se ofrece tal cual. No se garantiza la precisión, continuidad ni idoneidad comercial de los resultados de análisis.",
+      "article4_title":
+          "Artículo 4: Propiedad intelectual y aviso de independencia",
+      "article4_text":
+          "VERDICT es un proyecto independiente. Instagram, Facebook y Meta son marcas registradas de Meta Platforms, Inc. Esta aplicación no tiene afiliación oficial con dichas empresas.",
+      "article5_title":
+          "Artículo 5: Continuidad del servicio y cambios de plataforma",
+      "article5_text":
+          "Cambios importantes en la API de Instagram o en su infraestructura web pueden afectar parcial o totalmente el funcionamiento de la app. El desarrollador no garantiza actualizaciones continuas en esos casos.",
+    },
+    'es-mx': {
+      "legal_intro":
+          "Al descargar y usar esta aplicación, el usuario declara que leyó, entendió y aceptó los Términos de uso y el Aviso de exención de responsabilidad que aparecen abajo.",
+      "article1_title":
+          "Artículo 1: Privacidad de datos y procesamiento local",
+      "article1_text":
+          "VERDICT funciona del lado del cliente. Las credenciales de acceso no se envían ni se guardan en servidores del desarrollador. El procesamiento se realiza únicamente en su dispositivo.",
+      "article2_title": "Artículo 2: Riesgos de plataformas de terceros",
+      "article2_text":
+          "Instagram puede limitar el uso de apps de terceros conforme a sus políticas. Riesgos como bloqueos de acciones, restricciones de cuenta o cierre de cuenta son responsabilidad del usuario.",
+      "article3_title":
+          "Artículo 3: Exención de garantía y limitación de responsabilidad",
+      "article3_text":
+          "Este software se entrega tal cual. No se garantiza la precisión, continuidad ni la utilidad comercial de los resultados de análisis.",
+      "article4_title":
+          "Artículo 4: Propiedad intelectual y aviso de independencia",
+      "article4_text":
+          "VERDICT es un proyecto independiente. Instagram, Facebook y Meta son marcas registradas de Meta Platforms, Inc. Esta app no tiene relación oficial con esas empresas.",
+      "article5_title":
+          "Artículo 5: Continuidad del servicio y cambios de plataforma",
+      "article5_text":
+          "Cambios importantes en la API de Instagram o en su infraestructura web pueden afectar parcial o totalmente el funcionamiento de la app. El desarrollador no garantiza actualizaciones continuas en estos casos.",
+    },
+    'hi': {
+      "legal_intro":
+          "इस ऐप को डाउनलोड और उपयोग करके उपयोगकर्ता यह स्वीकार करता है कि उसने नीचे दिए गए उपयोग की शर्तें और अस्वीकरण पढ़े, समझे और स्वीकार किए हैं।",
+      "article1_title": "अनुच्छेद 1: डेटा गोपनीयता और स्थानीय प्रोसेसिंग",
+      "article1_text":
+          "VERDICT क्लाइंट-साइड पर काम करता है। लॉगिन जानकारी डेवलपर के सर्वर पर न भेजी जाती है और न संग्रहीत की जाती है। सभी प्रोसेसिंग केवल आपके डिवाइस पर होती है।",
+      "article2_title": "अनुच्छेद 2: तृतीय-पक्ष प्लेटफ़ॉर्म जोखिम",
+      "article2_text":
+          "Instagram अपनी नीतियों के अनुसार तृतीय-पक्ष ऐप्स को सीमित कर सकता है। एक्शन ब्लॉक, अकाउंट प्रतिबंध या अकाउंट बंद होने जैसे जोखिम उपयोगकर्ता की जिम्मेदारी हैं।",
+      "article3_title": "अनुच्छेद 3: वारंटी अस्वीकरण और दायित्व सीमा",
+      "article3_text":
+          "यह सॉफ़्टवेयर जैसा है वैसा उपलब्ध कराया जाता है। विश्लेषण परिणामों की सटीकता, निरंतरता या व्यावसायिक उपयुक्तता की गारंटी नहीं दी जाती।",
+      "article4_title": "अनुच्छेद 4: बौद्धिक संपदा और स्वतंत्रता सूचना",
+      "article4_text":
+          "VERDICT एक स्वतंत्र परियोजना है। Instagram, Facebook और Meta, Meta Platforms, Inc. के ट्रेडमार्क हैं। इस ऐप का इन कंपनियों से कोई आधिकारिक संबंध नहीं है।",
+      "article5_title": "अनुच्छेद 5: सेवा निरंतरता और प्लेटफ़ॉर्म परिवर्तन",
+      "article5_text":
+          "Instagram API या वेब इंफ्रास्ट्रक्चर में बड़े बदलाव से ऐप की कार्यक्षमता आंशिक या पूरी तरह प्रभावित हो सकती है। ऐसे मामलों में डेवलपर निरंतर अपडेट की गारंटी नहीं देता।",
+    },
+    'hu': {
+      "legal_intro":
+          "Az alkalmazás letöltésével és használatával a felhasználó kijelenti, hogy elolvasta, megértette és elfogadta az alábbi Felhasználási feltételeket és jogi nyilatkozatot.",
+      "article1_title": "1. cikk: Adatvédelem és helyi feldolgozás",
+      "article1_text":
+          "A VERDICT kliensoldalon működik. A bejelentkezési adatok nem kerülnek a fejlesztő szervereire. Minden feldolgozás kizárólag a felhasználó eszközén történik.",
+      "article2_title": "2. cikk: Harmadik fél platformkockázatai",
+      "article2_text":
+          "Az Instagram a saját szabályzatai alapján korlátozhatja a külső alkalmazásokat. Az ebből eredő korlátozások és kockázatok a felhasználót terhelik.",
+      "article3_title": "3. cikk: Jótállás kizárása és felelősségkorlátozás",
+      "article3_text":
+          "A szoftver jelen állapotában kerül biztosításra. Az elemzési eredmények pontosságára, folytonosságára és üzleti alkalmasságára nem vállalunk garanciát.",
+      "article4_title":
+          "4. cikk: Szellemi tulajdon és függetlenségi nyilatkozat",
+      "article4_text":
+          "A VERDICT független projekt. Az Instagram, Facebook és Meta a Meta Platforms, Inc. védjegyei. Az alkalmazás nem áll hivatalos kapcsolatban ezekkel a cégekkel.",
+      "article5_title":
+          "5. cikk: Szolgáltatás-folytonosság és platformváltozások",
+      "article5_text":
+          "Az Instagram API vagy a webes infrastruktúra jelentős változásai részben vagy teljesen működésképtelenné tehetik az alkalmazást. A fejlesztő ilyen esetben nem garantál folyamatos frissítést.",
+    },
+    'zh-hans': {
+      "legal_intro":
+          "下载并使用本应用即表示用户已阅读、理解并接受以下使用条款与免责声明。",
+      "article1_title": "第1条：数据隐私与本地处理架构",
+      "article1_text":
+          "VERDICT 采用客户端处理方式。登录凭据不会发送到或存储在开发者服务器上。所有处理仅在用户设备本地完成。",
+      "article2_title": "第2条：第三方平台风险",
+      "article2_text":
+          "Instagram 可根据平台政策限制第三方应用。由此产生的操作限制、账号风险或封禁风险由用户自行承担。",
+      "article3_title": "第3条：免责声明与责任限制",
+      "article3_text":
+          "本软件按现状提供，不保证分析结果的准确性、连续性或商业适用性。基于应用数据做出的决策及后果由用户承担。",
+      "article4_title": "第4条：知识产权与独立性声明",
+      "article4_text":
+          "VERDICT 为独立开发项目。Instagram、Facebook 和 Meta 为 Meta Platforms, Inc. 的注册商标，本应用与其不存在官方关联。",
+      "article5_title": "第5条：服务连续性与平台变更",
+      "article5_text":
+          "Instagram API 或 Web 基础设施的重大变化可能导致应用部分或全部功能失效。开发者不承诺在此类情况下持续更新或维持服务。",
+    },
+    'id': {
+      "legal_intro":
+          "Dengan mengunduh dan menggunakan aplikasi ini, pengguna dianggap telah membaca, memahami, dan menyetujui Ketentuan Penggunaan serta Penafian berikut.",
+      "article1_title":
+          "Pasal 1: Privasi data dan pemrosesan lokal",
+      "article1_text":
+          "VERDICT berjalan di sisi klien. Kredensial login tidak dikirim atau disimpan di server milik pengembang. Semua pemrosesan dilakukan secara lokal di perangkat pengguna.",
+      "article2_title": "Pasal 2: Risiko platform pihak ketiga",
+      "article2_text":
+          "Instagram dapat membatasi aplikasi pihak ketiga sesuai kebijakannya. Risiko seperti pembatasan tindakan, pembatasan akun, atau penutupan akun menjadi tanggung jawab pengguna.",
+      "article3_title":
+          "Pasal 3: Penafian garansi dan batas tanggung jawab",
+      "article3_text":
+          "Perangkat lunak ini disediakan apa adanya. Akurasi, kesinambungan, dan kelayakan hasil analisis tidak dijamin.",
+      "article4_title":
+          "Pasal 4: Kekayaan intelektual dan pernyataan independensi",
+      "article4_text":
+          "VERDICT adalah proyek independen. Instagram, Facebook, dan Meta adalah merek dagang Meta Platforms, Inc. Aplikasi ini tidak memiliki hubungan resmi dengan perusahaan tersebut.",
+      "article5_title":
+          "Pasal 5: Keberlanjutan layanan dan perubahan platform",
+      "article5_text":
+          "Perubahan besar pada API Instagram atau infrastruktur web dapat menyebabkan aplikasi kehilangan fungsi sebagian atau seluruhnya. Pengembang tidak menjamin pembaruan berkelanjutan dalam kondisi tersebut.",
+    },
+    'nl': {
+      "legal_intro":
+          "Door deze app te downloaden en te gebruiken, verklaart de gebruiker dat hij de onderstaande gebruiksvoorwaarden en disclaimer heeft gelezen, begrepen en geaccepteerd.",
+      "article1_title": "Artikel 1: Gegevensprivacy en lokale verwerking",
+      "article1_text":
+          "VERDICT werkt client-side. Inloggegevens worden niet naar servers van de ontwikkelaar verzonden of daar opgeslagen. Alle verwerking gebeurt lokaal op het apparaat van de gebruiker.",
+      "article2_title": "Artikel 2: Risico's van platforms van derden",
+      "article2_text":
+          "Instagram kan het gebruik van apps van derden beperken op basis van zijn beleid. Risico's zoals beperkingen, blokkades of accountsluiting zijn de verantwoordelijkheid van de gebruiker.",
+      "article3_title":
+          "Artikel 3: Garantiedisclaimer en aansprakelijkheidsbeperking",
+      "article3_text":
+          "Deze software wordt geleverd zoals die is. De nauwkeurigheid, continuïteit en commerciële geschiktheid van de analyseresultaten worden niet gegarandeerd.",
+      "article4_title":
+          "Artikel 4: Intellectueel eigendom en onafhankelijkheidsverklaring",
+      "article4_text":
+          "VERDICT is een onafhankelijk project. Instagram, Facebook en Meta zijn handelsmerken van Meta Platforms, Inc. Deze app heeft geen officiële band met die bedrijven.",
+      "article5_title":
+          "Artikel 5: Dienstcontinuïteit en platformwijzigingen",
+      "article5_text":
+          "Grote wijzigingen in de Instagram API of webinfrastructuur kunnen ervoor zorgen dat de app gedeeltelijk of volledig niet meer werkt. De ontwikkelaar garandeert in die gevallen geen doorlopende updates.",
+    },
+    'fr': {
+      "legal_intro":
+          "En téléchargeant et en utilisant cette application, l'utilisateur reconnaît avoir lu, compris et accepté les Conditions d'utilisation et la clause de non-responsabilité ci-dessous.",
+      "article1_title":
+          "Article 1 : Confidentialité des données et traitement local",
+      "article1_text":
+          "VERDICT fonctionne côté client. Les identifiants de connexion ne sont ni transmis ni stockés sur des serveurs du développeur. Le traitement est effectué uniquement sur l'appareil de l'utilisateur.",
+      "article2_title": "Article 2 : Risques liés aux plateformes tierces",
+      "article2_text":
+          "Instagram peut limiter l'usage des applications tierces selon ses politiques. Les risques tels que blocages d'actions, restrictions de compte ou fermeture de compte relèvent de la responsabilité de l'utilisateur.",
+      "article3_title":
+          "Article 3 : Exclusion de garantie et limitation de responsabilité",
+      "article3_text":
+          "Ce logiciel est fourni en l'état. La précision, la continuité et l'adéquation commerciale des résultats d'analyse ne sont pas garanties.",
+      "article4_title":
+          "Article 4 : Propriété intellectuelle et indépendance",
+      "article4_text":
+          "VERDICT est un projet indépendant. Instagram, Facebook et Meta sont des marques de Meta Platforms, Inc. Cette application n'a aucun lien officiel avec ces sociétés.",
+      "article5_title":
+          "Article 5 : Continuité du service et changements de plateforme",
+      "article5_text":
+          "Des changements majeurs de l'API Instagram ou de l'infrastructure web peuvent altérer partiellement ou totalement le fonctionnement de l'application. Le développeur ne garantit pas des mises à jour continues dans ce cas.",
+    },
+    'it': {
+      "legal_intro":
+          "Scaricando e utilizzando questa applicazione, l'utente dichiara di aver letto, compreso e accettato i Termini d'uso e la clausola di esclusione di responsabilità riportati di seguito.",
+      "article1_title":
+          "Articolo 1: Privacy dei dati e trattamento locale",
+      "article1_text":
+          "VERDICT funziona lato client. Le credenziali di accesso non vengono inviate né archiviate su server del developer. L'elaborazione avviene solo localmente sul dispositivo dell'utente.",
+      "article2_title": "Articolo 2: Rischi delle piattaforme terze",
+      "article2_text":
+          "Instagram può limitare l'uso di app di terze parti in base alle proprie policy. Rischi come blocchi, limitazioni o chiusure dell'account restano a carico dell'utente.",
+      "article3_title":
+          "Articolo 3: Esclusione di garanzia e limitazione di responsabilità",
+      "article3_text":
+          "Il software è fornito così com'è. Non è garantita l'accuratezza, la continuità o l'idoneità commerciale dei risultati di analisi.",
+      "article4_title":
+          "Articolo 4: Proprietà intellettuale e indipendenza",
+      "article4_text":
+          "VERDICT è un progetto indipendente. Instagram, Facebook e Meta sono marchi di Meta Platforms, Inc. Questa app non ha alcun collegamento ufficiale con tali società.",
+      "article5_title":
+          "Articolo 5: Continuità del servizio e cambiamenti di piattaforma",
+      "article5_text":
+          "Modifiche rilevanti all'API di Instagram o all'infrastruttura web possono compromettere in parte o totalmente le funzionalità dell'app. Il developer non garantisce aggiornamenti continui in tali casi.",
+    },
+    'vi': {
+      "legal_intro":
+          "Khi tải xuống và sử dụng ứng dụng này, người dùng được xem là đã đọc, hiểu và chấp nhận các Điều khoản sử dụng và Tuyên bố miễn trừ trách nhiệm bên dưới.",
+      "article1_title":
+          "Điều 1: Quyền riêng tư dữ liệu và xử lý cục bộ",
+      "article1_text":
+          "VERDICT hoạt động phía máy khách. Thông tin đăng nhập không được gửi hoặc lưu trên máy chủ của nhà phát triển. Mọi xử lý được thực hiện cục bộ trên thiết bị người dùng.",
+      "article2_title": "Điều 2: Rủi ro từ nền tảng bên thứ ba",
+      "article2_text":
+          "Instagram có thể hạn chế ứng dụng bên thứ ba theo chính sách của họ. Các rủi ro như chặn hành động, hạn chế tài khoản hoặc khóa tài khoản thuộc trách nhiệm của người dùng.",
+      "article3_title":
+          "Điều 3: Miễn trừ bảo hành và giới hạn trách nhiệm",
+      "article3_text":
+          "Phần mềm được cung cấp theo hiện trạng. Không bảo đảm về độ chính xác, tính liên tục hoặc khả năng phù hợp thương mại của kết quả phân tích.",
+      "article4_title":
+          "Điều 4: Sở hữu trí tuệ và tuyên bố độc lập",
+      "article4_text":
+          "VERDICT là dự án độc lập. Instagram, Facebook và Meta là nhãn hiệu của Meta Platforms, Inc. Ứng dụng này không có liên kết chính thức với các công ty đó.",
+      "article5_title":
+          "Điều 5: Tính liên tục dịch vụ và thay đổi nền tảng",
+      "article5_text":
+          "Những thay đổi lớn ở Instagram API hoặc hạ tầng web có thể khiến ứng dụng mất một phần hoặc toàn bộ chức năng. Nhà phát triển không cam kết cập nhật liên tục trong các trường hợp này.",
+    },
+    'th': {
+      "legal_intro":
+          "เมื่อดาวน์โหลดและใช้งานแอปนี้ ผู้ใช้ถือว่าได้อ่าน เข้าใจ และยอมรับเงื่อนไขการใช้งานและข้อจำกัดความรับผิดชอบด้านล่างแล้ว",
+      "article1_title":
+          "ข้อ 1: ความเป็นส่วนตัวของข้อมูลและการประมวลผลในเครื่อง",
+      "article1_text":
+          "VERDICT ทำงานฝั่งผู้ใช้ ข้อมูลการเข้าสู่ระบบจะไม่ถูกส่งหรือจัดเก็บบนเซิร์ฟเวอร์ของผู้พัฒนา การประมวลผลทั้งหมดเกิดขึ้นภายในอุปกรณ์ของผู้ใช้เท่านั้น",
+      "article2_title": "ข้อ 2: ความเสี่ยงจากแพลตฟอร์มบุคคลที่สาม",
+      "article2_text":
+          "Instagram อาจจำกัดการใช้งานแอปภายนอกตามนโยบายของตน ความเสี่ยง เช่น การถูกจำกัดการใช้งานหรือบัญชีถูกระงับ เป็นความรับผิดชอบของผู้ใช้",
+      "article3_title": "ข้อ 3: การปฏิเสธการรับประกันและการจำกัดความรับผิด",
+      "article3_text":
+          "ซอฟต์แวร์นี้ให้บริการตามสภาพที่เป็นอยู่ ไม่รับประกันความถูกต้อง ความต่อเนื่อง หรือความเหมาะสมเชิงพาณิชย์ของผลการวิเคราะห์",
+      "article4_title":
+          "ข้อ 4: ทรัพย์สินทางปัญญาและการประกาศความเป็นอิสระ",
+      "article4_text":
+          "VERDICT เป็นโครงการอิสระ Instagram, Facebook และ Meta เป็นเครื่องหมายการค้าของ Meta Platforms, Inc. แอปนี้ไม่มีความเกี่ยวข้องอย่างเป็นทางการกับบริษัทดังกล่าว",
+      "article5_title":
+          "ข้อ 5: ความต่อเนื่องของบริการและการเปลี่ยนแปลงแพลตฟอร์ม",
+      "article5_text":
+          "การเปลี่ยนแปลงสำคัญใน Instagram API หรือโครงสร้างเว็บอาจทำให้แอปทำงานได้บางส่วนหรือหยุดทำงานทั้งหมด ผู้พัฒนาไม่รับประกันการอัปเดตอย่างต่อเนื่องในกรณีดังกล่าว",
+    },
+    'pl': {
+      "legal_intro":
+          "Pobierając i korzystając z tej aplikacji, użytkownik potwierdza, że przeczytał, zrozumiał i zaakceptował poniższe Warunki korzystania oraz zastrzeżenie odpowiedzialności.",
+      "article1_title":
+          "Artykuł 1: Prywatność danych i lokalne przetwarzanie",
+      "article1_text":
+          "VERDICT działa po stronie klienta. Dane logowania nie są przesyłane ani przechowywane na serwerach dewelopera. Całe przetwarzanie odbywa się lokalnie na urządzeniu użytkownika.",
+      "article2_title": "Artykuł 2: Ryzyka platform zewnętrznych",
+      "article2_text":
+          "Instagram może ograniczać aplikacje firm trzecich zgodnie ze swoją polityką. Ryzyko blokad działań, ograniczeń konta lub zamknięcia konta ponosi użytkownik.",
+      "article3_title":
+          "Artykuł 3: Wyłączenie gwarancji i ograniczenie odpowiedzialności",
+      "article3_text":
+          "Oprogramowanie jest dostarczane w stanie takim, w jakim jest. Nie gwarantuje się dokładności, ciągłości ani przydatności handlowej wyników analizy.",
+      "article4_title":
+          "Artykuł 4: Własność intelektualna i niezależność",
+      "article4_text":
+          "VERDICT jest niezależnym projektem. Instagram, Facebook i Meta są znakami towarowymi Meta Platforms, Inc. Aplikacja nie ma oficjalnych powiązań z tymi firmami.",
+      "article5_title":
+          "Artykuł 5: Ciągłość usługi i zmiany platformy",
+      "article5_text":
+          "Istotne zmiany w Instagram API lub infrastrukturze webowej mogą częściowo lub całkowicie zakłócić działanie aplikacji. Deweloper nie gwarantuje ciągłych aktualizacji w takich przypadkach.",
+    },
+  };
+
+  static const Map<String, String> _languageFlags = <String, String>{
+    'tr': '🇹🇷',
+    'en': '🇬🇧',
+    'de': '🇩🇪',
+    'ko': '🇰🇷',
+    'ja': '🇯🇵',
+    'ru': '🇷🇺',
+    'pt': '🇵🇹',
+    'ar': '🇸🇦',
+    'es': '🇪🇸',
+    'es-mx': '🇲🇽',
+    'hi': '🇮🇳',
+    'hu': '🇭🇺',
+    'zh-hans': '🇨🇳',
+    'id': '🇮🇩',
+    'nl': '🇳🇱',
+    'fr': '🇫🇷',
+    'it': '🇮🇹',
+    'vi': '🇻🇳',
+    'th': '🇹🇭',
+    'pl': '🇵🇱',
+  };
+
   String _lang = 'tr';
 
   BannerAd? _bannerAd;
   bool _isAdLoaded = false;
   String? _bannerAdError;
+  String? _googleAdWarning;
   bool _adsHidden = false;
   bool _removeAllAds = false;
   bool _remoteFlagsLoaded = false;
@@ -1682,6 +2503,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   static const Duration _igRequestTimeout = Duration(seconds: 12);
   static const Duration _igRetryBaseDelay = Duration(milliseconds: 700);
   static const Duration _firestoreAuthTimeout = Duration(seconds: 12);
+  static const Duration _firestoreRestTimeout = Duration(seconds: 12);
   static const String _networkTimeOffsetKey = 'network_time_offset_ms';
   int? _networkTimeOffsetMs;
 
@@ -1808,22 +2630,28 @@ class _DashboardScreenState extends State<DashboardScreen>
     'tr': {
       'tagline': 'Professional Social Media Solutions',
       'adsense_banner': 'REKLAM ALANI',
-      'admin_active_note': 'Adminlik aktif',
+      'admin_active_note': 'Y\u00F6netici Modu Aktif',
       'free_app_note':
           'Size daha iyi bir deneyim sunmak için her gün gelişiyoruz. Görüşleriniz bizim için değerli, geri bildirimlerinizi bekliyoruz!',
       'login_prompt': 'Analizi başlatmak için lütfen giriş yapınız.',
       'welcome': 'Hoş geldiniz, {username}',
       'refresh_data': 'VERİLERİ GÜNCELLE',
       'login_with_instagram': 'INSTAGRAM İLE GİRİŞ YAP',
-      'fetching_data': 'Veriler analiz ediliyor...\nBu işlem biraz sürebilir.',
+      'fetching_data':
+          'Veriler analiz ediliyor...\nBu işlem biraz sürebilir.',
       'processing_data': 'Veriler işleniyor...\nNeredeyse bitti.',
       'loading_ad': 'Reklam yükleniyor...\nLütfen bekleyin.',
+      'google_ad_warning': 'Google reklam uyarısı: {reason}',
       'analysis_secure':
           'Analiz işlemleri güvenli bir şekilde cihazınızda gerçekleştirilmektedir.',
+      'today_total_analysis': 'Bugün yapılan toplam analiz: {count}',
       'purchases_not_configured':
           'Satın alma sistemi hazır değil. Lütfen daha sonra tekrar deneyin.',
       'premium_not_active':
           'Satın alma tamamlandı ancak Premium aktif görünmüyor. Lütfen tekrar deneyin.',
+      'premium_welcome_box':
+          'Premium\'a hoş geldiniz! Reklamlar ve bekleme süreleri kaldırıldı.',
+      'premium_already_active': 'Premium üyeliğiniz aktif.',
       'restore_purchases': 'Satın Alımları Geri Yükle',
       'restore_purchases_short': 'GERİ YÜKLE',
       'restoring_purchases': 'Satın alımlar geri yükleniyor...',
@@ -1854,9 +2682,11 @@ class _DashboardScreenState extends State<DashboardScreen>
       'new_followers': 'Yeni Takipçiler',
       'non_followers': 'Geri Takip Etmeyenler',
       'left_followers': 'Takibi Bırakanlar',
-      'left_following': 'Takipten Çıkardıklarım',
+      'left_following': 'Takibi B\u0131rakt\u0131klar\u0131m',
       'legal_warning': 'Yasal Uyarı',
       'rate_us': 'Bizi Puanla',
+      'contact_us': 'Bize Ula\u015f\u0131n',
+      'remove_ads_and_limits': 'T\u00fcm Reklam Birimlerini ve Bekleme S\u00fcrelerini Kald\u0131r',
       'rate_test_message': 'Bu kutucuk şu anda test aşamasındadır.',
       'story_section_title':
           'Hikayeleri Gizlice İzle veya Profil Fotoğraflarını Büyüt',
@@ -1878,6 +2708,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'no_data': 'Veri yok',
       'new_badge': 'YENİ',
       'login_title': 'Giriş Yap',
+      'user_label': 'Kullan\u0131c\u0131',
       'redirecting': 'Oturum doğrulandı, yönlendiriliyorsunuz...',
       'data_updated': 'Analiz tamamlandı ✅',
       'enter_pin': 'PIN giriniz',
@@ -1929,8 +2760,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       'fetching_data': 'Analyzing data...\nThis might take a moment.',
       'processing_data': 'Processing data...\nAlmost done.',
       'loading_ad': 'Loading ad...\nPlease wait.',
+      'google_ad_warning': 'Google ad warning: {reason}',
       'analysis_secure':
           'All analysis is securely processed locally on your device.',
+      'today_total_analysis': 'Total analyses today: {count}',
       'next_analysis': 'Next analysis',
       'next_analysis_ready': 'Ready to scan.',
       'analysis_available_now': 'Analysis available now',
@@ -1953,13 +2786,13 @@ class _DashboardScreenState extends State<DashboardScreen>
       'followers': 'Followers',
       'following': 'Following',
       'new_followers': 'New Followers',
-      'non_followers': 'Don\'t Follow Back',
-      'left_followers': 'Unfollowers',
+      'non_followers': 'Not Following Back',
+      'left_followers': 'Lost Followers',
       'legal_warning': 'Legal Disclaimer',
       'left_following': 'Unfollowed Users',
       'rate_us': 'Rate Us',
-      'Bize Ulaşın': 'Contact Us',
-      'Tüm Reklam Birimlerini ve Bekleme Sürelerini Kaldır':
+      'contact_us': 'Contact Us',
+      'remove_ads_and_limits':
           'Remove Ads & Wait Times',
       'rate_test_message': 'This box is currently under test.',
       'story_section_title': 'Watch Stories Secretly or Zoom Profile Photos',
@@ -1980,12 +2813,16 @@ class _DashboardScreenState extends State<DashboardScreen>
       'no_data': 'No data',
       'new_badge': 'NEW',
       'login_title': 'Login',
+      'user_label': 'User',
       'redirecting': 'Session verified, redirecting securely...',
       'data_updated': 'Analysis complete ✅',
       'purchases_not_configured':
           'Purchases are not available right now. Please try again later.',
       'premium_not_active':
           'Purchase completed, but Premium is not active yet. Please try again.',
+      'premium_welcome_box':
+          'Welcome to Premium! Ads and wait times are removed.',
+      'premium_already_active': 'Your Premium membership is active.',
       'restore_purchases': 'Restore Purchases',
       'restore_purchases_short': 'RESTORE',
       'restoring_purchases': 'Restoring purchases...',
@@ -2028,11 +2865,2168 @@ class _DashboardScreenState extends State<DashboardScreen>
       'usage_metrics_queries': 'Daily queries',
       'usage_metrics_na': '--',
       'usage_metrics_live': 'live panel'
-    }
+    },
+    'de': {
+      'tagline': 'Professional Social Media Solutions',
+      'adsense_banner': 'WERBEFLAECHE',
+      'admin_active_note': 'Admin-Modus aktiv',
+      'free_app_note':
+          'Wir verbessern die App taeglich, um dir ein besseres Erlebnis zu bieten. Dein Feedback ist uns wichtig.',
+      'login_prompt': 'Bitte melde dich an, um die Analyse zu starten.',
+      'welcome': 'Willkommen, {username}',
+      'refresh_data': 'DATEN AKTUALISIEREN',
+      'login_with_instagram': 'MIT INSTAGRAM ANMELDEN',
+      'fetching_data': 'Daten werden analysiert...\nDas kann einen Moment dauern.',
+      'processing_data': 'Daten werden verarbeitet...\nFast fertig.',
+      'loading_ad': 'Werbung wird geladen...\nBitte warten.',
+      'google_ad_warning': 'Google-Warnung zur Werbung: {reason}',
+      'analysis_secure':
+          'Alle Analysen werden sicher lokal auf deinem Geraet verarbeitet.',
+      'today_total_analysis': 'Analysen heute insgesamt: {count}',
+      'next_analysis': 'Naechste Analyse',
+      'next_analysis_ready': 'Bereit zum Scannen.',
+      'analysis_available_now': 'Analyse jetzt verfuegbar',
+      'analysis_ready_risk':
+          'Die Analyse ist jetzt verfuegbar, aber mehrere Analysen direkt hintereinander koennen dein Konto gefaehrden.',
+      'please_wait': 'Bitte warten',
+      'warning': 'Warnung',
+      'remaining_time': 'Naechste Analyse: {time}',
+      'watch_ad': 'WERBUNG ANSEHEN UND ANALYSE STARTEN',
+      'start_analysis': 'ANALYSE STARTEN',
+      'start_analysis_question': 'Analyse starten?',
+      'clear_data_title': 'App-Daten zuruecksetzen',
+      'clear_data_content':
+          'Alle lokalen Daten und Sitzungsinformationen werden geloescht. Bist du sicher?',
+      'cancel': 'ABBRECHEN',
+      'delete': 'LOESCHEN',
+      'error_title': 'Fehler',
+      'data_fetch_error':
+          'Daten konnten nicht geladen werden: {err}\n\nTipp: Melde dich ab und wieder an.',
+      'followers': 'Follower',
+      'following': 'Gefolgt',
+      'new_followers': 'Neue Follower',
+      'non_followers': 'Folgen nicht zurueck',
+      'left_followers': 'Verlorene Follower',
+      'legal_warning': 'Rechtlicher Hinweis',
+      'left_following': 'Entfolgt',
+      'rate_us': 'Bewerte uns',
+      'contact_us': 'Kontakt',
+      'remove_ads_and_limits': 'Werbung und Wartezeiten entfernen',
+      'rate_test_message': 'Dieses Feld befindet sich derzeit im Test.',
+      'story_section_title':
+          'Stories heimlich ansehen oder Profilfotos vergroessern',
+      'story_login_required':
+          'Bitte melde dich an, um Stories heimlich anzusehen.',
+      'story_ad_wait': 'Wird nach der Werbung angezeigt, bitte warten.',
+      'story_action_title': 'Was moechtest du tun?',
+      'story_view_photo': 'Profilfoto vergroessern',
+      'story_watch_secret': 'Story heimlich ansehen',
+      'story_no_data': 'Keine Story-Daten verfuegbar.',
+      'story_close': 'SCHLIESSEN',
+      'read_and_agree': 'ICH HABE GELESEN UND STIMME ZU',
+      'withdraw_consent': 'Einwilligung zurueckziehen',
+      'withdraw_consent_confirm_title': 'Bestaetigen',
+      'withdraw_consent_confirm_body':
+          'Deine Einwilligungseinstellungen werden zurueckgesetzt. Bist du sicher?',
+      'withdraw_consent_confirm_yes': 'Ja',
+      'withdraw_consent_confirm_no': 'Abbrechen',
+      'no_data': 'Keine Daten',
+      'new_badge': 'NEU',
+      'login_title': 'Anmelden',
+      'user_label': 'Nutzer',
+      'redirecting': 'Sitzung verifiziert, sichere Weiterleitung...',
+      'data_updated': 'Analyse abgeschlossen ?',
+      'purchases_not_configured':
+          'Kaeufe sind derzeit nicht verfuegbar. Bitte spaeter erneut versuchen.',
+      'premium_not_active':
+          'Kauf abgeschlossen, aber Premium ist noch nicht aktiv. Bitte erneut versuchen.',
+      'premium_welcome_box':
+          'Willkommen bei Premium! Werbung und Wartezeiten wurden entfernt.',
+      'premium_already_active': 'Deine Premium-Mitgliedschaft ist aktiv.',
+      'restore_purchases': 'Kaeufe wiederherstellen',
+      'restore_purchases_short': 'WIEDERHERSTELLEN',
+      'restoring_purchases': 'Kaeufe werden wiederhergestellt...',
+      'restore_purchases_success': 'Kaeufe wiederhergestellt ?',
+      'restore_purchases_none': 'Keine Kaeufe zum Wiederherstellen gefunden.',
+      'restore_purchases_failed': 'Wiederherstellung fehlgeschlagen: {err}',
+      'enter_pin': 'PIN eingeben',
+      'pin_accepted': 'PIN akzeptiert, Timer zurueckgesetzt ?',
+      'pin_incorrect': 'Falsche PIN',
+      'ok': 'OK',
+      'legal_intro':
+          'Durch das Herunterladen und die Nutzung dieser Anwendung gilt jeder Nutzer als informiert und mit den folgenden Bedingungen einverstanden.',
+      'article1_title':
+          'Artikel 1: Datenschutz und lokale Verarbeitungsarchitektur',
+      'article1_text':
+          'VERDICT arbeitet clientseitig. Anmeldedaten werden nicht an externe Entwickler-Server uebertragen oder dort gespeichert. Die Verarbeitung erfolgt ausschliesslich lokal auf deinem Geraet.',
+      'article2_title': 'Artikel 2: Risiken von Drittplattformen',
+      'article2_text':
+          'Instagram kann die Nutzung von Drittanbieter-Software gemaess seinen Richtlinien einschraenken. Risiken wie Aktionssperren, Kontoeinschraenkungen oder Kontoschliessungen liegen beim Nutzer.',
+      'article3_title':
+          'Artikel 3: Gewaehrleistungsausschluss und Haftungsbegrenzung',
+      'article3_text':
+          'Diese Software wird im aktuellen Zustand bereitgestellt. Genauigkeit, Verfuegbarkeit und Eignung der Analyseergebnisse werden nicht garantiert. Entscheidungen auf Basis der App-Daten erfolgen in eigener Verantwortung.',
+      'article4_title':
+          'Artikel 4: Geistiges Eigentum und Unabhaengigkeitserklaerung',
+      'article4_text':
+          'VERDICT ist ein unabhaengiges Entwicklerprojekt. Instagram, Facebook und Meta sind Marken der Meta Platforms, Inc. Es besteht keine offizielle Partnerschaft mit diesen Unternehmen.',
+      'article5_title':
+          'Artikel 5: Dienstkontinuitaet und Plattformaenderungen',
+      'article5_text':
+          'Grundlegende Aenderungen an der Instagram-API oder der Web-Infrastruktur koennen die Funktion der App teilweise oder vollstaendig beeintraechtigen. Der Entwickler garantiert in solchen Faellen keine fortlaufenden Updates.',
+      'ad_wait_message':
+          'Analyse abgeschlossen, Ergebnisse werden nach der Werbung angezeigt.',
+      'analysis_failed_title': 'Analyse fehlgeschlagen',
+      'analysis_failed_reason': 'Grund: {reason}',
+      'analysis_failed_hint':
+          'Tipp: Abmelden und erneut anmelden kann helfen.',
+      'analysis_fast_no_change':
+          'Schnellpruefung: Keine Aenderungen erkannt.',
+      'usage_metrics_title': 'Tagesmetriken',
+      'usage_metrics_active': 'Aktive Nutzer',
+      'usage_metrics_queries': 'Taegliche Abfragen',
+      'usage_metrics_na': '--',
+      'usage_metrics_live': 'Live-Panel'
+    },
+    'ko': {
+      'tagline': 'Professional Social Media Solutions',
+      'adsense_banner': '광고 영역',
+      'admin_active_note': '관리자 모드 활성화',
+      'free_app_note':
+          '더 나은 경험을 위해 매일 개선하고 있습니다. 여러분의 피드백은 매우 소중합니다.',
+      'login_prompt': '분석을 시작하려면 로그인해 주세요.',
+      'welcome': '환영합니다, {username}',
+      'refresh_data': '데이터 새로고침',
+      'login_with_instagram': '인스타그램으로 로그인',
+      'fetching_data': '데이터를 분석하는 중...\n잠시만 기다려 주세요.',
+      'processing_data': '데이터 처리 중...\n거의 완료되었습니다.',
+      'loading_ad': '광고 로딩 중...\n잠시만 기다려 주세요.',
+      'google_ad_warning': 'Google 광고 경고: {reason}',
+      'analysis_secure': '모든 분석은 기기에서 안전하게 로컬 처리됩니다.',
+      'today_total_analysis': '오늘 총 분석 수: {count}',
+      'next_analysis': '다음 분석',
+      'next_analysis_ready': '지금 분석할 수 있습니다.',
+      'analysis_available_now': '분석을 지금 실행할 수 있습니다',
+      'analysis_ready_risk':
+          '지금 분석이 가능하지만, 연속 분석은 계정에 위험할 수 있습니다.',
+      'please_wait': '잠시만 기다려 주세요',
+      'warning': '경고',
+      'remaining_time': '남은 시간: {time}',
+      'watch_ad': '광고 시청 후 분석 시작',
+      'start_analysis': '분석 시작',
+      'start_analysis_question': '분석을 시작할까요?',
+      'clear_data_title': '앱 데이터 초기화',
+      'clear_data_content': '모든 로컬 데이터와 세션 정보가 삭제됩니다. 계속할까요?',
+      'cancel': '취소',
+      'delete': '삭제',
+      'error_title': '오류',
+      'data_fetch_error':
+          '데이터 불러오기에 실패했습니다: {err}\n\n문제 해결: 로그아웃 후 다시 로그인해 보세요.',
+      'followers': '팔로워',
+      'following': '팔로잉',
+      'new_followers': '새 팔로워',
+      'non_followers': '맞팔하지 않는 계정',
+      'left_followers': '나를 언팔한 계정',
+      'legal_warning': '법적 고지',
+      'left_following': '내가 언팔한 계정',
+      'rate_us': '평가하기',
+      'contact_us': '문의하기',
+      'remove_ads_and_limits': '광고 및 대기시간 제거',
+      'rate_test_message': '이 항목은 현재 테스트 중입니다.',
+      'story_section_title': '스토리를 몰래 보거나 프로필 사진 확대하기',
+      'story_login_required': '스토리를 몰래 보려면 로그인해 주세요.',
+      'story_ad_wait': '광고 후 표시됩니다. 잠시만 기다려 주세요.',
+      'story_action_title': '무엇을 하시겠어요?',
+      'story_view_photo': '프로필 사진 확대',
+      'story_watch_secret': '기록 없이 스토리 보기',
+      'story_no_data': '스토리 데이터가 없습니다.',
+      'story_close': '닫기',
+      'read_and_agree': '읽었으며 동의합니다',
+      'withdraw_consent': '동의 철회',
+      'withdraw_consent_confirm_title': '확인',
+      'withdraw_consent_confirm_body': '동의 설정이 초기화됩니다. 계속하시겠습니까?',
+      'withdraw_consent_confirm_yes': '예',
+      'withdraw_consent_confirm_no': '취소',
+      'no_data': '데이터 없음',
+      'new_badge': '신규',
+      'login_title': '로그인',
+      'user_label': '\uC0AC\uC6A9\uC790',
+      'redirecting': '세션 확인 완료, 안전하게 이동 중...',
+      'data_updated': '분석 완료 ✅',
+      'purchases_not_configured':
+          '현재 구매 기능을 사용할 수 없습니다. 나중에 다시 시도해 주세요.',
+      'premium_not_active':
+          '구매는 완료되었지만 Premium이 아직 활성화되지 않았습니다. 다시 시도해 주세요.',
+      'premium_welcome_box': '프리미엄에 오신 것을 환영합니다! 광고와 대기 시간이 제거되었습니다.',
+      'premium_already_active': '프리미엄 멤버십이 활성화되어 있습니다.',
+      'restore_purchases': '구매 복원',
+      'restore_purchases_short': '복원',
+      'restoring_purchases': '구매 복원 중...',
+      'restore_purchases_success': '구매가 복원되었습니다 ✅',
+      'restore_purchases_none': '복원할 구매 내역이 없습니다.',
+      'restore_purchases_failed': '복원 실패: {err}',
+      'enter_pin': 'PIN 입력',
+      'pin_accepted': 'PIN이 승인되어 시간이 초기화되었습니다 ✅',
+      'pin_incorrect': 'PIN이 올바르지 않습니다',
+      'ok': '확인',
+      'ad_wait_message': '\uBD84\uC11D\uC774 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uAD11\uACE0 \uD6C4 \uACB0\uACFC\uAC00 \uD45C\uC2DC\uB429\uB2C8\uB2E4.',
+      'analysis_failed_title': '\uBD84\uC11D \uC2E4\uD328',
+      'analysis_failed_reason': '\uC6D0\uC778: {reason}',
+      'analysis_failed_hint': '\uB3C4\uC6C0\uB9D0: \uB85C\uADF8\uC544\uC6C3 \uD6C4 \uB2E4\uC2DC \uB85C\uADF8\uC778\uD574 \uBCF4\uC138\uC694.',
+      'analysis_fast_no_change': '\uBE60\uB978 \uD655\uC778: \uBCC0\uD654\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.',
+      'usage_metrics_title': '\uC77C\uC77C \uC9C0\uD45C',
+      'usage_metrics_active': '\uD65C\uC131 \uC0AC\uC6A9\uC790',
+      'usage_metrics_queries': '\uC77C\uC77C \uC870\uD68C',
+      'usage_metrics_na': '--',
+      'usage_metrics_live': '\uC2E4\uC2DC\uAC04 \uD328\uB110',      'legal_intro':
+          '이 앱을 다운로드하고 사용하는 모든 사용자는 아래 고지 내용을 읽고 동의한 것으로 간주됩니다.',
+    },
+    'ja': {
+      'tagline': 'Professional Social Media Solutions',
+      'adsense_banner': '広告スペース',
+      'admin_active_note': '管理者モード有効',
+      'free_app_note': 'より良い体験のため、毎日改善を続けています。ご意見をお待ちしています。',
+      'login_prompt': '分析を開始するにはログインしてください。',
+      'welcome': 'ようこそ、{username}',
+      'refresh_data': 'データを更新',
+      'login_with_instagram': 'Instagramでログイン',
+      'fetching_data': 'データを分析中...\nしばらくお待ちください。',
+      'processing_data': 'データを処理中...\nまもなく完了します。',
+      'loading_ad': '広告を読み込み中...\nしばらくお待ちください。',
+      'google_ad_warning': 'Google広告の警告: {reason}',
+      'analysis_secure': 'すべての分析は端末内で安全にローカル処理されます。',
+      'today_total_analysis': '本日の分析総数: {count}',
+      'next_analysis': '次の分析',
+      'next_analysis_ready': '今すぐ分析できます。',
+      'analysis_available_now': '分析を今すぐ実行できます',
+      'analysis_ready_risk': '今すぐ分析できますが、連続実行はアカウントのリスクになる可能性があります。',
+      'please_wait': 'お待ちください',
+      'warning': '警告',
+      'remaining_time': '残り時間: {time}',
+      'watch_ad': '広告を見て分析を開始',
+      'start_analysis': '分析を開始',
+      'start_analysis_question': '分析を開始しますか？',
+      'clear_data_title': 'アプリデータをリセット',
+      'clear_data_content': 'ローカルデータとセッション情報がすべて削除されます。よろしいですか？',
+      'cancel': 'キャンセル',
+      'delete': '削除',
+      'error_title': 'エラー',
+      'data_fetch_error': 'データ取得に失敗しました: {err}\n\n対処: ログアウトして再ログインしてください。',
+      'followers': 'フォロワー',
+      'following': 'フォロー中',
+      'new_followers': '新しいフォロワー',
+      'non_followers': 'フォローバックしていないユーザー',
+      'left_followers': 'あなたをフォロー解除したユーザー',
+      'legal_warning': '法的注意事項',
+      'left_following': 'フォロー解除したユーザー',
+      'rate_us': '評価する',
+      'contact_us': 'お問い合わせ',
+      'remove_ads_and_limits': '広告と待機時間を削除',
+      'rate_test_message': 'この項目は現在テスト中です。',
+      'story_section_title': 'ストーリーをこっそり見る / プロフィール写真を拡大',
+      'story_login_required': 'ストーリーをこっそり見るにはログインが必要です。',
+      'story_ad_wait': '広告の後に表示されます。しばらくお待ちください。',
+      'story_action_title': '何をしますか？',
+      'story_view_photo': 'プロフィール写真を拡大',
+      'story_watch_secret': '足跡なしで閲覧',
+      'story_no_data': 'ストーリーデータが見つかりません。',
+      'story_close': '閉じる',
+      'read_and_agree': '内容を読み、同意します',
+      'withdraw_consent': '同意を取り消す',
+      'withdraw_consent_confirm_title': '確認',
+      'withdraw_consent_confirm_body': '同意設定がリセットされます。よろしいですか？',
+      'withdraw_consent_confirm_yes': 'はい',
+      'withdraw_consent_confirm_no': '戻る',
+      'no_data': 'データなし',
+      'new_badge': '新規',
+      'login_title': 'ログイン',
+      'user_label': '\u30E6\u30FC\u30B6\u30FC',
+      'redirecting': 'セッションを確認しました。安全にリダイレクトしています...',
+      'data_updated': '分析完了 ✅',
+      'purchases_not_configured': '現在、購入機能は利用できません。後でもう一度お試しください。',
+      'premium_not_active': '購入は完了しましたが、Premiumがまだ有効化されていません。もう一度お試しください。',
+      'premium_welcome_box': 'Premiumへようこそ！広告と待機時間が解除されました。',
+      'premium_already_active': 'Premiumメンバーシップは有効です。',
+      'restore_purchases': '購入を復元',
+      'restore_purchases_short': '復元',
+      'restoring_purchases': '購入を復元中...',
+      'restore_purchases_success': '購入を復元しました ✅',
+      'restore_purchases_none': '復元できる購入がありません。',
+      'restore_purchases_failed': '復元に失敗しました: {err}',
+      'enter_pin': 'PINを入力',
+      'pin_accepted': 'PINを確認しました。タイマーをリセットしました ✅',
+      'pin_incorrect': 'PINが正しくありません',
+      'ok': 'OK',
+      'ad_wait_message': '\u5206\u6790\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F\u3002\u5E83\u544A\u306E\u5F8C\u306B\u7D50\u679C\u3092\u8868\u793A\u3057\u307E\u3059\u3002',
+      'analysis_failed_title': '\u5206\u6790\u306B\u5931\u6557\u3057\u307E\u3057\u305F',
+      'analysis_failed_reason': '\u7406\u7531: {reason}',
+      'analysis_failed_hint': '\u30D2\u30F3\u30C8: \u30ED\u30B0\u30A2\u30A6\u30C8\u3057\u3066\u518D\u30ED\u30B0\u30A4\u30F3\u3059\u308B\u3068\u6539\u5584\u3059\u308B\u5834\u5408\u304C\u3042\u308A\u307E\u3059\u3002',
+      'analysis_fast_no_change': '\u30AF\u30A4\u30C3\u30AF\u78BA\u8A8D: \u5909\u5316\u306F\u3042\u308A\u307E\u305B\u3093\u3067\u3057\u305F\u3002',
+      'usage_metrics_title': '\u65E5\u6B21\u6307\u6A19',
+      'usage_metrics_active': '\u30A2\u30AF\u30C6\u30A3\u30D6\u30E6\u30FC\u30B6\u30FC',
+      'usage_metrics_queries': '\u65E5\u6B21\u30AF\u30A8\u30EA',
+      'usage_metrics_na': '--',
+      'usage_metrics_live': '\u30E9\u30A4\u30D6\u30D1\u30CD\u30EB',      'legal_intro': '本アプリをダウンロードして利用した時点で、以下の規約に同意したものとみなされます。',
+    },
+    'ru': {
+      'tagline': 'Professional Social Media Solutions',
+      'adsense_banner': 'РЕКЛАМНОЕ МЕСТО',
+      'admin_active_note': 'Режим администратора активен',
+      'free_app_note':
+          'Мы ежедневно улучшаем приложение, чтобы сделать ваш опыт лучше. Ваш отзыв важен для нас.',
+      'login_prompt': 'Пожалуйста, войдите, чтобы начать анализ.',
+      'welcome': 'Добро пожаловать, {username}',
+      'refresh_data': 'ОБНОВИТЬ ДАННЫЕ',
+      'login_with_instagram': 'ВОЙТИ ЧЕРЕЗ INSTAGRAM',
+      'fetching_data': 'Анализируем данные...\nЭто может занять немного времени.',
+      'processing_data': 'Обрабатываем данные...\nПочти готово.',
+      'loading_ad': 'Загрузка рекламы...\nПожалуйста, подождите.',
+      'google_ad_warning': 'Предупреждение рекламы Google: {reason}',
+      'analysis_secure': 'Весь анализ безопасно выполняется локально на вашем устройстве.',
+      'today_total_analysis': 'Всего анализов сегодня: {count}',
+      'next_analysis': 'Следующий анализ',
+      'next_analysis_ready': 'Анализ уже доступен.',
+      'analysis_available_now': 'Анализ доступен сейчас',
+      'analysis_ready_risk': 'Анализ доступен сейчас, но частые подряд анализы могут повысить риск для аккаунта.',
+      'please_wait': 'Пожалуйста, подождите',
+      'warning': 'Предупреждение',
+      'remaining_time': 'Осталось времени: {time}',
+      'watch_ad': 'ПОСМОТРЕТЬ РЕКЛАМУ И НАЧАТЬ АНАЛИЗ',
+      'start_analysis': 'НАЧАТЬ АНАЛИЗ',
+      'start_analysis_question': 'Начать анализ?',
+      'clear_data_title': 'Сброс данных приложения',
+      'clear_data_content': 'Все локальные данные и данные сессии будут удалены. Продолжить?',
+      'cancel': 'ОТМЕНА',
+      'delete': 'УДАЛИТЬ',
+      'error_title': 'Ошибка',
+      'data_fetch_error': 'Не удалось получить данные: {err}\n\nРешение: попробуйте выйти и войти снова.',
+      'followers': 'Подписчики',
+      'following': 'Подписки',
+      'new_followers': 'Новые подписчики',
+      'non_followers': 'Не подписаны в ответ',
+      'left_followers': 'Отписавшиеся',
+      'legal_warning': 'Юридическое предупреждение',
+      'left_following': 'Пользователи, от которых вы отписались',
+      'rate_us': 'Оцените нас',
+      'contact_us': 'Связаться с нами',
+      'remove_ads_and_limits': 'Убрать рекламу и ожидание',
+      'rate_test_message': 'Этот блок сейчас тестируется.',
+      'story_section_title': 'Смотреть сторис анонимно или увеличивать фото профиля',
+      'story_login_required': 'Пожалуйста, войдите, чтобы смотреть сторис анонимно.',
+      'story_ad_wait': 'Появится после рекламы, пожалуйста, подождите.',
+      'story_action_title': 'Что вы хотите сделать?',
+      'story_view_photo': 'Увеличить фото профиля',
+      'story_watch_secret': 'Смотреть сторис анонимно',
+      'story_no_data': 'Данные сторис не найдены.',
+      'story_close': 'ЗАКРЫТЬ',
+      'read_and_agree': 'Я ПРОЧИТАЛ И СОГЛАСЕН',
+      'withdraw_consent': 'Отозвать согласие',
+      'withdraw_consent_confirm_title': 'Подтверждение',
+      'withdraw_consent_confirm_body': 'Настройки согласия будут сброшены. Вы уверены?',
+      'withdraw_consent_confirm_yes': 'Да',
+      'withdraw_consent_confirm_no': 'Отмена',
+      'no_data': 'Нет данных',
+      'new_badge': 'НОВОЕ',
+      'login_title': 'Вход',
+      'user_label': '\u041F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C',
+      'redirecting': 'Сессия подтверждена, безопасное перенаправление...',
+      'data_updated': 'Анализ завершен ✅',
+      'purchases_not_configured': 'Покупки сейчас недоступны. Пожалуйста, попробуйте позже.',
+      'premium_not_active': 'Покупка завершена, но Premium еще не активен. Попробуйте снова.',
+      'premium_welcome_box': 'Добро пожаловать в Premium! Реклама и ожидание отключены.',
+      'premium_already_active': 'Ваша подписка Premium активна.',
+      'restore_purchases': 'Восстановить покупки',
+      'restore_purchases_short': 'ВОССТАНОВИТЬ',
+      'restoring_purchases': 'Восстанавливаем покупки...',
+      'restore_purchases_success': 'Покупки восстановлены ✅',
+      'restore_purchases_none': 'Нет покупок для восстановления.',
+      'restore_purchases_failed': 'Ошибка восстановления: {err}',
+      'enter_pin': 'Введите PIN',
+      'pin_accepted': 'PIN принят, таймер сброшен ✅',
+      'pin_incorrect': 'Неверный PIN',
+      'ok': 'OK',
+      'ad_wait_message': '\u0410\u043D\u0430\u043B\u0438\u0437 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D, \u0440\u0435\u0437\u0443\u043B\u044C\u0442\u0430\u0442\u044B \u0431\u0443\u0434\u0443\u0442 \u043F\u043E\u043A\u0430\u0437\u0430\u043D\u044B \u043F\u043E\u0441\u043B\u0435 \u0440\u0435\u043A\u043B\u0430\u043C\u044B.',
+      'analysis_failed_title': '\u0410\u043D\u0430\u043B\u0438\u0437 \u043D\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D',
+      'analysis_failed_reason': '\u041F\u0440\u0438\u0447\u0438\u043D\u0430: {reason}',
+      'analysis_failed_hint': '\u0421\u043E\u0432\u0435\u0442: \u0432\u044B\u0439\u0434\u0438\u0442\u0435 \u0438 \u0432\u043E\u0439\u0434\u0438\u0442\u0435 \u0441\u043D\u043E\u0432\u0430.',
+      'analysis_fast_no_change': '\u0411\u044B\u0441\u0442\u0440\u0430\u044F \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0430: \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 \u043D\u0435 \u043E\u0431\u043D\u0430\u0440\u0443\u0436\u0435\u043D\u043E.',
+      'usage_metrics_title': '\u0415\u0436\u0435\u0434\u043D\u0435\u0432\u043D\u044B\u0435 \u043C\u0435\u0442\u0440\u0438\u043A\u0438',
+      'usage_metrics_active': '\u0410\u043A\u0442\u0438\u0432\u043D\u044B\u0435 \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u0438',
+      'usage_metrics_queries': '\u0415\u0436\u0435\u0434\u043D\u0435\u0432\u043D\u044B\u0435 \u0437\u0430\u043F\u0440\u043E\u0441\u044B',
+      'usage_metrics_na': '--',
+      'usage_metrics_live': '\u0436\u0438\u0432\u0430\u044F \u043F\u0430\u043D\u0435\u043B\u044C',      'legal_intro': 'Скачивая и используя это приложение, пользователь считается ознакомившимся и согласившимся с условиями ниже.',
+    },
+    'pt': {
+      'tagline': 'Professional Social Media Solutions',
+      'adsense_banner': 'ESPACO DE ANUNCIO',
+      'admin_active_note': 'Modo administrador ativo',
+      'free_app_note':
+          'Estamos evoluindo todos os dias para oferecer uma experiencia melhor. Seu feedback e muito importante para nos.',
+      'login_prompt': 'Faca login para iniciar a analise.',
+      'welcome': 'Bem-vindo, {username}',
+      'refresh_data': 'ATUALIZAR DADOS',
+      'login_with_instagram': 'ENTRAR COM INSTAGRAM',
+      'fetching_data': 'Analisando dados...\nIsso pode levar um momento.',
+      'processing_data': 'Processando dados...\nQuase pronto.',
+      'loading_ad': 'Carregando anuncio...\nAguarde.',
+      'google_ad_warning': 'Aviso de anuncio do Google: {reason}',
+      'analysis_secure':
+          'Toda a analise e processada com seguranca localmente no seu dispositivo.',
+      'today_total_analysis': 'Total de analises hoje: {count}',
+      'next_analysis': 'Proxima analise',
+      'next_analysis_ready': 'Pronto para escanear.',
+      'analysis_available_now': 'Analise disponivel agora',
+      'analysis_ready_risk':
+          'A analise esta disponivel agora, mas executar analises em sequencia pode colocar sua conta em risco.',
+      'please_wait': 'Aguarde',
+      'warning': 'Aviso',
+      'remaining_time': 'Proxima analise: {time}',
+      'watch_ad': 'ASSISTIR AO ANUNCIO E INICIAR ANALISE',
+      'start_analysis': 'INICIAR ANALISE',
+      'start_analysis_question': 'Iniciar analise?',
+      'clear_data_title': 'Redefinir dados do app',
+      'clear_data_content':
+          'Todos os dados locais e cookies de sessao serao apagados. Tem certeza?',
+      'cancel': 'CANCELAR',
+      'delete': 'EXCLUIR',
+      'error_title': 'Erro',
+      'data_fetch_error':
+          'Falha ao buscar dados: {err}\n\nSolucao: tente sair e entrar novamente.',
+      'followers': 'Seguidores',
+      'following': 'Seguindo',
+      'new_followers': 'Novos seguidores',
+      'non_followers': 'Nao seguem de volta',
+      'left_followers': 'Perda de seguidores',
+      'legal_warning': 'Aviso legal',
+      'left_following': 'Deixou de seguir',
+      'rate_us': 'Avalie-nos',
+      'contact_us': 'Fale conosco',
+      'remove_ads_and_limits': 'Remover anuncios e tempos de espera',
+      'rate_test_message': 'Este bloco esta em teste no momento.',
+      'story_section_title':
+          'Veja stories em segredo ou amplie fotos de perfil',
+      'story_login_required': 'Faca login para ver stories de forma discreta.',
+      'story_ad_wait': 'Sera exibido apos o anuncio. Aguarde.',
+      'story_action_title': 'O que voce deseja fazer?',
+      'story_view_photo': 'Ampliar foto de perfil',
+      'story_watch_secret': 'Ver story em segredo',
+      'story_no_data': 'Nenhum dado de story encontrado.',
+      'story_close': 'FECHAR',
+      'read_and_agree': 'LI E CONCORDO',
+      'withdraw_consent': 'Retirar consentimento',
+      'withdraw_consent_confirm_title': 'Confirmacao',
+      'withdraw_consent_confirm_body':
+          'As configuracoes de consentimento serao redefinidas. Continuar?',
+      'withdraw_consent_confirm_yes': 'Sim',
+      'withdraw_consent_confirm_no': 'Cancelar',
+      'no_data': 'Sem dados',
+      'new_badge': 'NOVO',
+      'login_title': 'Entrar',
+      'user_label': 'Usuario',
+      'redirecting': 'Sessao verificada, redirecionando com seguranca...',
+      'data_updated': 'Analise concluida ?',
+      'purchases_not_configured':
+          'Compras indisponiveis no momento. Tente novamente mais tarde.',
+      'premium_not_active':
+          'Compra concluida, mas o Premium ainda nao esta ativo. Tente novamente.',
+      'premium_welcome_box':
+          'Bem-vindo ao Premium! Anuncios e tempos de espera foram removidos.',
+      'premium_already_active': 'Sua assinatura Premium esta ativa.',
+      'restore_purchases': 'Restaurar compras',
+      'restore_purchases_short': 'RESTAURAR',
+      'restoring_purchases': 'Restaurando compras...',
+      'restore_purchases_success': 'Compras restauradas ?',
+      'restore_purchases_none': 'Nenhuma compra para restaurar.',
+      'restore_purchases_failed': 'Falha na restauracao: {err}',
+      'enter_pin': 'Digite o PIN',
+      'pin_accepted': 'PIN aceito, timer reiniciado ?',
+      'pin_incorrect': 'PIN invalido',
+      'ok': 'OK',
+      'legal_intro':
+          'Ao baixar e usar este aplicativo, cada usuario declara que leu, compreendeu e aceitou os termos abaixo.',
+      'article1_title':
+          'Artigo 1: Privacidade de dados e arquitetura de processamento local',
+      'article1_text':
+          'O VERDICT funciona no lado do cliente. As credenciais de login nao sao enviadas nem armazenadas em servidores externos do desenvolvedor. Todo o processamento ocorre localmente no seu dispositivo.',
+      'article2_title': 'Artigo 2: Riscos de plataformas de terceiros',
+      'article2_text':
+          'O Instagram pode restringir aplicativos de terceiros conforme suas politicas. Riscos como bloqueios de acao, restricoes de conta e encerramento de conta sao de responsabilidade do usuario.',
+      'article3_title':
+          'Artigo 3: Isencao de garantia e limitacao de responsabilidade',
+      'article3_text':
+          'Este software e fornecido no estado em que se encontra. Nao ha garantia de precisao, continuidade ou adequacao comercial dos resultados de analise. Decisoes tomadas com base nos dados do app sao de responsabilidade do usuario.',
+      'article4_title':
+          'Artigo 4: Propriedade intelectual e aviso de independencia',
+      'article4_text':
+          'VERDICT e um projeto independente. Instagram, Facebook e Meta sao marcas registradas da Meta Platforms, Inc. Este app nao possui parceria oficial com essas empresas.',
+      'article5_title':
+          'Artigo 5: Continuidade do servico e mudancas de plataforma',
+      'article5_text':
+          'Mudancas significativas na API do Instagram ou na infraestrutura web podem comprometer parcial ou totalmente o funcionamento do app. O desenvolvedor nao garante atualizacao continua nesses cenarios.',
+      'ad_wait_message':
+          'Analise concluida, os resultados serao mostrados apos o anuncio.',
+      'analysis_failed_title': 'Falha na analise',
+      'analysis_failed_reason': 'Motivo: {reason}',
+      'analysis_failed_hint':
+          'Dica: sair e entrar novamente pode ajudar.',
+      'analysis_fast_no_change':
+          'Verificacao rapida: nenhuma mudanca detectada.',
+      'usage_metrics_title': 'Metricas diarias',
+      'usage_metrics_active': 'Usuarios ativos',
+      'usage_metrics_queries': 'Consultas diarias',
+      'usage_metrics_na': '--',
+      'usage_metrics_live': 'painel ao vivo'
+    },
+    'ar': {
+      'tagline': 'Professional Social Media Solutions',
+      'adsense_banner': 'مساحة إعلانية',
+      'admin_active_note': 'وضع المشرف مفعّل',
+      'free_app_note': 'نحن نطوّر التطبيق يومياً لتقديم تجربة أفضل. ملاحظاتك مهمة جداً لنا.',
+      'login_prompt': 'يرجى تسجيل الدخول لبدء التحليل.',
+      'welcome': 'مرحباً، {username}',
+      'refresh_data': 'تحديث البيانات',
+      'login_with_instagram': 'تسجيل الدخول عبر انستغرام',
+      'fetching_data': 'جارٍ تحليل البيانات...\nقد يستغرق ذلك بعض الوقت.',
+      'processing_data': 'جارٍ معالجة البيانات...\nعلى وشك الانتهاء.',
+      'loading_ad': 'جارٍ تحميل الإعلان...\nيرجى الانتظار.',
+      'google_ad_warning': 'تحذير إعلان Google: {reason}',
+      'analysis_secure': 'يتم تنفيذ جميع التحليلات بشكل آمن محلياً على جهازك.',
+      'today_total_analysis': 'إجمالي التحليلات اليوم: {count}',
+      'next_analysis': 'التحليل التالي',
+      'next_analysis_ready': 'يمكنك إجراء التحليل الآن.',
+      'analysis_available_now': 'التحليل متاح الآن',
+      'analysis_ready_risk': 'التحليل متاح الآن، لكن التحليل المتكرر قد يعرّض حسابك للخطر.',
+      'please_wait': 'يرجى الانتظار',
+      'warning': 'تحذير',
+      'remaining_time': 'الوقت المتبقي: {time}',
+      'watch_ad': 'شاهد الإعلان وابدأ التحليل',
+      'start_analysis': 'ابدأ التحليل',
+      'start_analysis_question': 'هل تريد بدء التحليل؟',
+      'clear_data_title': 'إعادة تعيين بيانات التطبيق',
+      'clear_data_content': 'سيتم حذف جميع البيانات المحلية ومعلومات الجلسة. هل أنت متأكد؟',
+      'cancel': 'إلغاء',
+      'delete': 'حذف',
+      'error_title': 'خطأ',
+      'data_fetch_error': 'فشل جلب البيانات: {err}\n\nاستكشاف الأخطاء: جرّب تسجيل الخروج ثم تسجيل الدخول.',
+      'followers': 'المتابعون',
+      'following': 'المتابَعون',
+      'new_followers': 'متابعون جدد',
+      'non_followers': 'لا يتابعونك',
+      'left_followers': 'ألغوا المتابعة',
+      'legal_warning': 'تنبيه قانوني',
+      'left_following': 'الحسابات التي ألغيت متابعتها',
+      'rate_us': 'قيّمنا',
+      'contact_us': 'تواصل معنا',
+      'remove_ads_and_limits': 'إزالة الإعلانات وأوقات الانتظار',
+      'rate_test_message': 'هذه الخانة قيد الاختبار حالياً.',
+      'story_section_title': 'شاهد القصص بشكل مخفي أو كبّر صور الملف الشخصي',
+      'story_login_required': 'يرجى تسجيل الدخول لمشاهدة القصص بشكل مخفي.',
+      'story_ad_wait': 'سيتم العرض بعد الإعلان، يرجى الانتظار.',
+      'story_action_title': 'ماذا تريد أن تفعل؟',
+      'story_view_photo': 'تكبير صورة الملف الشخصي',
+      'story_watch_secret': 'مشاهدة القصة بشكل مخفي',
+      'story_no_data': 'لا توجد بيانات للقصص.',
+      'story_close': 'إغلاق',
+      'read_and_agree': 'لقد قرأت وأوافق',
+      'withdraw_consent': 'سحب الموافقة',
+      'withdraw_consent_confirm_title': 'تأكيد',
+      'withdraw_consent_confirm_body': 'سيتم إعادة تعيين إعدادات الموافقة. هل أنت متأكد؟',
+      'withdraw_consent_confirm_yes': 'نعم',
+      'withdraw_consent_confirm_no': 'إلغاء',
+      'no_data': 'لا توجد بيانات',
+      'new_badge': 'جديد',
+      'login_title': 'تسجيل الدخول',
+      'user_label': '\u0645\u0633\u062A\u062E\u062F\u0645',
+      'redirecting': 'تم التحقق من الجلسة، جارٍ إعادة التوجيه بأمان...',
+      'data_updated': 'اكتمل التحليل ✅',
+      'purchases_not_configured': 'الشراء غير متاح حالياً. يرجى المحاولة لاحقاً.',
+      'premium_not_active': 'اكتملت عملية الشراء لكن Premium غير مفعّل بعد. يرجى المحاولة مرة أخرى.',
+      'premium_welcome_box': 'مرحباً بك في Premium! تمت إزالة الإعلانات وفترات الانتظار.',
+      'premium_already_active': 'عضوية Premium مفعلة لديك.',
+      'restore_purchases': 'استعادة المشتريات',
+      'restore_purchases_short': 'استعادة',
+      'restoring_purchases': 'جارٍ استعادة المشتريات...',
+      'restore_purchases_success': 'تمت استعادة المشتريات ✅',
+      'restore_purchases_none': 'لا توجد مشتريات للاستعادة.',
+      'restore_purchases_failed': 'فشلت الاستعادة: {err}',
+      'enter_pin': 'أدخل PIN',
+      'pin_accepted': 'تم قبول PIN وإعادة تعيين الوقت ✅',
+      'pin_incorrect': 'PIN غير صحيح',
+      'ok': 'موافق',
+      'ad_wait_message': '\u0627\u0643\u062A\u0645\u0644 \u0627\u0644\u062A\u062D\u0644\u064A\u0644\u060C \u0633\u064A\u062A\u0645 \u0639\u0631\u0636 \u0627\u0644\u0646\u062A\u0627\u0626\u062C \u0628\u0639\u062F \u0627\u0644\u0625\u0639\u0644\u0627\u0646.',
+      'analysis_failed_title': '\u0641\u0634\u0644 \u0627\u0644\u062A\u062D\u0644\u064A\u0644',
+      'analysis_failed_reason': '\u0627\u0644\u0633\u0628\u0628: {reason}',
+      'analysis_failed_hint': '\u0646\u0635\u064A\u062D\u0629: \u0642\u062F \u064A\u0641\u064A\u062F \u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u062E\u0631\u0648\u062C \u062B\u0645 \u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u062F\u062E\u0648\u0644 \u0645\u0631\u0629 \u0623\u062E\u0631\u0649.',
+      'analysis_fast_no_change': '\u0641\u062D\u0635 \u0633\u0631\u064A\u0639: \u0644\u0627 \u062A\u0648\u062C\u062F \u062A\u063A\u064A\u064A\u0631\u0627\u062A.',
+      'usage_metrics_title': '\u0627\u0644\u0645\u0624\u0634\u0631\u0627\u062A \u0627\u0644\u064A\u0648\u0645\u064A\u0629',
+      'usage_metrics_active': '\u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645\u0648\u0646 \u0627\u0644\u0646\u0634\u0637\u0648\u0646',
+      'usage_metrics_queries': '\u0627\u0644\u0627\u0633\u062A\u0639\u0644\u0627\u0645\u0627\u062A \u0627\u0644\u064A\u0648\u0645\u064A\u0629',
+      'usage_metrics_na': '--',
+      'usage_metrics_live': '\u0644\u0648\u062D\u0629 \u0645\u0628\u0627\u0634\u0631\u0629',      'legal_intro': 'بتنزيل هذا التطبيق واستخدامه، يُعتبر المستخدم قد قرأ ووافق على الشروط التالية.',
+    },
+    'es': {
+      "tagline": "Professional Social Media Solutions",
+      "adsense_banner": "PUBLICIDAD",
+      "admin_active_note": "Modo administrador activo",
+      "free_app_note":
+          "Estamos evolucionando cada d\u00eda para brindarte una mejor experiencia. Sus comentarios son valiosos para nosotros: \u00a1nos encantar\u00eda saber de usted!",
+      "login_prompt": "Inicie sesi\u00f3n para iniciar el an\u00e1lisis.",
+      "welcome": "Bienvenido, {username}",
+      "refresh_data": "ACTUALIZAR DATOS",
+      "login_with_instagram": "INICIA SESI\u00d3N CON INSTAGRAM",
+      "fetching_data":
+          "Analizando datos...\nEsto podr\u00eda tardar un momento.",
+      "processing_data": "Procesando datos...\nCasi terminado.",
+      "loading_ad": "Cargando anuncio...\nPor favor espera.",
+      "google_ad_warning": "Advertencia de anuncio de Google: {reason}",
+      "analysis_secure":
+          "Todos los an\u00e1lisis se procesan de forma segura localmente en su dispositivo.",
+      "today_total_analysis": "An\u00e1lisis totales hoy: {count}",
+      "next_analysis": "Pr\u00f3ximo an\u00e1lisis",
+      "next_analysis_ready": "Listo para escanear.",
+      "analysis_available_now": "An\u00e1lisis disponible ahora",
+      "analysis_ready_risk":
+          "El an\u00e1lisis ya est\u00e1 disponible, pero ejecutar an\u00e1lisis seguidos puede poner tu cuenta en riesgo.",
+      "please_wait": "Por favor espera",
+      "warning": "Advertencia",
+      "remaining_time": "Pr\u00f3ximo an\u00e1lisis: {time}",
+      "watch_ad": "VER EL ANUNCIO E INICIAR EL AN\u00c1LISIS",
+      "start_analysis": "INICIAR AN\u00c1LISIS",
+      "start_analysis_question": "\u00bfIniciar an\u00e1lisis?",
+      "clear_data_title": "Restablecer datos de la aplicaci\u00f3n",
+      "clear_data_content":
+          "Esto borrar\u00e1 todos los datos locales y las cookies de sesi\u00f3n. \u00bfEst\u00e1 seguro?",
+      "cancel": "CANCELAR",
+      "delete": "BORRAR",
+      "error_title": "Error",
+      "data_fetch_error":
+          "Error en la recuperaci\u00f3n de datos: {err}\n\nSoluci\u00f3n de problemas: intente cerrar sesi\u00f3n y volver a iniciarla.",
+      "followers": "Seguidores",
+      "following": "Siguiendo",
+      "new_followers": "Nuevos seguidores",
+      "non_followers": "No me siguen",
+      "left_followers": "Dejaron de seguirte",
+      "legal_warning": "Aviso legal",
+      'left_following': 'Dejados de seguir',
+      "rate_us": "Calif\u00edcanos",
+      "contact_us": "Cont\u00e1ctenos",
+      "remove_ads_and_limits":
+          "Eliminar anuncios y tiempos de espera",
+      "rate_test_message": "Este cuadro est\u00e1 actualmente bajo prueba.",
+      "story_section_title":
+          "Ver historias en secreto o hacer zoom en las fotos del perfil",
+      "story_login_required":
+          "Inicie sesi\u00f3n para ver historias en secreto.",
+      "story_ad_wait": "Se mostrar\u00e1 despu\u00e9s del anuncio, espere.",
+      "story_action_title": "\u00bfQu\u00e9 te gustar\u00eda hacer?",
+      "story_view_photo": "Ampliar foto de perfil",
+      "story_watch_secret": "Ver historia sin dejar rastro",
+      "story_no_data": "No hay datos de la historia disponibles.",
+      "story_close": "CERRAR",
+      "read_and_agree": "HE LE\u00cdDO Y ACEPTO",
+      "withdraw_consent": "Retirar el consentimiento",
+      "withdraw_consent_confirm_title": "Confirmar",
+      "withdraw_consent_confirm_body":
+          "Se restablecer\u00e1 su configuraci\u00f3n de consentimiento. \u00bfEst\u00e1 seguro?",
+      "withdraw_consent_confirm_yes": "S\u00ed",
+      "withdraw_consent_confirm_no": "Cancelar",
+      "no_data": "Sin datos",
+      "new_badge": "NUEVO",
+      "login_title": "Iniciar sesi\u00f3n",
+      'user_label': 'Usuario',
+      "redirecting":
+          "Sesi\u00f3n verificada, redireccionando de forma segura...",
+      "data_updated": "An\u00e1lisis completo \u2705",
+      "purchases_not_configured":
+          "Las compras no est\u00e1n disponibles en este momento. Int\u00e9ntelo de nuevo m\u00e1s tarde.",
+      "premium_not_active":
+          "Compra completada, pero Premium a\u00fan no est\u00e1 activo. Por favor int\u00e9ntalo de nuevo.",
+      "premium_welcome_box":
+          "\u00a1Bienvenido a Premium! Se eliminan los anuncios y los tiempos de espera.",
+      "premium_already_active": "Su membres\u00eda Premium est\u00e1 activa.",
+      "restore_purchases": "Restaurar compras",
+      "restore_purchases_short": "RESTAURAR",
+      "restoring_purchases": "Restaurando compras...",
+      "restore_purchases_success": "Compras restauradas \u2705",
+      "restore_purchases_none": "No hay compras para restaurar.",
+      "restore_purchases_failed": "Error de restauraci\u00f3n: {err}",
+      "enter_pin": "Ingrese el PIN",
+      "pin_accepted": "PIN aceptado, reinicio del temporizador \u2705",
+      "pin_incorrect": "PIN no v\u00e1lido",
+      "ok": "OK",
+      "legal_intro":
+          "Al descargar y utilizar esta aplicaci\u00f3n, se considera que cada Usuario ha le\u00eddo, comprendido y aceptado irrevocablemente el texto de \"T\u00e9rminos de uso y exenci\u00f3n de responsabilidad\" a continuaci\u00f3n por adelantado:",
+      "article1_title":
+          "Art\u00edculo 1: Privacidad de datos y arquitectura de procesamiento local",
+      "article2_title": "Art\u00edculo 2: Riesgos de plataformas de terceros",
+      "article3_title":
+          "Art\u00edculo 3: Descargo de responsabilidad de garant\u00eda y limitaci\u00f3n de responsabilidad",
+      "article4_title":
+          "Art\u00edculo 4: Aviso de Propiedad Intelectual e Independencia",
+      "article5_title":
+          "Art\u00edculo 5: Continuidad del servicio y cambios de plataforma",
+      "article5_text":
+          "Los cambios fundamentales en la API de Instagram o la infraestructura web pueden hacer que la aplicaci\u00f3n pierda su funcionalidad parcial o completamente. El desarrollador no se compromete a actualizar la aplicaci\u00f3n ni a mantener el servicio en respuesta a dichos cambios de infraestructura, que se consideran \"fuerza mayor\".",
+      "ad_wait_message":
+          "An\u00e1lisis completo, los resultados se mostrar\u00e1n despu\u00e9s del anuncio.",
+      "analysis_failed_title": "El an\u00e1lisis fall\u00f3",
+      "analysis_failed_reason": "Raz\u00f3n: {reason}",
+      "analysis_failed_hint":
+          "Consejo: Cerrar sesi\u00f3n y volver a iniciarla puede resultar \u00fatil.",
+      "analysis_fast_no_change":
+          "Comprobaci\u00f3n r\u00e1pida: los recuentos son los mismos. No se detectaron cambios.",
+      "usage_metrics_title": "M\u00e9tricas diarias",
+      "usage_metrics_active": "Usuarios activos",
+      "usage_metrics_queries": "Consultas diarias",
+      "usage_metrics_na": "--",
+      "usage_metrics_live": "panel en vivo",
+    },
+    'es-mx': {
+      "tagline": "Professional Social Media Solutions",
+      "adsense_banner": "PUBLICIDAD",
+      "admin_active_note": "Modo administrador activo",
+      "free_app_note":
+          "Estamos evolucionando cada d\u00eda para brindarte una mejor experiencia. Sus comentarios son valiosos para nosotros: \u00a1nos encantar\u00eda saber de usted!",
+      "login_prompt": "Inicie sesi\u00f3n para iniciar el an\u00e1lisis.",
+      "welcome": "Bienvenido, {username}",
+      "refresh_data": "ACTUALIZAR DATOS",
+      "login_with_instagram": "INICIA SESI\u00d3N CON INSTAGRAM",
+      "fetching_data":
+          "Analizando datos...\nEsto podr\u00eda tardar un momento.",
+      "processing_data": "Procesando datos...\nCasi terminado.",
+      "loading_ad": "Cargando anuncio...\nPor favor espera.",
+      "google_ad_warning": "Advertencia de anuncio de Google: {reason}",
+      "analysis_secure":
+          "Todos los an\u00e1lisis se procesan de forma segura localmente en su dispositivo.",
+      "today_total_analysis": "An\u00e1lisis totales hoy: {count}",
+      "next_analysis": "Pr\u00f3ximo an\u00e1lisis",
+      "next_analysis_ready": "Listo para escanear.",
+      "analysis_available_now": "An\u00e1lisis disponible ahora",
+      "analysis_ready_risk":
+          "El an\u00e1lisis ya est\u00e1 disponible, pero ejecutar an\u00e1lisis seguidos puede poner tu cuenta en riesgo.",
+      "please_wait": "Por favor espera",
+      "warning": "Advertencia",
+      "remaining_time": "Pr\u00f3ximo an\u00e1lisis: {time}",
+      "watch_ad": "VER EL ANUNCIO E INICIAR EL AN\u00c1LISIS",
+      "start_analysis": "INICIAR AN\u00c1LISIS",
+      "start_analysis_question": "\u00bfIniciar an\u00e1lisis?",
+      "clear_data_title": "Restablecer datos de la aplicaci\u00f3n",
+      "clear_data_content":
+          "Esto borrar\u00e1 todos los datos locales y las cookies de sesi\u00f3n. \u00bfEst\u00e1 seguro?",
+      "cancel": "CANCELAR",
+      "delete": "BORRAR",
+      "error_title": "Error",
+      "data_fetch_error":
+          "Error en la recuperaci\u00f3n de datos: {err}\n\nSoluci\u00f3n de problemas: intente cerrar sesi\u00f3n y volver a iniciarla.",
+      "followers": "Seguidores",
+      "following": "Siguiendo",
+      "new_followers": "Nuevos seguidores",
+      "non_followers": "No me siguen",
+      "left_followers": "Dejaron de seguirte",
+      "legal_warning": "Aviso legal",
+      'left_following': 'Dejados de seguir',
+      "rate_us": "Calif\u00edcanos",
+      "contact_us": "Cont\u00e1ctenos",
+      "remove_ads_and_limits":
+          "Eliminar anuncios y tiempos de espera",
+      "rate_test_message": "Este cuadro est\u00e1 actualmente bajo prueba.",
+      "story_section_title":
+          "Ver historias en secreto o hacer zoom en las fotos del perfil",
+      "story_login_required":
+          "Inicie sesi\u00f3n para ver historias en secreto.",
+      "story_ad_wait": "Se mostrar\u00e1 despu\u00e9s del anuncio, espere.",
+      "story_action_title": "\u00bfQu\u00e9 te gustar\u00eda hacer?",
+      "story_view_photo": "Ampliar foto de perfil",
+      "story_watch_secret": "Ver historia sin dejar rastro",
+      "story_no_data": "No hay datos de la historia disponibles.",
+      "story_close": "CERRAR",
+      "read_and_agree": "HE LE\u00cdDO Y ACEPTO",
+      "withdraw_consent": "Retirar el consentimiento",
+      "withdraw_consent_confirm_title": "Confirmar",
+      "withdraw_consent_confirm_body":
+          "Se restablecer\u00e1 su configuraci\u00f3n de consentimiento. \u00bfEst\u00e1 seguro?",
+      "withdraw_consent_confirm_yes": "S\u00ed",
+      "withdraw_consent_confirm_no": "Cancelar",
+      "no_data": "Sin datos",
+      "new_badge": "NUEVO",
+      "login_title": "Iniciar sesi\u00f3n",
+      'user_label': 'Usuario',
+      "redirecting":
+          "Sesi\u00f3n verificada, redireccionando de forma segura...",
+      "data_updated": "An\u00e1lisis completo \u2705",
+      "purchases_not_configured":
+          "Las compras no est\u00e1n disponibles en este momento. Int\u00e9ntelo de nuevo m\u00e1s tarde.",
+      "premium_not_active":
+          "Compra completada, pero Premium a\u00fan no est\u00e1 activo. Por favor int\u00e9ntalo de nuevo.",
+      "premium_welcome_box":
+          "\u00a1Bienvenido a Premium! Se eliminan los anuncios y los tiempos de espera.",
+      "premium_already_active": "Su membres\u00eda Premium est\u00e1 activa.",
+      "restore_purchases": "Restaurar compras",
+      "restore_purchases_short": "RESTAURAR",
+      "restoring_purchases": "Restaurando compras...",
+      "restore_purchases_success": "Compras restauradas \u2705",
+      "restore_purchases_none": "No hay compras para restaurar.",
+      "restore_purchases_failed": "Error de restauraci\u00f3n: {err}",
+      "enter_pin": "Ingrese el PIN",
+      "pin_accepted": "PIN aceptado, reinicio del temporizador \u2705",
+      "pin_incorrect": "PIN no v\u00e1lido",
+      "ok": "OK",
+      "legal_intro":
+          "Al descargar y utilizar esta aplicaci\u00f3n, se considera que cada Usuario ha le\u00eddo, comprendido y aceptado irrevocablemente el texto de \"T\u00e9rminos de uso y exenci\u00f3n de responsabilidad\" a continuaci\u00f3n por adelantado:",
+      "article1_title":
+          "Art\u00edculo 1: Privacidad de datos y arquitectura de procesamiento local",
+      "article2_title": "Art\u00edculo 2: Riesgos de plataformas de terceros",
+      "article3_title":
+          "Art\u00edculo 3: Descargo de responsabilidad de garant\u00eda y limitaci\u00f3n de responsabilidad",
+      "article4_title":
+          "Art\u00edculo 4: Aviso de Propiedad Intelectual e Independencia",
+      "article5_title":
+          "Art\u00edculo 5: Continuidad del servicio y cambios de plataforma",
+      "article5_text":
+          "Los cambios fundamentales en la API de Instagram o la infraestructura web pueden hacer que la aplicaci\u00f3n pierda su funcionalidad parcial o completamente. El desarrollador no se compromete a actualizar la aplicaci\u00f3n ni a mantener el servicio en respuesta a dichos cambios de infraestructura, que se consideran \"fuerza mayor\".",
+      "ad_wait_message":
+          "An\u00e1lisis completo, los resultados se mostrar\u00e1n despu\u00e9s del anuncio.",
+      "analysis_failed_title": "El an\u00e1lisis fall\u00f3",
+      "analysis_failed_reason": "Raz\u00f3n: {reason}",
+      "analysis_failed_hint":
+          "Consejo: Cerrar sesi\u00f3n y volver a iniciarla puede resultar \u00fatil.",
+      "analysis_fast_no_change":
+          "Comprobaci\u00f3n r\u00e1pida: los recuentos son los mismos. No se detectaron cambios.",
+      "usage_metrics_title": "M\u00e9tricas diarias",
+      "usage_metrics_active": "Usuarios activos",
+      "usage_metrics_queries": "Consultas diarias",
+      "usage_metrics_na": "--",
+      "usage_metrics_live": "panel en vivo",
+    },
+    'hi': {
+      "tagline": "Professional Social Media Solutions",
+      "adsense_banner": "\u0935\u093f\u091c\u094d\u091e\u093e\u092a\u0928 \u0938\u094d\u0925\u093e\u0928",
+      "admin_active_note":
+          "\u090f\u0921\u092e\u093f\u0928 \u092e\u094b\u0921 \u0938\u0915\u094d\u0930\u093f\u092f",
+      "free_app_note":
+          "\u0939\u092e \u0906\u092a\u0915\u094b \u092c\u0947\u0939\u0924\u0930 \u0905\u0928\u0941\u092d\u0935 \u092a\u094d\u0930\u0926\u093e\u0928 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0939\u0930 \u0926\u093f\u0928 \u0935\u093f\u0915\u0938\u093f\u0924 \u0939\u094b \u0930\u0939\u0947 \u0939\u0948\u0902\u0964 \u0906\u092a\u0915\u0940 \u092a\u094d\u0930\u0924\u093f\u0915\u094d\u0930\u093f\u092f\u093e \u0939\u092e\u093e\u0930\u0947 \u0932\u093f\u090f \u092e\u0942\u0932\u094d\u092f\u0935\u093e\u0928 \u0939\u0948\u2014\u0939\u092e\u0947\u0902 \u0906\u092a\u0938\u0947 \u0938\u0941\u0928\u0928\u093e \u0905\u091a\u094d\u091b\u093e \u0932\u0917\u0947\u0917\u093e!",
+      "login_prompt":
+          "\u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u0936\u0941\u0930\u0942 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0915\u0943\u092a\u092f\u093e \u0932\u0949\u0917 \u0907\u0928 \u0915\u0930\u0947\u0902\u0964",
+      "welcome":
+          "\u0938\u094d\u0935\u093e\u0917\u0924 \u0939\u0948, {username}",
+      "refresh_data":
+          "\u0921\u0947\u091f\u093e \u0924\u093e\u091c\u093c\u093e \u0915\u0930\u0947\u0902",
+      "login_with_instagram":
+          "\u0907\u0902\u0938\u094d\u091f\u093e\u0917\u094d\u0930\u093e\u092e \u0938\u0947 \u0932\u0949\u0917 \u0907\u0928 \u0915\u0930\u0947\u0902",
+      "fetching_data":
+          "\u0921\u0947\u091f\u093e \u0915\u093e \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u0915\u093f\u092f\u093e \u091c\u093e \u0930\u0939\u093e \u0939\u0948...\n\u0907\u0938\u092e\u0947\u0902 \u090f\u0915 \u0915\u094d\u0937\u0923 \u0932\u0917 \u0938\u0915\u0924\u093e \u0939\u0948.",
+      "processing_data":
+          "\u0921\u0947\u091f\u093e \u0938\u0902\u0938\u093e\u0927\u093f\u0924 \u0939\u094b \u0930\u0939\u093e \u0939\u0948...\n\u0932\u0917\u092d\u0917 \u092a\u0942\u0930\u093e \u0939\u094b \u0917\u092f\u093e.",
+      "loading_ad":
+          "\u0935\u093f\u091c\u094d\u091e\u093e\u092a\u0928 \u0932\u094b\u0921 \u0939\u094b \u0930\u0939\u093e \u0939\u0948...\n\u0915\u0943\u092a\u092f\u093e \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e \u0915\u0930\u0947\u0902.",
+      "google_ad_warning":
+          "Google \u0935\u093f\u091c\u094d\u091e\u093e\u092a\u0928 \u091a\u0947\u0924\u093e\u0935\u0928\u0940: {reason}",
+      "analysis_secure":
+          "\u0938\u092d\u0940 \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u0906\u092a\u0915\u0947 \u0921\u093f\u0935\u093e\u0907\u0938 \u092a\u0930 \u0938\u094d\u0925\u093e\u0928\u0940\u092f \u0930\u0942\u092a \u0938\u0947 \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u0930\u0942\u092a \u0938\u0947 \u0938\u0902\u0938\u093e\u0927\u093f\u0924 \u0915\u093f\u090f \u091c\u093e\u0924\u0947 \u0939\u0948\u0902\u0964",
+      "today_total_analysis":
+          "\u0906\u091c \u0915\u093e \u0915\u0941\u0932 \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923: {count}",
+      "next_analysis":
+          "\u0905\u0917\u0932\u093e \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923",
+      "next_analysis_ready":
+          "\u0938\u094d\u0915\u0948\u0928 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0924\u0948\u092f\u093e\u0930\u0964",
+      "analysis_available_now":
+          "\u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u0905\u092c \u0909\u092a\u0932\u092c\u094d\u0927 \u0939\u0948",
+      "analysis_ready_risk":
+          "\u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u0905\u092c \u0909\u092a\u0932\u092c\u094d\u0927 \u0939\u0948, \u0932\u0947\u0915\u093f\u0928 \u0932\u0917\u093e\u0924\u093e\u0930 \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u091a\u0932\u093e\u0928\u0947 \u0938\u0947 \u0906\u092a\u0915\u093e \u0916\u093e\u0924\u093e \u0916\u0924\u0930\u0947 \u092e\u0947\u0902 \u092a\u0921\u093c \u0938\u0915\u0924\u093e \u0939\u0948\u0964",
+      "please_wait":
+          "\u0915\u0943\u092a\u092f\u093e \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e \u0915\u0930\u0947\u0902",
+      "warning": "\u091a\u0947\u0924\u093e\u0935\u0928\u0940",
+      "remaining_time":
+          "\u0905\u0917\u0932\u093e \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923: {time}",
+      "watch_ad":
+          "\u0935\u093f\u091c\u094d\u091e\u093e\u092a\u0928 \u0926\u0947\u0916\u0947\u0902 \u0914\u0930 \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u092a\u094d\u0930\u093e\u0930\u0902\u092d \u0915\u0930\u0947\u0902",
+      "start_analysis":
+          "\u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u092a\u094d\u0930\u093e\u0930\u0902\u092d \u0915\u0930\u0947\u0902",
+      "start_analysis_question":
+          "\u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u092a\u094d\u0930\u093e\u0930\u0902\u092d \u0915\u0930\u0947\u0902?",
+      "clear_data_title":
+          "\u0910\u092a \u0921\u0947\u091f\u093e \u0930\u0940\u0938\u0947\u091f \u0915\u0930\u0947\u0902",
+      "clear_data_content":
+          "\u092f\u0939 \u0938\u092d\u0940 \u0938\u094d\u0925\u093e\u0928\u0940\u092f \u0921\u0947\u091f\u093e \u0914\u0930 \u0938\u0924\u094d\u0930 \u0915\u0941\u0915\u0940\u091c\u093c \u092e\u093f\u091f\u093e \u0926\u0947\u0917\u093e\u0964 \u0915\u094d\u092f\u093e \u0906\u092a\u0915\u094b \u092f\u0915\u0940\u0928 \u0939\u0948?",
+      "cancel": "\u0930\u0926\u094d\u0926 \u0915\u0930\u0947\u0902",
+      "delete": "\u0939\u091f\u093e\u090f\u0902",
+      "error_title": "\u0924\u094d\u0930\u0941\u091f\u093f",
+      "data_fetch_error":
+          "\u0921\u0947\u091f\u093e \u092a\u0941\u0928\u0930\u094d\u092a\u094d\u0930\u093e\u092a\u094d\u0924\u093f \u0935\u093f\u092b\u0932: {err}\n\n\u0938\u092e\u0938\u094d\u092f\u093e \u0928\u093f\u0935\u093e\u0930\u0923: \u0932\u0949\u0917 \u0906\u0909\u091f \u0915\u0930\u0928\u0947 \u0914\u0930 \u0935\u093e\u092a\u0938 \u0932\u0949\u0917 \u0907\u0928 \u0915\u0930\u0928\u0947 \u0915\u093e \u092a\u094d\u0930\u092f\u093e\u0938 \u0915\u0930\u0947\u0902\u0964",
+      "followers": "\u0905\u0928\u0941\u092f\u093e\u092f\u0940",
+      "following": "\u095e\u093c\u0949\u0932\u094b \u0915\u093f\u090f \u0917\u090f",
+      "new_followers":
+          "\u0928\u092f\u0947 \u0905\u0928\u0941\u092f\u093e\u092f\u0940",
+      "non_followers":
+          "\u091c\u094b \u092b\u0949\u0932\u094b \u092c\u0948\u0915 \u0928\u0939\u0940\u0902 \u0915\u0930\u0924\u0947",
+      "left_followers":
+          "\u0905\u0928\u092b\u093c\u0949\u0932\u094b\u0905\u0930\u094d\u0938",
+      "legal_warning":
+          "\u0915\u093e\u0928\u0942\u0928\u0940 \u0905\u0938\u094d\u0935\u0940\u0915\u0930\u0923",
+      "left_following":
+          "\u091c\u093f\u0928\u094d\u0939\u0947\u0902 \u0906\u092a\u0928\u0947 \u0905\u0928\u092b\u0949\u0932\u094b \u0915\u093f\u092f\u093e",
+      "rate_us":
+          "\u0939\u092e\u0947\u0902 \u0930\u0947\u091f \u0915\u0930\u0947\u0902",
+      "contact_us":
+          "\u0939\u092e\u0938\u0947 \u0938\u0902\u092a\u0930\u094d\u0915 \u0915\u0930\u0947\u0902",
+      "remove_ads_and_limits":
+          "\u0935\u093f\u091c\u094d\u091e\u093e\u092a\u0928 \u0939\u091f\u093e\u090f\u0902 \u0914\u0930 \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e \u0938\u092e\u092f",
+      "rate_test_message":
+          "\u092f\u0939 \u092c\u0949\u0915\u094d\u0938 \u0905\u092d\u0940 \u092a\u0930\u0940\u0915\u094d\u0937\u0923\u093e\u0927\u0940\u0928 \u0939\u0948\u0964",
+      "story_section_title":
+          "\u0917\u0941\u092a\u094d\u0924 \u0930\u0942\u092a \u0938\u0947 \u0915\u0939\u093e\u0928\u093f\u092f\u093e\u0902 \u0926\u0947\u0916\u0947\u0902 \u092f\u093e \u092a\u094d\u0930\u094b\u092b\u093c\u093e\u0907\u0932 \u092b\u093c\u094b\u091f\u094b \u091c\u093c\u0942\u092e \u0915\u0930\u0947\u0902",
+      "story_login_required":
+          "\u0915\u0943\u092a\u092f\u093e \u0917\u0941\u092a\u094d\u0924 \u0930\u0942\u092a \u0938\u0947 \u0915\u0939\u093e\u0928\u093f\u092f\u093e\u0901 \u0926\u0947\u0916\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0932\u0949\u0917 \u0907\u0928 \u0915\u0930\u0947\u0902\u0964",
+      "story_ad_wait":
+          "\u0935\u093f\u091c\u094d\u091e\u093e\u092a\u0928 \u0915\u0947 \u092c\u093e\u0926 \u0926\u093f\u0916\u093e\u092f\u093e \u091c\u093e\u090f\u0917\u093e, \u0915\u0943\u092a\u092f\u093e \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e \u0915\u0930\u0947\u0902\u0964",
+      "story_action_title":
+          "\u0906\u092a \u0915\u094d\u092f\u093e \u0915\u0930\u0928\u093e \u091a\u093e\u0939\u0947\u0902\u0917\u0947?",
+      "story_view_photo":
+          "\u092a\u094d\u0930\u094b\u092b\u093c\u093e\u0907\u0932 \u092b\u093c\u094b\u091f\u094b \u092c\u0921\u093c\u093e \u0915\u0930\u0947\u0902",
+      "story_watch_secret":
+          "\u092c\u093f\u0928\u093e \u092a\u0924\u093e \u091a\u0932\u0947 \u0938\u094d\u091f\u094b\u0930\u0940 \u0926\u0947\u0916\u0947\u0902",
+      "story_no_data":
+          "\u0915\u094b\u0908 \u0915\u0939\u093e\u0928\u0940 \u0921\u0947\u091f\u093e \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u0939\u0940\u0902 \u0939\u0948\u0964",
+      "story_close": "\u092c\u0902\u0926 \u0915\u0930\u0947\u0902",
+      "read_and_agree":
+          "\u092e\u0948\u0902\u0928\u0947 \u092a\u0922\u093c\u093e \u0939\u0948 \u0914\u0930 \u0938\u0939\u092e\u0924 \u0939\u0942\u0902",
+      "withdraw_consent":
+          "\u0938\u0939\u092e\u0924\u093f \u0935\u093e\u092a\u0938 \u0932\u0947\u0902",
+      "withdraw_consent_confirm_title":
+          "\u092a\u0941\u0937\u094d\u091f\u093f \u0915\u0930\u0947\u0902",
+      "withdraw_consent_confirm_body":
+          "\u0906\u092a\u0915\u0940 \u0938\u0939\u092e\u0924\u093f \u0938\u0947\u091f\u093f\u0902\u0917\u094d\u0938 \u0930\u0940\u0938\u0947\u091f \u0915\u0930 \u0926\u0940 \u091c\u093e\u090f\u0902\u0917\u0940\u0964 \u0915\u094d\u092f\u093e \u0906\u092a\u0915\u094b \u092f\u0915\u0940\u0928 \u0939\u0948?",
+      "withdraw_consent_confirm_yes": "\u0939\u093e\u0902",
+      "withdraw_consent_confirm_no":
+          "\u0930\u0926\u094d\u0926 \u0915\u0930\u0947\u0902",
+      "no_data":
+          "\u0915\u094b\u0908 \u0921\u0947\u091f\u093e \u0928\u0939\u0940\u0902",
+      "new_badge": "\u0928\u092f\u093e",
+      "login_title": "\u0932\u0949\u0917\u093f\u0928",
+      'user_label': '\u0909\u092A\u092F\u094B\u0917\u0915\u0930\u094D\u0924\u093E',
+      "redirecting":
+          "\u0938\u0924\u094d\u0930 \u0938\u0924\u094d\u092f\u093e\u092a\u093f\u0924, \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u0930\u0942\u092a \u0938\u0947 \u092a\u0941\u0928\u0930\u094d\u0928\u093f\u0930\u094d\u0926\u0947\u0936\u093f\u0924...",
+      "data_updated":
+          "\u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u092a\u0942\u0930\u093e \u2705",
+      "purchases_not_configured":
+          "\u0916\u0930\u0940\u0926\u093e\u0930\u0940 \u0905\u092d\u0940 \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u0939\u0940\u0902 \u0939\u0948\u0964 \u0915\u0943\u092a\u092f\u093e \u092c\u093e\u0926 \u092e\u0947\u0902 \u092a\u0941\u0928: \u092a\u094d\u0930\u092f\u093e\u0938 \u0915\u0930\u0947\u0902\u0964",
+      "premium_not_active":
+          "\u0916\u0930\u0940\u0926\u093e\u0930\u0940 \u092a\u0942\u0930\u0940 \u0939\u094b \u0917\u0908, \u0932\u0947\u0915\u093f\u0928 \u092a\u094d\u0930\u0940\u092e\u093f\u092f\u092e \u0905\u092d\u0940 \u0938\u0915\u094d\u0930\u093f\u092f \u0928\u0939\u0940\u0902 \u0939\u0948\u0964 \u0915\u0943\u092a\u092f\u093e \u092a\u0941\u0928: \u092a\u094d\u0930\u092f\u093e\u0938 \u0915\u0930\u0947\u0902\u0964",
+      "premium_welcome_box":
+          "\u092a\u094d\u0930\u0940\u092e\u093f\u092f\u092e \u092e\u0947\u0902 \u0906\u092a\u0915\u093e \u0938\u094d\u0935\u093e\u0917\u0924 \u0939\u0948! \u0935\u093f\u091c\u094d\u091e\u093e\u092a\u0928 \u0914\u0930 \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e \u0938\u092e\u092f \u0939\u091f\u093e \u0926\u093f\u090f \u091c\u093e\u0924\u0947 \u0939\u0948\u0902.",
+      "premium_already_active":
+          "\u0906\u092a\u0915\u0940 \u092a\u094d\u0930\u0940\u092e\u093f\u092f\u092e \u0938\u0926\u0938\u094d\u092f\u0924\u093e \u0938\u0915\u094d\u0930\u093f\u092f \u0939\u0948\u0964",
+      "restore_purchases":
+          "\u0916\u0930\u0940\u0926\u093e\u0930\u0940 \u092a\u0941\u0928\u0930\u094d\u0938\u094d\u0925\u093e\u092a\u093f\u0924 \u0915\u0930\u0947\u0902",
+      "restore_purchases_short":
+          "\u092a\u0941\u0928\u0930\u094d\u0938\u094d\u0925\u093e\u092a\u093f\u0924 \u0915\u0930\u0947\u0902",
+      "restoring_purchases":
+          "\u0916\u0930\u0940\u0926\u093e\u0930\u0940 \u092c\u0939\u093e\u0932 \u0915\u0940 \u091c\u093e \u0930\u0939\u0940 \u0939\u0948...",
+      "restore_purchases_success":
+          "\u0916\u0930\u0940\u0926\u093e\u0930\u0940 \u092c\u0939\u093e\u0932 \u2705",
+      "restore_purchases_none":
+          "\u092a\u0941\u0928\u0930\u094d\u0938\u094d\u0925\u093e\u092a\u093f\u0924 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0915\u094b\u0908 \u0916\u0930\u0940\u0926\u093e\u0930\u0940 \u0928\u0939\u0940\u0902\u0964",
+      "restore_purchases_failed":
+          "\u092a\u0941\u0928\u0930\u094d\u0938\u094d\u0925\u093e\u092a\u0928\u093e \u0935\u093f\u092b\u0932: {err}",
+      "enter_pin":
+          "\u092a\u093f\u0928 \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902",
+      "pin_accepted":
+          "\u092a\u093f\u0928 \u0938\u094d\u0935\u0940\u0915\u0943\u0924, \u091f\u093e\u0907\u092e\u0930 \u0930\u0940\u0938\u0947\u091f \u2705",
+      "pin_incorrect":
+          "\u0905\u092e\u093e\u0928\u094d\u092f \u092a\u093f\u0928",
+      "ok": "\u0920\u0940\u0915 \u0939\u0948",
+      "legal_intro":
+          "\u0907\u0938 \u090f\u092a\u094d\u0932\u093f\u0915\u0947\u0936\u0928 \u0915\u094b \u0921\u093e\u0909\u0928\u0932\u094b\u0921 \u0915\u0930\u0928\u0947 \u0914\u0930 \u0909\u092a\u092f\u094b\u0917 \u0915\u0930\u0928\u0947 \u0938\u0947, \u092f\u0939 \u092e\u093e\u0928\u093e \u091c\u093e\u090f\u0917\u093e \u0915\u093f \u092a\u094d\u0930\u0924\u094d\u092f\u0947\u0915 \u0909\u092a\u092f\u094b\u0917\u0915\u0930\u094d\u0924\u093e \u0928\u0947 \u0928\u0940\u091a\u0947 \u0926\u093f\u090f \u0917\u090f \"\u0909\u092a\u092f\u094b\u0917 \u0915\u0940 \u0936\u0930\u094d\u0924\u0947\u0902 \u0914\u0930 \u0905\u0938\u094d\u0935\u0940\u0915\u0930\u0923\" \u092a\u093e\u0920 \u0915\u094b \u092a\u0939\u0932\u0947 \u0939\u0940 \u092a\u0922\u093c, \u0938\u092e\u091d \u0932\u093f\u092f\u093e \u0939\u0948 \u0914\u0930 \u0905\u092a\u0930\u093f\u0935\u0930\u094d\u0924\u0928\u0940\u092f \u0930\u0942\u092a \u0938\u0947 \u0938\u094d\u0935\u0940\u0915\u093e\u0930 \u0915\u0930 \u0932\u093f\u092f\u093e \u0939\u0948:",
+      "article1_title":
+          "\u0905\u0928\u0941\u091a\u094d\u091b\u0947\u0926 1: \u0921\u0947\u091f\u093e \u0917\u094b\u092a\u0928\u0940\u092f\u0924\u093e \u0914\u0930 \u0938\u094d\u0925\u093e\u0928\u0940\u092f \u092a\u094d\u0930\u0938\u0902\u0938\u094d\u0915\u0930\u0923 \u0935\u093e\u0938\u094d\u0924\u0941\u0915\u0932\u093e",
+      "article2_title":
+          "\u0905\u0928\u0941\u091a\u094d\u091b\u0947\u0926 2: \u0924\u0943\u0924\u0940\u092f-\u092a\u0915\u094d\u0937 \u092a\u094d\u0932\u0947\u091f\u092b\u093c\u0949\u0930\u094d\u092e \u091c\u094b\u0916\u093f\u092e",
+      "article3_title":
+          "\u0905\u0928\u0941\u091a\u094d\u091b\u0947\u0926 3: \u0935\u093e\u0930\u0902\u091f\u0940 \u0905\u0938\u094d\u0935\u0940\u0915\u0930\u0923 \u0914\u0930 \u0926\u093e\u092f\u093f\u0924\u094d\u0935 \u0915\u0940 \u0938\u0940\u092e\u093e",
+      "article4_title":
+          "\u0905\u0928\u0941\u091a\u094d\u091b\u0947\u0926 4: \u092c\u094c\u0926\u094d\u0927\u093f\u0915 \u0938\u0902\u092a\u0926\u093e \u0914\u0930 \u0938\u094d\u0935\u0924\u0902\u0924\u094d\u0930\u0924\u093e \u0938\u0942\u091a\u0928\u093e",
+      "article5_title":
+          "\u0905\u0928\u0941\u091a\u094d\u091b\u0947\u0926 5: \u0938\u0947\u0935\u093e \u0928\u093f\u0930\u0902\u0924\u0930\u0924\u093e \u0914\u0930 \u092a\u094d\u0932\u0947\u091f\u092b\u093c\u0949\u0930\u094d\u092e \u092a\u0930\u093f\u0935\u0930\u094d\u0924\u0928",
+      "article5_text":
+          "\u0907\u0902\u0938\u094d\u091f\u093e\u0917\u094d\u0930\u093e\u092e \u090f\u092a\u0940\u0906\u0908 \u092f\u093e \u0935\u0947\u092c \u0907\u0902\u092b\u094d\u0930\u093e\u0938\u094d\u091f\u094d\u0930\u0915\u094d\u091a\u0930 \u092e\u0947\u0902 \u092c\u0941\u0928\u093f\u092f\u093e\u0926\u0940 \u092c\u0926\u0932\u093e\u0935\u094b\u0902 \u0915\u0947 \u0915\u093e\u0930\u0923 \u090f\u092a\u094d\u0932\u093f\u0915\u0947\u0936\u0928 \u0906\u0902\u0936\u093f\u0915 \u092f\u093e \u092a\u0942\u0930\u0940 \u0924\u0930\u0939 \u0938\u0947 \u0905\u092a\u0928\u0940 \u0915\u093e\u0930\u094d\u092f\u0915\u094d\u0937\u092e\u0924\u093e \u0916\u094b \u0938\u0915\u0924\u093e \u0939\u0948\u0964 \u0921\u0947\u0935\u0932\u092a\u0930 \u0910\u0938\u0947 \u092c\u0941\u0928\u093f\u092f\u093e\u0926\u0940 \u092a\u0930\u093f\u0935\u0930\u094d\u0924\u0928\u094b\u0902 \u0915\u0947 \u091c\u0935\u093e\u092c \u092e\u0947\u0902 \u090f\u092a\u094d\u0932\u093f\u0915\u0947\u0936\u0928 \u0915\u094b \u0905\u092a\u0921\u0947\u091f \u0915\u0930\u0928\u0947 \u092f\u093e \u0938\u0947\u0935\u093e \u0915\u094b \u092c\u0928\u093e\u090f \u0930\u0916\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0915\u094b\u0908 \u092a\u094d\u0930\u0924\u093f\u092c\u0926\u094d\u0927\u0924\u093e \u0928\u0939\u0940\u0902 \u0930\u0916\u0924\u093e \u0939\u0948, \u091c\u093f\u0928\u094d\u0939\u0947\u0902 \"\u0905\u092a\u094d\u0930\u0924\u094d\u092f\u093e\u0936\u093f\u0924 \u0918\u091f\u0928\u093e\" \u092e\u093e\u0928\u093e \u091c\u093e\u0924\u093e \u0939\u0948\u0964",
+      "ad_wait_message":
+          "\u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u092a\u0942\u0930\u093e \u0939\u094b \u0917\u092f\u093e, \u092a\u0930\u093f\u0923\u093e\u092e \u0935\u093f\u091c\u094d\u091e\u093e\u092a\u0928 \u0915\u0947 \u092c\u093e\u0926 \u0926\u093f\u0916\u093e\u090f \u091c\u093e\u090f\u0902\u0917\u0947\u0964",
+      "analysis_failed_title":
+          "\u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u0935\u093f\u092b\u0932 \u0930\u0939\u093e",
+      "analysis_failed_reason": "\u0915\u093e\u0930\u0923: {reason}",
+      "analysis_failed_hint":
+          "\u091f\u093f\u092a: \u0932\u0949\u0917 \u0906\u0909\u091f \u0915\u0930\u0928\u0947 \u0914\u0930 \u0935\u093e\u092a\u0938 \u0932\u0949\u0917 \u0907\u0928 \u0915\u0930\u0928\u0947 \u0938\u0947 \u092e\u0926\u0926 \u092e\u093f\u0932 \u0938\u0915\u0924\u0940 \u0939\u0948\u0964",
+      "analysis_fast_no_change":
+          "\u0924\u094d\u0935\u0930\u093f\u0924 \u091c\u093e\u0902\u091a: \u0917\u093f\u0928\u0924\u0940 \u0938\u092e\u093e\u0928 \u0939\u0948\u0964 \u0915\u094b\u0908 \u092a\u0930\u093f\u0935\u0930\u094d\u0924\u0928 \u0928\u0939\u0940\u0902 \u092a\u093e\u092f\u093e \u0917\u092f\u093e.",
+      "usage_metrics_title":
+          "\u0926\u0948\u0928\u093f\u0915 \u092e\u0947\u091f\u094d\u0930\u093f\u0915\u094d\u0938",
+      "usage_metrics_active":
+          "\u0938\u0915\u094d\u0930\u093f\u092f \u0909\u092a\u092f\u094b\u0917\u0915\u0930\u094d\u0924\u093e",
+      "usage_metrics_queries":
+          "\u0926\u0948\u0928\u093f\u0915 \u092a\u094d\u0930\u0936\u094d\u0928",
+      "usage_metrics_na": "--",
+      "usage_metrics_live": "\u0932\u093e\u0907\u0935 \u092a\u0948\u0928\u0932",
+    },
+    'hu': {
+      "tagline": "Professional Social Media Solutions",
+      "adsense_banner": "HIRDET\u00c9SI HELY",
+      "admin_active_note": "Admin m\u00f3d akt\u00edv",
+      "free_app_note":
+          "Minden nap fejl\u0151d\u00fcnk, hogy jobb \u00e9lm\u00e9nyben legyen r\u00e9szed. Visszajelz\u00e9se \u00e9rt\u00e9kes sz\u00e1munkra \u2013 sz\u00edvesen hallan\u00e1nk!",
+      "login_prompt":
+          "K\u00e9rj\u00fck, jelentkezzen be az elemz\u00e9s elind\u00edt\u00e1s\u00e1hoz.",
+      "welcome": "\u00dcdv\u00f6z\u00f6lj\u00fck, {username}",
+      "refresh_data": "ADATOK FRISS\u00cdT\u00c9SE",
+      "login_with_instagram": "BEJELENTKEZ\u00c9S AZ INSTAGRAM-AL",
+      "fetching_data": "Adatok elemz\u00e9se...\nEz eltarthat egy pillanatig.",
+      "processing_data": "Adatok feldolgoz\u00e1sa...\nMajdnem k\u00e9sz.",
+      "loading_ad":
+          "Hirdet\u00e9s bet\u00f6lt\u00e9se...\nK\u00e9rj\u00fck, v\u00e1rjon.",
+      "google_ad_warning":
+          "Google hirdet\u00e9si figyelmeztet\u00e9s: {reason}",
+      "analysis_secure":
+          "Minden elemz\u00e9s biztons\u00e1gosan, helyben ker\u00fcl feldolgoz\u00e1sra az eszk\u00f6z\u00f6n.",
+      "today_total_analysis": "A mai nap \u00f6sszes elemz\u00e9se: {count}",
+      "next_analysis": "K\u00f6vetkez\u0151 elemz\u00e9s",
+      "next_analysis_ready": "Szkennel\u00e9sre k\u00e9sz.",
+      "analysis_available_now": "Az elemz\u00e9s m\u00e1r el\u00e9rhet\u0151",
+      "analysis_ready_risk":
+          "Az elemz\u00e9s m\u00e1r el\u00e9rhet\u0151, de az elemz\u00e9sek egym\u00e1s ut\u00e1ni futtat\u00e1sa vesz\u00e9lybe sodorhatja fi\u00f3kj\u00e1t.",
+      "please_wait": "K\u00e9rj\u00fck, v\u00e1rjon",
+      "warning": "Figyelem",
+      "remaining_time": "K\u00f6vetkez\u0151 elemz\u00e9s: {time}",
+      "watch_ad":
+          "N\u00c9ZZE MEG A HIRDET\u00c9ST \u00c9S KEZDJEN EL AZ ELEMZ\u00c9ST",
+      "start_analysis": "IND\u00cdTSA EL AZ ELEMZ\u00c9ST",
+      "start_analysis_question": "Elkezdi az elemz\u00e9st?",
+      "clear_data_title": "Alkalmaz\u00e1sadatok vissza\u00e1ll\u00edt\u00e1sa",
+      "clear_data_content":
+          "Ez t\u00f6rli az \u00f6sszes helyi adatot \u00e9s munkamenet-cookie-t. Biztos vagy benne?",
+      "cancel": "M\u00c9GSEM",
+      "delete": "TÖRLÉS",
+      "error_title": "Hiba",
+      "data_fetch_error":
+          "Az adatlek\u00e9r\u00e9s sikertelen: {err}\n\nHibaelh\u00e1r\u00edt\u00e1s: Pr\u00f3b\u00e1ljon meg kijelentkezni, majd \u00fajra bejelentkezni.",
+      "followers": "K\u00f6vet\u0151k",
+      "following": "K\u00f6vetve",
+      "new_followers": "\u00daj k\u00f6vet\u0151k",
+      "non_followers": "Ne k\u00f6vess vissza",
+      "left_followers": "K\u00f6vet\u00e9s megsz\u00fcntet\u00e9se",
+      "legal_warning": "Jogi felel\u0151ss\u00e9g kiz\u00e1r\u00e1sa",
+      "left_following": "Nem k\u00f6vetett felhaszn\u00e1l\u00f3k",
+      "rate_us": "\u00c9rt\u00e9keljen minket",
+      "contact_us": "Vegye fel vel\u00fcnk a kapcsolatot",
+      "remove_ads_and_limits":
+          "Hirdet\u00e9sek elt\u00e1vol\u00edt\u00e1sa \u00e9s v\u00e1rakoz\u00e1si id\u0151k",
+      "rate_test_message": "Ez a doboz jelenleg tesztel\u00e9s alatt \u00e1ll.",
+      "story_section_title":
+          "N\u00e9zze meg a t\u00f6rt\u00e9neteket titokban vagy nagy\u00edtsa ki a profilfot\u00f3kat",
+      "story_login_required":
+          "K\u00e9rj\u00fck, jelentkezzen be, ha t\u00f6rt\u00e9neteket szeretne titokban n\u00e9zni.",
+      "story_ad_wait":
+          "A hirdet\u00e9s ut\u00e1n jelenik meg, k\u00e9rj\u00fck, v\u00e1rjon.",
+      "story_action_title": "Mit szeretn\u00e9l csin\u00e1lni?",
+      "story_view_photo": "Profilfot\u00f3 nagy\u00edt\u00e1sa",
+      "story_watch_secret": "N\u00e9zze meg a t\u00f6rt\u00e9netet titokban",
+      "story_no_data":
+          "Nem \u00e1llnak rendelkez\u00e9sre t\u00f6rt\u00e9netadatok.",
+      "story_close": "BEz\u00e1r",
+      "read_and_agree": "ELOLVASTAM \u00c9S EGYET\u00c9RTEM",
+      "withdraw_consent": "A hozz\u00e1j\u00e1rul\u00e1s visszavon\u00e1sa",
+      "withdraw_consent_confirm_title": "Er\u0151s\u00edtse meg",
+      "withdraw_consent_confirm_body":
+          "A hozz\u00e1j\u00e1rul\u00e1si be\u00e1ll\u00edt\u00e1sai vissza\u00e1llnak. Biztos vagy benne?",
+      "withdraw_consent_confirm_yes": "Igen",
+      "withdraw_consent_confirm_no": "M\u00e9gse",
+      "no_data": "Nincs adat",
+      "new_badge": "\u00daJ",
+      "login_title": "Bejelentkez\u00e9s",
+      'user_label': 'Felhaszn\u00E1l\u00F3',
+      "redirecting":
+          "Munkamenet igazolva, biztons\u00e1gos \u00e1tir\u00e1ny\u00edt\u00e1s...",
+      "data_updated": "Az elemz\u00e9s k\u00e9sz \u2705",
+      "purchases_not_configured":
+          "A v\u00e1s\u00e1rl\u00e1sok jelenleg nem \u00e9rhet\u0151k el. K\u00e9rj\u00fck, pr\u00f3b\u00e1lja \u00fajra k\u00e9s\u0151bb.",
+      "premium_not_active":
+          "A v\u00e1s\u00e1rl\u00e1s befejez\u0151d\u00f6tt, de a Premium m\u00e9g nem akt\u00edv. K\u00e9rj\u00fck, pr\u00f3b\u00e1lja \u00fajra.",
+      "premium_welcome_box":
+          "\u00dcdv\u00f6z\u00f6lj\u00fck a Premiumban! A hirdet\u00e9sek \u00e9s a v\u00e1rakoz\u00e1si id\u0151 elt\u00e1vol\u00edtva.",
+      "premium_already_active": "Pr\u00e9mium tags\u00e1god akt\u00edv.",
+      "restore_purchases":
+          "A v\u00e1s\u00e1rl\u00e1sok vissza\u00e1ll\u00edt\u00e1sa",
+      "restore_purchases_short": "RESTORE",
+      "restoring_purchases":
+          "V\u00e1s\u00e1rl\u00e1sok vissza\u00e1ll\u00edt\u00e1sa...",
+      "restore_purchases_success":
+          "A v\u00e1s\u00e1rl\u00e1sok vissza\u00e1ll\u00edtva \u2705",
+      "restore_purchases_none":
+          "Nincs vissza\u00e1ll\u00edtand\u00f3 v\u00e1s\u00e1rl\u00e1s.",
+      "restore_purchases_failed":
+          "A vissza\u00e1ll\u00edt\u00e1s sikertelen: {err}",
+      "enter_pin": "Adja meg a PIN-k\u00f3dot",
+      "pin_accepted":
+          "PIN elfogadva, id\u0151z\u00edt\u0151 vissza\u00e1ll\u00edt\u00e1sa \u2705",
+      "pin_incorrect": "\u00c9rv\u00e9nytelen PIN-k\u00f3d",
+      "ok": "OK",
+      "legal_intro":
+          "Az alkalmaz\u00e1s let\u00f6lt\u00e9s\u00e9vel \u00e9s haszn\u00e1lat\u00e1val \u00fagy kell tekinteni, hogy minden Felhaszn\u00e1l\u00f3 el\u0151zetesen elolvasta, meg\u00e9rtette \u00e9s visszavonhatatlanul elfogadta az al\u00e1bbi \u201eHaszn\u00e1lati felt\u00e9telek \u00e9s felel\u0151ss\u00e9g kiz\u00e1r\u00e1sa\u201d sz\u00f6veget:",
+      "article1_title":
+          "1. cikk: Adatv\u00e9delem \u00e9s helyi feldolgoz\u00e1si architekt\u00fara",
+      "article2_title": "2. cikk: Harmadik felek platformkock\u00e1zatai",
+      "article3_title":
+          "3. cikk: A j\u00f3t\u00e1ll\u00e1si nyilatkozat \u00e9s a felel\u0151ss\u00e9g korl\u00e1toz\u00e1sa",
+      "article4_title":
+          "4. cikk: Szellemi tulajdonra \u00e9s f\u00fcggetlens\u00e9gre vonatkoz\u00f3 k\u00f6zlem\u00e9ny",
+      "article5_title":
+          "5. cikk: A szolg\u00e1ltat\u00e1s folytonoss\u00e1ga \u00e9s a platform v\u00e1ltoz\u00e1sai",
+      "article5_text":
+          "Az Instagram API-ban vagy a webes infrastrukt\u00far\u00e1ban bek\u00f6vetkezett alapvet\u0151 v\u00e1ltoztat\u00e1sok miatt az alkalmaz\u00e1s r\u00e9szben vagy teljesen elvesz\u00edtheti funkcionalit\u00e1s\u00e1t. A fejleszt\u0151 nem v\u00e1llal k\u00f6telezetts\u00e9get az alkalmaz\u00e1s friss\u00edt\u00e9s\u00e9re vagy a szolg\u00e1ltat\u00e1s karbantart\u00e1s\u00e1ra v\u00e1laszul az infrastruktur\u00e1lis v\u00e1ltoz\u00e1sokra, amelyek vis maiornak min\u0151s\u00fclnek.",
+      "ad_wait_message":
+          "Elemz\u00e9s k\u00e9sz, az eredm\u00e9nyek a hirdet\u00e9s ut\u00e1n jelennek meg.",
+      "analysis_failed_title": "Az elemz\u00e9s sikertelen",
+      "analysis_failed_reason": "Ok: {reason}",
+      "analysis_failed_hint":
+          "Tipp: A ki- \u00e9s visszajelentkez\u00e9s seg\u00edthet.",
+      "analysis_fast_no_change":
+          "Gyors ellen\u0151rz\u00e9s: A sz\u00e1mok megegyeznek. Nem \u00e9szlelt\u00fcnk v\u00e1ltoz\u00e1st.",
+      "usage_metrics_title": "Napi mutat\u00f3k",
+      "usage_metrics_active": "Akt\u00edv felhaszn\u00e1l\u00f3k",
+      "usage_metrics_queries": "Napi lek\u00e9rdez\u00e9sek",
+      "usage_metrics_na": "--",
+      "usage_metrics_live": "\u00e9l\u0151 panel",
+    },
+    'zh-hans': {
+      "tagline": "Professional Social Media Solutions",
+      "adsense_banner": "\u5e7f\u544a\u7a7a\u95f4",
+      "admin_active_note": "\u7ba1\u7406\u5458\u6a21\u5f0f\u5df2\u6fc0\u6d3b",
+      "free_app_note":
+          "\u6211\u4eec\u6bcf\u5929\u90fd\u5728\u8fdb\u6b65\uff0c\u4e3a\u60a8\u63d0\u4f9b\u66f4\u597d\u7684\u4f53\u9a8c\u3002\u60a8\u7684\u53cd\u9988\u5bf9\u6211\u4eec\u5f88\u6709\u4ef7\u503c\u2014\u2014\u6211\u4eec\u5f88\u4e50\u610f\u542c\u53d6\u60a8\u7684\u610f\u89c1\uff01",
+      "login_prompt": "\u8bf7\u767b\u5f55\u5f00\u59cb\u5206\u6790\u3002",
+      "welcome": "\u6b22\u8fce\uff0c{username}",
+      "refresh_data": "\u5237\u65b0\u6570\u636e",
+      "login_with_instagram": "\u7528 INSTAGRAM \u767b\u5f55",
+      "fetching_data":
+          "\u6b63\u5728\u5206\u6790\u6570\u636e...\n\u8fd9\u53ef\u80fd\u9700\u8981\u4e00\u4e9b\u65f6\u95f4\u3002",
+      "processing_data":
+          "\u6b63\u5728\u5904\u7406\u6570\u636e...\n\u5feb\u5b8c\u6210\u4e86\u3002",
+      "loading_ad": "\u52a0\u8f7d\u5e7f\u544a...\n\u8bf7\u7a0d\u5019\u3002",
+      "google_ad_warning": "Google \u5e7f\u544a\u8b66\u544a\uff1a{reason}",
+      "analysis_secure":
+          "\u6240\u6709\u5206\u6790\u5747\u5728\u60a8\u7684\u8bbe\u5907\u4e0a\u672c\u5730\u5b89\u5168\u5904\u7406\u3002",
+      "today_total_analysis":
+          "\u4eca\u5929\u7684\u603b\u5206\u6790\uff1a{count}",
+      "next_analysis": "\u63a5\u4e0b\u6765\u5206\u6790",
+      "next_analysis_ready": "\u51c6\u5907\u626b\u63cf\u3002",
+      "analysis_available_now": "\u5206\u6790\u73b0\u5df2\u53ef\u7528",
+      "analysis_ready_risk":
+          "\u5206\u6790\u73b0\u5df2\u53ef\u7528\uff0c\u4f46\u8fde\u7eed\u8fd0\u884c\u5206\u6790\u53ef\u80fd\u4f1a\u4f7f\u60a8\u7684\u5e10\u6237\u9762\u4e34\u98ce\u9669\u3002",
+      "please_wait": "\u8bf7\u7a0d\u5019",
+      "warning": "\u8b66\u544a",
+      "remaining_time": "\u4e0b\u4e00\u6b65\u5206\u6790\uff1a{time}",
+      "watch_ad": "\u89c2\u770b\u5e7f\u544a\u5e76\u5f00\u59cb\u5206\u6790",
+      "start_analysis": "\u5f00\u59cb\u5206\u6790",
+      "start_analysis_question": "\u5f00\u59cb\u5206\u6790\uff1f",
+      "clear_data_title": "\u91cd\u7f6e\u5e94\u7528\u7a0b\u5e8f\u6570\u636e",
+      "clear_data_content":
+          "\u8fd9\u5c06\u64e6\u9664\u6240\u6709\u672c\u5730\u6570\u636e\u548c\u4f1a\u8bddcookie\u3002\u4f60\u786e\u5b9a\u5417\uff1f",
+      "cancel": "\u53d6\u6d88",
+      "delete": "\u5220\u9664",
+      "error_title": "\u9519\u8bef",
+      "data_fetch_error":
+          "\u6570\u636e\u68c0\u7d22\u5931\u8d25\uff1a{err}\n\n\u6545\u969c\u6392\u9664\uff1a\u5c1d\u8bd5\u6ce8\u9500\u5e76\u91cd\u65b0\u767b\u5f55\u3002",
+      "followers": "\u5173\u6ce8\u8005",
+      "following": "\u6b63\u5728\u5173\u6ce8",
+      "new_followers": "\u65b0\u5173\u6ce8\u8005",
+      "non_followers": "\u672a\u56de\u5173",
+      "left_followers": "\u53d6\u6d88\u5173\u6ce8\u8005",
+      "legal_warning": "\u6cd5\u5f8b\u514d\u8d23\u58f0\u660e",
+      "left_following": "\u53d6\u6d88\u5173\u6ce8\u7684\u7528\u6237",
+      "rate_us": "\u7ed9\u6211\u4eec\u8bc4\u5206",
+      "contact_us": "\u8054\u7cfb\u6211\u4eec",
+      "remove_ads_and_limits":
+          "\u5220\u9664\u5e7f\u544a\u548c\u7b49\u5f85\u65f6\u95f4",
+      "rate_test_message":
+          "\u8fd9\u4e2a\u76d2\u5b50\u76ee\u524d\u6b63\u5728\u6d4b\u8bd5\u4e2d\u3002",
+      "story_section_title":
+          "\u79d8\u5bc6\u89c2\u770b\u6545\u4e8b\u6216\u7f29\u653e\u4e2a\u4eba\u8d44\u6599\u7167\u7247",
+      "story_login_required":
+          "\u8bf7\u767b\u5f55\u79d8\u5bc6\u89c2\u770b\u6545\u4e8b\u3002",
+      "story_ad_wait":
+          "\u5c06\u5728\u5e7f\u544a\u540e\u663e\u793a\uff0c\u8bf7\u7a0d\u5019\u3002",
+      "story_action_title": "\u4f60\u60f3\u505a\u4ec0\u4e48\uff1f",
+      "story_view_photo": "\u653e\u5927\u4e2a\u4eba\u8d44\u6599\u7167\u7247",
+      "story_watch_secret": "\u5077\u5077\u770b\u6545\u4e8b",
+      "story_no_data":
+          "\u6ca1\u6709\u53ef\u7528\u7684\u6545\u4e8b\u6570\u636e\u3002",
+      "story_close": "\u5173\u95ed",
+      "read_and_agree": "\u6211\u5df2\u9605\u8bfb\u5e76\u540c\u610f",
+      "withdraw_consent": "\u64a4\u56de\u540c\u610f",
+      "withdraw_consent_confirm_title": "\u786e\u8ba4",
+      "withdraw_consent_confirm_body":
+          "\u60a8\u7684\u540c\u610f\u8bbe\u7f6e\u5c06\u88ab\u91cd\u7f6e\u3002\u4f60\u786e\u5b9a\u5417\uff1f",
+      "withdraw_consent_confirm_yes": "\u662f\u7684",
+      "withdraw_consent_confirm_no": "\u53d6\u6d88",
+      "no_data": "\u65e0\u6570\u636e",
+      "new_badge": "\u65b0",
+      "login_title": "\u767b\u5f55",
+      'user_label': '\u7528\u6237',
+      "redirecting":
+          "\u4f1a\u8bdd\u5df2\u9a8c\u8bc1\uff0c\u5b89\u5168\u91cd\u5b9a\u5411...",
+      "data_updated": "\u5206\u6790\u5b8c\u6210\u2705",
+      "purchases_not_configured":
+          "\u76ee\u524d\u65e0\u6cd5\u8d2d\u4e70\u3002\u8bf7\u7a0d\u540e\u91cd\u8bd5\u3002",
+      "premium_not_active":
+          "\u8d2d\u4e70\u5df2\u5b8c\u6210\uff0c\u4f46\u9ad8\u7ea7\u7248\u5c1a\u672a\u6fc0\u6d3b\u3002\u8bf7\u518d\u8bd5\u4e00\u6b21\u3002",
+      "premium_welcome_box":
+          "\u6b22\u8fce\u4f7f\u7528\u9ad8\u7ea7\u7248\uff01\u5e7f\u544a\u548c\u7b49\u5f85\u65f6\u95f4\u88ab\u5220\u9664\u3002",
+      "premium_already_active":
+          "\u60a8\u7684\u9ad8\u7ea7\u4f1a\u5458\u8d44\u683c\u5df2\u6fc0\u6d3b\u3002",
+      "restore_purchases": "\u6062\u590d\u8d2d\u4e70",
+      "restore_purchases_short": "\u6062\u590d",
+      "restoring_purchases": "\u6b63\u5728\u6062\u590d\u8d2d\u4e70...",
+      "restore_purchases_success": "\u8d2d\u4e70\u5df2\u6062\u590d \u2705",
+      "restore_purchases_none":
+          "\u6ca1\u6709\u8981\u6062\u590d\u7684\u8d2d\u4e70\u3002",
+      "restore_purchases_failed": "\u6062\u590d\u5931\u8d25\uff1a{err}",
+      "enter_pin": "\u8f93\u5165 PIN \u7801",
+      "pin_accepted":
+          "PIN \u5df2\u63a5\u53d7\uff0c\u8ba1\u65f6\u5668\u91cd\u7f6e \u2705",
+      "pin_incorrect": "PIN \u7801\u65e0\u6548",
+      "ok": "\u597d\u7684",
+      "legal_intro":
+          "\u4e0b\u8f7d\u5e76\u4f7f\u7528\u672c\u5e94\u7528\u7a0b\u5e8f\uff0c\u5373\u8868\u793a\u6bcf\u4f4d\u7528\u6237\u5df2\u63d0\u524d\u9605\u8bfb\u3001\u7406\u89e3\u5e76\u4e0d\u53ef\u64a4\u9500\u5730\u63a5\u53d7\u4ee5\u4e0b\u201c\u4f7f\u7528\u6761\u6b3e\u548c\u514d\u8d23\u58f0\u660e\u201d\u6587\u672c\uff1a",
+      "article1_title":
+          "\u7b2c 1 \u6761\uff1a\u6570\u636e\u9690\u79c1\u548c\u672c\u5730\u5904\u7406\u67b6\u6784",
+      "article2_title":
+          "\u7b2c\u4e8c\u6761\uff1a\u7b2c\u4e09\u65b9\u5e73\u53f0\u98ce\u9669",
+      "article3_title":
+          "\u7b2c 3 \u6761\uff1a\u514d\u8d23\u58f0\u660e\u548c\u8d23\u4efb\u9650\u5236",
+      "article4_title":
+          "\u7b2c4\u6761\uff1a\u77e5\u8bc6\u4ea7\u6743\u548c\u72ec\u7acb\u6027\u58f0\u660e",
+      "article5_title":
+          "\u7b2c5\u6761\uff1a\u670d\u52a1\u8fde\u7eed\u6027\u548c\u5e73\u53f0\u53d8\u66f4",
+      "article5_text":
+          "Instagram API \u6216 Web \u57fa\u7840\u8bbe\u65bd\u7684\u6839\u672c\u6027\u66f4\u6539\u53ef\u80fd\u4f1a\u5bfc\u81f4\u5e94\u7528\u7a0b\u5e8f\u90e8\u5206\u6216\u5b8c\u5168\u5931\u53bb\u5176\u529f\u80fd\u3002\u5f00\u53d1\u4eba\u5458\u4e0d\u627f\u8bfa\u66f4\u65b0\u5e94\u7528\u7a0b\u5e8f\u6216\u7ef4\u62a4\u670d\u52a1\u4ee5\u5e94\u5bf9\u6b64\u7c7b\u57fa\u7840\u8bbe\u65bd\u53d8\u66f4\uff0c\u8fd9\u88ab\u89c6\u4e3a\u201c\u4e0d\u53ef\u6297\u529b\u201d\u3002",
+      "ad_wait_message":
+          "\u5206\u6790\u5b8c\u6210\uff0c\u7ed3\u679c\u5c06\u5728\u5e7f\u544a\u540e\u663e\u793a\u3002",
+      "analysis_failed_title": "\u5206\u6790\u5931\u8d25",
+      "analysis_failed_reason": "\u539f\u56e0\uff1a{reason}",
+      "analysis_failed_hint":
+          "\u63d0\u793a\uff1a\u6ce8\u9500\u5e76\u91cd\u65b0\u767b\u5f55\u53ef\u80fd\u4f1a\u6709\u6240\u5e2e\u52a9\u3002",
+      "analysis_fast_no_change":
+          "\u5feb\u901f\u68c0\u67e5\uff1a\u8ba1\u6570\u76f8\u540c\u3002\u672a\u68c0\u6d4b\u5230\u4efb\u4f55\u53d8\u5316\u3002",
+      "usage_metrics_title": "\u6bcf\u65e5\u6307\u6807",
+      "usage_metrics_active": "\u6d3b\u8dc3\u7528\u6237",
+      "usage_metrics_queries": "\u6bcf\u65e5\u67e5\u8be2",
+      "usage_metrics_na": "--",
+      "usage_metrics_live": "\u73b0\u573a\u9762\u677f",
+    },
+    'id': {
+      "tagline": "Professional Social Media Solutions",
+      "adsense_banner": "RUANG IKLAN",
+      "admin_active_note": "Mode Admin aktif",
+      "free_app_note":
+          "Kami berkembang setiap hari untuk memberikan Anda pengalaman yang lebih baik. Masukan Anda sangat berharga bagi kami\u2014kami ingin mendengar pendapat Anda!",
+      "login_prompt": "Silakan masuk untuk memulai analisis.",
+      "welcome": "Selamat datang, {username}",
+      "refresh_data": "SEGARKAN DATA",
+      "login_with_instagram": "MASUK DENGAN INSTAGRAM",
+      "fetching_data":
+          "Menganalisis data...\nIni mungkin memerlukan waktu beberapa saat.",
+      "processing_data": "Memproses data...\nHampir selesai.",
+      "loading_ad": "Memuat iklan...\nHarap tunggu.",
+      "google_ad_warning": "Peringatan iklan Google: {reason}",
+      "analysis_secure":
+          "Semua analisis diproses dengan aman secara lokal di perangkat Anda.",
+      "today_total_analysis": "Total analisis hari ini: {count}",
+      "next_analysis": "Analisis selanjutnya",
+      "next_analysis_ready": "Siap memindai.",
+      "analysis_available_now": "Analisis tersedia sekarang",
+      "analysis_ready_risk":
+          "Analisis kini tersedia, namun menjalankan analisis secara berulang-ulang dapat membahayakan akun Anda.",
+      "please_wait": "Harap tunggu",
+      "warning": "Peringatan",
+      "remaining_time": "Analisis selanjutnya: {time}",
+      "watch_ad": "TONTON IKLAN DAN MULAI ANALISIS",
+      "start_analysis": "MULAI ANALISIS",
+      "start_analysis_question": "Mulai analisis?",
+      "clear_data_title": "Setel Ulang Data Aplikasi",
+      "clear_data_content":
+          "Ini akan menghapus semua data lokal dan cookie sesi. Apa kamu yakin?",
+      "cancel": "BATAL",
+      "delete": "HAPUS",
+      "error_title": "Kesalahan",
+      "data_fetch_error":
+          "Pengambilan data gagal: {err}\n\nPemecahan Masalah: Coba keluar dan masuk kembali.",
+      "followers": "Pengikut",
+      "following": "Mengikuti",
+      "new_followers": "Pengikut Baru",
+      "non_followers": "Tidak Mengikuti Balik",
+      "left_followers": "Berhenti mengikuti",
+      "legal_warning": "Penafian Hukum",
+      "left_following": "Akun yang Anda berhenti ikuti",
+      "rate_us": "Nilai Kami",
+      "contact_us": "Hubungi Kami",
+      "remove_ads_and_limits":
+          "Hapus Iklan & Waktu Tunggu",
+      "rate_test_message": "Kotak ini sedang diuji.",
+      "story_section_title":
+          "Tonton Cerita Secara Diam-diam atau Zoom Foto Profil",
+      "story_login_required":
+          "Silakan masuk untuk menonton cerita secara diam-diam.",
+      "story_ad_wait": "Akan ditampilkan setelah iklan, harap tunggu.",
+      "story_action_title": "Apa yang ingin Anda lakukan?",
+      "story_view_photo": "Perbesar foto profil",
+      "story_watch_secret": "Lihat story tanpa jejak",
+      "story_no_data": "Tidak ada data cerita yang tersedia.",
+      "story_close": "TUTUP",
+      "read_and_agree": "SAYA TELAH MEMBACA DAN SETUJU",
+      "withdraw_consent": "Menarik Persetujuan",
+      "withdraw_consent_confirm_title": "Konfirmasi",
+      "withdraw_consent_confirm_body":
+          "Setelan izin Anda akan disetel ulang. Apa kamu yakin?",
+      "withdraw_consent_confirm_yes": "Ya",
+      "withdraw_consent_confirm_no": "Batal",
+      "no_data": "Tidak ada data",
+      "new_badge": "BARU",
+      "login_title": "Masuk",
+      'user_label': 'Pengguna',
+      "redirecting": "Sesi terverifikasi, mengalihkan dengan aman...",
+      "data_updated": "Analisis selesai \u2705",
+      "purchases_not_configured":
+          "Pembelian tidak tersedia saat ini. Silakan coba lagi nanti.",
+      "premium_not_active":
+          "Pembelian selesai, namun Premium belum aktif. Silakan coba lagi.",
+      "premium_welcome_box":
+          "Selamat datang di Premium! Iklan dan waktu tunggu dihapus.",
+      "premium_already_active": "Keanggotaan Premium Anda aktif.",
+      "restore_purchases": "Kembalikan Pembelian",
+      "restore_purchases_short": "PEMBALIKAN",
+      "restoring_purchases": "Memulihkan pembelian...",
+      "restore_purchases_success": "Pembelian dipulihkan \u2705",
+      "restore_purchases_none": "Tidak ada pembelian yang perlu dipulihkan.",
+      "restore_purchases_failed": "Pemulihan gagal: {err}",
+      "enter_pin": "Masukkan PIN",
+      "pin_accepted": "PIN diterima, pengatur waktu disetel ulang \u2705",
+      "pin_incorrect": "PIN tidak valid",
+      "ok": "OK",
+      "legal_intro":
+          "Dengan mengunduh dan menggunakan aplikasi ini, setiap Pengguna dianggap telah membaca, memahami, dan menerima secara tidak dapat ditarik kembali teks \"Ketentuan Penggunaan dan Penafian\" di bawah ini terlebih dahulu:",
+      "article1_title":
+          "Artikel 1: Privasi Data dan Arsitektur Pemrosesan Lokal",
+      "article2_title": "Artikel 2: Risiko Platform Pihak Ketiga",
+      "article3_title":
+          "Artikel 3: Penafian Garansi dan Batasan Tanggung Jawab",
+      "article4_title":
+          "Pasal 4: Pemberitahuan Kekayaan Intelektual dan Kemerdekaan",
+      "article5_title": "Pasal 5: Kontinuitas Layanan dan Perubahan Platform",
+      "article5_text":
+          "Perubahan mendasar pada API Instagram atau infrastruktur web dapat menyebabkan aplikasi kehilangan fungsinya sebagian atau seluruhnya. Pengembang tidak berkomitmen untuk memperbarui aplikasi atau memelihara layanan sebagai respons terhadap perubahan infrastruktur tersebut, yang dianggap sebagai \"keadaan kahar\".",
+      "ad_wait_message":
+          "Analisis selesai, hasilnya akan ditampilkan setelah iklan.",
+      "analysis_failed_title": "Analisis gagal",
+      "analysis_failed_reason": "Alasan: {reason}",
+      "analysis_failed_hint":
+          "Tip: Keluar dan masuk kembali mungkin bisa membantu.",
+      "analysis_fast_no_change":
+          "Pemeriksaan cepat: Jumlahnya sama. Tidak ada perubahan yang terdeteksi.",
+      "usage_metrics_title": "Metrik Harian",
+      "usage_metrics_active": "Pengguna aktif",
+      "usage_metrics_queries": "Pertanyaan harian",
+      "usage_metrics_na": "--",
+      "usage_metrics_live": "panel langsung",
+    },
+    'nl': {
+      "tagline": "Professional Social Media Solutions",
+      "adsense_banner": "ADVERTENTIERUIMTE",
+      "admin_active_note": "Beheermodus actief",
+      "free_app_note":
+          "We ontwikkelen ons elke dag om u een betere ervaring te bieden. Uw feedback is waardevol voor ons; we horen graag van u!",
+      "login_prompt": "Log in om de analyse te starten.",
+      "welcome": "Welkom, {username}",
+      'refresh_data': 'GEGEVENS VERNIEUWEN',
+      "login_with_instagram": "LOG IN MET INSTAGRAM",
+      "fetching_data": "Gegevens analyseren...\nDit kan even duren.",
+      "processing_data": "Gegevens verwerken...\nBijna klaar.",
+      "loading_ad": "Advertentie laden...\nWacht alstublieft.",
+      "google_ad_warning": "Google-advertentiewaarschuwing: {reason}",
+      "analysis_secure":
+          "Alle analyses worden veilig lokaal op uw apparaat verwerkt.",
+      "today_total_analysis": "Totaalanalyses vandaag: {count}",
+      "next_analysis": "Volgende analyse",
+      "next_analysis_ready": "Klaar om te scannen.",
+      "analysis_available_now": "Analyse nu beschikbaar",
+      "analysis_ready_risk":
+          "De analyse is nu beschikbaar, maar het achter elkaar uitvoeren van analyses kan uw account in gevaar brengen.",
+      "please_wait": "Een ogenblik geduld",
+      "warning": "Waarschuwing",
+      "remaining_time": "Volgende analyse: {time}",
+      "watch_ad": "KIJK ADVERTENTIE EN START DE ANALYSE",
+      "start_analysis": "ANALYSE STARTEN",
+      "start_analysis_question": "Analyse starten?",
+      "clear_data_title": "App-gegevens opnieuw instellen",
+      "clear_data_content":
+          "Hiermee worden alle lokale gegevens en sessiecookies gewist. Weet je het zeker?",
+      "cancel": "ANNULEREN",
+      "delete": "VERWIJDEREN",
+      "error_title": "Fout",
+      "data_fetch_error":
+          "Gegevens ophalen mislukt: {err}\n\nProblemen oplossen: Probeer uit te loggen en weer in te loggen.",
+      "followers": "Volgers",
+      'following': 'Volgend',
+      "new_followers": "Nieuwe volgers",
+      "non_followers": "Volg niet terug",
+      "left_followers": "Ontvolgers",
+      "legal_warning": "Juridische disclaimer",
+      "left_following": "Niet-gevolgde gebruikers",
+      "rate_us": "Beoordeel ons",
+      "contact_us": "Neem contact met ons op",
+      "remove_ads_and_limits":
+          "Verwijder advertenties en wachttijden",
+      "rate_test_message": "Deze box wordt momenteel getest.",
+      "story_section_title":
+          "Bekijk verhalen in het geheim of zoom in op profielfoto's",
+      "story_login_required": "Log in om verhalen in het geheim te bekijken.",
+      "story_ad_wait":
+          "Wordt weergegeven na de advertentie, even geduld a.u.b.",
+      "story_action_title": "Wat zou je graag willen doen?",
+      "story_view_photo": "Profielfoto vergroten",
+      "story_watch_secret": "Bekijk het verhaal in het geheim",
+      "story_no_data": "Geen verhaalgegevens beschikbaar.",
+      "story_close": "SLUITEN",
+      "read_and_agree": "IK HEB HET GELEZEN EN GA AKKOORD",
+      "withdraw_consent": "Toestemming intrekken",
+      "withdraw_consent_confirm_title": "Bevestigen",
+      "withdraw_consent_confirm_body":
+          "Uw toestemmingsinstellingen worden gereset. Weet je het zeker?",
+      "withdraw_consent_confirm_yes": "Ja",
+      "withdraw_consent_confirm_no": "Annuleren",
+      "no_data": "Geen gegevens",
+      "new_badge": "NIEUW",
+      "login_title": "Inloggen",
+      'user_label': 'Gebruiker',
+      "redirecting": "Sessie geverifieerd, veilig doorverwezen...",
+      "data_updated": "Analyse voltooid \u2705",
+      "purchases_not_configured":
+          "Aankopen zijn momenteel niet beschikbaar. Probeer het later opnieuw.",
+      "premium_not_active":
+          "Aankoop voltooid, maar Premium is nog niet actief. Probeer het opnieuw.",
+      "premium_welcome_box":
+          "Welkom bij Premium! Advertenties en wachttijden zijn verwijderd.",
+      "premium_already_active": "Uw Premium-lidmaatschap is actief.",
+      "restore_purchases": "Aankopen herstellen",
+      "restore_purchases_short": "HERSTELLEN",
+      "restoring_purchases": "Aankopen herstellen...",
+      "restore_purchases_success": "Aankopen hersteld \u2705",
+      "restore_purchases_none": "Geen aankopen om te herstellen.",
+      "restore_purchases_failed": "Herstellen mislukt: {err}",
+      "enter_pin": "Voer pincode in",
+      "pin_accepted": "PIN geaccepteerd, timer gereset \u2705",
+      "pin_incorrect": "Ongeldige pincode",
+      "ok": "OK",
+      "legal_intro":
+          "Door deze applicatie te downloaden en te gebruiken, wordt elke Gebruiker geacht de onderstaande tekst \"Gebruiksvoorwaarden en Disclaimer\" vooraf te hebben gelezen, begrepen en onherroepelijk aanvaard:",
+      "article1_title":
+          "Artikel 1: Gegevensprivacy en lokale verwerkingsarchitectuur",
+      "article2_title": "Artikel 2: Risico's van platforms van derden",
+      "article3_title":
+          "Artikel 3: Garantiedisclaimer en beperking van aansprakelijkheid",
+      "article4_title":
+          "Artikel 4: Intellectuele eigendom en onafhankelijkheidsverklaring",
+      "article5_title":
+          "Artikel 5: Servicecontinu\u00efteit en platformwijzigingen",
+      "article5_text":
+          "Fundamentele wijzigingen aan de Instagram API of webinfrastructuur kunnen ervoor zorgen dat de applicatie zijn functionaliteit geheel of gedeeltelijk verliest. De ontwikkelaar doet geen enkele toezegging om de applicatie bij te werken of de service te onderhouden als reactie op dergelijke infrastructurele veranderingen, die als \"overmacht\" worden beschouwd.",
+      "ad_wait_message":
+          "Analyse voltooid, resultaten worden na de advertentie weergegeven.",
+      "analysis_failed_title": "Analyse mislukt",
+      "analysis_failed_reason": "Reden: {reason}",
+      "analysis_failed_hint": "Tip: Uitloggen en opnieuw inloggen kan helpen.",
+      "analysis_fast_no_change":
+          "Snelle controle: Tellingen zijn hetzelfde. Geen wijzigingen gedetecteerd.",
+      "usage_metrics_title": "Dagelijkse statistieken",
+      "usage_metrics_active": "Actieve gebruikers",
+      "usage_metrics_queries": "Dagelijkse vragen",
+      "usage_metrics_na": "--",
+      "usage_metrics_live": "live-paneel",
+    },
+    'fr': {
+      "tagline": "Professional Social Media Solutions",
+      "adsense_banner": "ESPACE PUB",
+      "admin_active_note": "Mode administrateur actif",
+      "free_app_note":
+          "Nous \u00e9voluons chaque jour pour vous offrir une meilleure exp\u00e9rience. Vos commentaires sont pr\u00e9cieux pour nous\u00a0; nous serions ravis de vous entendre\u00a0!",
+      "login_prompt": "Veuillez vous connecter pour d\u00e9marrer l'analyse.",
+      "welcome": "Bienvenue, {username}",
+      "refresh_data": "ACTUALISER LES DONN\u00c9ES",
+      "login_with_instagram": "CONNEXION AVEC INSTAGRAM",
+      "fetching_data":
+          "Analyse des donn\u00e9es...\nCela peut prendre un moment.",
+      "processing_data":
+          "Traitement des donn\u00e9es...\nPresque termin\u00e9.",
+      "loading_ad": "Chargement de l'annonce...\nVeuillez patienter.",
+      "google_ad_warning": "Avertissement publicitaire Google\u00a0: {reason}",
+      "analysis_secure":
+          "Toutes les analyses sont trait\u00e9es en toute s\u00e9curit\u00e9 localement sur votre appareil.",
+      "today_total_analysis": "Analyses totales aujourd'hui\u00a0: {count}",
+      "next_analysis": "Analyse suivante",
+      "next_analysis_ready": "Pr\u00eat \u00e0 num\u00e9riser.",
+      "analysis_available_now": "Analyse disponible maintenant",
+      "analysis_ready_risk":
+          "L'analyse est d\u00e9j\u00e0 disponible, mais encha\u00eener les analyses peut mettre votre compte en danger.",
+      "please_wait": "Veuillez patienter",
+      "warning": "Avertissement",
+      "remaining_time": "Analyse suivante\u00a0: {time}",
+      "watch_ad": "REGARDER L'ANNONCE ET COMMENCER L'ANALYSE",
+      "start_analysis": "D\u00c9MARRER L'ANALYSE",
+      "start_analysis_question": "D\u00e9marrer l'analyse\u00a0?",
+      "clear_data_title":
+          "R\u00e9initialiser les donn\u00e9es de l'application",
+      "clear_data_content":
+          "Cela effacera toutes les donn\u00e9es locales et les cookies de session. Es-tu s\u00fbr?",
+      "cancel": "ANNULER",
+      "delete": "SUPPRIMER",
+      "error_title": "Erreur",
+      "data_fetch_error":
+          "\u00c9chec de la r\u00e9cup\u00e9ration des donn\u00e9es\u00a0: {err}\n\nD\u00e9pannage\u00a0: essayez de vous d\u00e9connecter et de vous reconnecter.",
+      "followers": "Abonn\u00e9s",
+      'following': 'Abonnements',
+      "new_followers": "Nouveaux abonn\u00e9s",
+      "non_followers": "Ne vous suivent pas",
+      'left_followers': 'D\u00E9sabonnements',
+      "legal_warning": "Mentions l\u00e9gales",
+      "left_following": "Comptes que vous ne suivez plus",
+      "rate_us": "\u00c9valuez-nous",
+      "contact_us": "Contactez-nous",
+      "remove_ads_and_limits":
+          "Supprimer les publicit\u00e9s et les temps d'attente",
+      "rate_test_message": "Cette box est actuellement en test.",
+      "story_section_title":
+          "Regardez des histoires en secret ou zoomez sur les photos de profil",
+      "story_login_required":
+          "Veuillez vous connecter pour regarder les histoires en secret.",
+      "story_ad_wait":
+          "Sera affich\u00e9 apr\u00e8s la publicit\u00e9, veuillez patienter.",
+      "story_action_title": "Que souhaiteriez-vous faire\u00a0?",
+      "story_view_photo": "Agrandir la photo de profil",
+      "story_watch_secret": "Voir la story sans laisser de trace",
+      "story_no_data": "Aucune donn\u00e9e d'histoire disponible.",
+      "story_close": "FERMER",
+      "read_and_agree": "J'AI LU ET J'ACCEPTE",
+      "withdraw_consent": "Retirer le consentement",
+      "withdraw_consent_confirm_title": "Confirmer",
+      "withdraw_consent_confirm_body":
+          "Vos param\u00e8tres de consentement seront r\u00e9initialis\u00e9s. Es-tu s\u00fbr?",
+      "withdraw_consent_confirm_yes": "Oui",
+      "withdraw_consent_confirm_no": "Annuler",
+      "no_data": "Aucune donn\u00e9e",
+      "new_badge": "NOUVEAU",
+      "login_title": "Connexion",
+      'user_label': 'Utilisateur',
+      "redirecting":
+          "Session v\u00e9rifi\u00e9e, redirection s\u00e9curis\u00e9e...",
+      "data_updated": "Analyse termin\u00e9e \u2705",
+      "purchases_not_configured":
+          "Les achats ne sont pas disponibles pour le moment. Veuillez r\u00e9essayer plus tard.",
+      "premium_not_active":
+          "Achat termin\u00e9, mais Premium n'est pas encore actif. Veuillez r\u00e9essayer.",
+      "premium_welcome_box":
+          "Bienvenue sur Premium\u00a0! Les publicit\u00e9s et les temps d'attente sont supprim\u00e9s.",
+      "premium_already_active": "Votre abonnement Premium est actif.",
+      "restore_purchases": "Restaurer les achats",
+      "restore_purchases_short": "RESTAURER",
+      "restoring_purchases": "Restaurer les achats...",
+      "restore_purchases_success": "Achats restaur\u00e9s \u2705",
+      "restore_purchases_none": "Aucun achat \u00e0 restaurer.",
+      "restore_purchases_failed": "\u00c9chec de la restauration\u00a0: {err}",
+      "enter_pin": "Entrez le code PIN",
+      "pin_accepted":
+          "PIN accept\u00e9, r\u00e9initialisation du minuteur \u2705",
+      "pin_incorrect": "PIN invalide",
+      "ok": "OK",
+      "legal_intro":
+          "En t\u00e9l\u00e9chargeant et en utilisant cette application, chaque utilisateur est r\u00e9put\u00e9 avoir lu, compris et accept\u00e9 irr\u00e9vocablement le texte des \u00ab\u00a0Conditions d'utilisation et clause de non-responsabilit\u00e9\u00a0\u00bb ci-dessous\u00a0:",
+      "article1_title":
+          "Article 1\u00a0:\u00a0Confidentialit\u00e9 des donn\u00e9es et architecture de traitement local",
+      "article2_title":
+          "Article 2\u00a0:\u00a0Risques li\u00e9s aux plateformes tierces",
+      "article3_title":
+          "Article 3\u00a0:\u00a0Exclusion de garantie et limitation de responsabilit\u00e9",
+      "article4_title":
+          "Article 4 : Propri\u00e9t\u00e9 Intellectuelle et Avis d'Ind\u00e9pendance",
+      "article5_title":
+          "Article 5\u00a0:\u00a0Continuit\u00e9 du service et modifications de la plateforme",
+      "article5_text":
+          "Des modifications fondamentales apport\u00e9es \u00e0 l'API Instagram ou \u00e0 l'infrastructure Web peuvent entra\u00eener la perte partielle ou totale de l'application de ses fonctionnalit\u00e9s. Le d\u00e9veloppeur ne s'engage pas \u00e0 mettre \u00e0 jour l'application ou \u00e0 maintenir le service en r\u00e9ponse \u00e0 de tels changements d'infrastructure, qui sont consid\u00e9r\u00e9s comme \u00ab force majeure \u00bb.",
+      "ad_wait_message":
+          "Analyse termin\u00e9e, les r\u00e9sultats seront affich\u00e9s apr\u00e8s la publicit\u00e9.",
+      "analysis_failed_title": "\u00c9chec de l'analyse",
+      "analysis_failed_reason": "Raison\u00a0: {reason}",
+      "analysis_failed_hint":
+          "Astuce\u00a0:\u00a0Se d\u00e9connecter et se reconnecter peut s'av\u00e9rer utile.",
+      "analysis_fast_no_change":
+          "V\u00e9rification rapide\u00a0: les comptes sont les m\u00eames. Aucun changement d\u00e9tect\u00e9.",
+      "usage_metrics_title": "Mesures quotidiennes",
+      "usage_metrics_active": "Utilisateurs actifs",
+      "usage_metrics_queries": "Requ\u00eates quotidiennes",
+      "usage_metrics_na": "--",
+      "usage_metrics_live": "panneau en direct",
+    },
+    'it': {
+      "tagline": "Professional Social Media Solutions",
+      "adsense_banner": "SPAZIO ANNUNCIO",
+      "admin_active_note": "Modalit\u00e0 amministratore attiva",
+      "free_app_note":
+          "Ci evolviamo ogni giorno per offrirti un'esperienza migliore. Il tuo feedback \u00e8 prezioso per noi: ci piacerebbe sentire la tua opinione!",
+      "login_prompt": "Accedi per avviare l'analisi.",
+      "welcome": "Benvenuto, {username}",
+      "refresh_data": "AGGIORNA DATI",
+      "login_with_instagram": "ACCEDI CON INSTAGRAM",
+      "fetching_data":
+          "Analisi dei dati in corso...\nL'operazione potrebbe richiedere un momento.",
+      "processing_data": "Elaborazione dati...\nQuasi finito.",
+      "loading_ad": "Caricamento annuncio...\nPer favore aspetta.",
+      "google_ad_warning": "Avviso annuncio Google: {reason}",
+      "analysis_secure":
+          "Tutte le analisi vengono elaborate in modo sicuro localmente sul tuo dispositivo.",
+      "today_total_analysis": "Totale analisi oggi: {count}",
+      "next_analysis": "Prossima analisi",
+      "next_analysis_ready": "Pronto per la scansione.",
+      "analysis_available_now": "Analisi ora disponibile",
+      "analysis_ready_risk":
+          "L'analisi \u00e8 ora disponibile, ma l'esecuzione di analisi consecutive potrebbe mettere a rischio il tuo account.",
+      "please_wait": "Attendere",
+      "warning": "Attenzione",
+      "remaining_time": "Prossima analisi: {time}",
+      "watch_ad": "GUARDA L'ANNUNCIO E INIZIA L'ANALISI",
+      "start_analysis": "INIZIA ANALISI",
+      "start_analysis_question": "Avviare l'analisi?",
+      "clear_data_title": "Reimposta i dati dell'app",
+      "clear_data_content":
+          "Questa operazione canceller\u00e0 tutti i dati locali e i cookie di sessione. Sei sicuro?",
+      "cancel": "ANNULLA",
+      "delete": "CANCELLA",
+      "error_title": "Errore",
+      "data_fetch_error":
+          "Recupero dati non riuscito: {err}\n\nRisoluzione del problema: prova a disconnetterti e ad accedere nuovamente.",
+      "followers": "Follower",
+      'following': 'Seguiti',
+      "new_followers": "Nuovi follower",
+      'non_followers': 'Utenti che non ricambiano',
+      "left_followers": "Follower persi",
+      "legal_warning": "Disclaimer legale",
+      "left_following": "Utenti non seguiti",
+      "rate_us": "Valutaci",
+      "contact_us": "Contattaci",
+      "remove_ads_and_limits":
+          "Rimuovi pubblicit\u00e0 e tempi di attesa",
+      "rate_test_message": "Questa scatola \u00e8 attualmente in fase di test.",
+      "story_section_title":
+          "Guarda le storie di nascosto o ingrandisci le foto del profilo",
+      "story_login_required": "Accedi per guardare le storie in segreto.",
+      "story_ad_wait": "Verr\u00e0 mostrato dopo l'annuncio, attendere.",
+      "story_action_title": "Cosa ti piacerebbe fare?",
+      "story_view_photo": "Ingrandisci la foto del profilo",
+      "story_watch_secret": "Guarda la storia in segreto",
+      "story_no_data": "Nessun dato sulla storia disponibile.",
+      "story_close": "CHIUDI",
+      "read_and_agree": "HO LETTO E ACCETTO",
+      "withdraw_consent": "Revocare il consenso",
+      "withdraw_consent_confirm_title": "Conferma",
+      "withdraw_consent_confirm_body":
+          "Le impostazioni del consenso verranno ripristinate. Sei sicuro?",
+      "withdraw_consent_confirm_yes": "S\u00ec",
+      "withdraw_consent_confirm_no": "Annulla",
+      "no_data": "Nessun dato",
+      "new_badge": "NUOVO",
+      "login_title": "Accedi",
+      'user_label': 'Utente',
+      "redirecting": "Sessione verificata, reindirizzamento sicuro...",
+      "data_updated": "Analisi completata \u2705",
+      "purchases_not_configured":
+          "Gli acquisti non sono disponibili al momento. Per favore riprova pi\u00f9 tardi.",
+      "premium_not_active":
+          "Acquisto completato, ma Premium non \u00e8 ancora attivo. Per favore riprova.",
+      "premium_welcome_box":
+          "Benvenuto in Premium! Gli annunci e i tempi di attesa vengono rimossi.",
+      "premium_already_active": "Il tuo abbonamento Premium \u00e8 attivo.",
+      "restore_purchases": "Ripristina acquisti",
+      "restore_purchases_short": "RIPRISTINA",
+      "restoring_purchases": "Ripristino degli acquisti in corso...",
+      "restore_purchases_success": "Acquisti ripristinati \u2705",
+      "restore_purchases_none": "Nessun acquisto da ripristinare.",
+      "restore_purchases_failed": "Ripristino non riuscito: {err}",
+      "enter_pin": "Inserisci il PIN",
+      "pin_accepted": "PIN accettato, reset timer \u2705",
+      "pin_incorrect": "PIN non valido",
+      "ok": "OK",
+      "legal_intro":
+          "Scaricando e utilizzando questa applicazione, si ritiene che ogni Utente abbia letto, compreso e accettato irrevocabilmente in anticipo il testo \"Termini di utilizzo e Dichiarazione di non responsabilit\u00e0\" di seguito riportato:",
+      "article1_title":
+          "Articolo 1: Privacy dei dati e architettura di trattamento locale",
+      "article2_title": "Articolo 2: Rischi della piattaforma di terze parti",
+      "article3_title":
+          "Articolo 3: Esclusione di garanzia e limitazione di responsabilit\u00e0",
+      "article4_title":
+          "Articolo 4: Avviso sulla propriet\u00e0 intellettuale e sull'indipendenza",
+      "article5_title":
+          "Articolo 5: Continuit\u00e0 del servizio e modifiche alla piattaforma",
+      "article5_text":
+          "Modifiche fondamentali all'API di Instagram o all'infrastruttura web possono causare la perdita parziale o totale delle funzionalit\u00e0 dell'applicazione. Lo sviluppatore non si impegna ad aggiornare l'applicazione o a mantenere il servizio in risposta a tali cambiamenti infrastrutturali, che sono considerati \"forza maggiore\".",
+      "ad_wait_message":
+          "Analisi completata, i risultati verranno visualizzati dopo l'annuncio.",
+      "analysis_failed_title": "Analisi non riuscita",
+      "analysis_failed_reason": "Motivo: {reason}",
+      "analysis_failed_hint":
+          "Suggerimento: disconnettersi e accedere nuovamente pu\u00f2 essere utile.",
+      "analysis_fast_no_change":
+          "Controllo rapido: i conteggi sono gli stessi. Nessuna modifica rilevata.",
+      "usage_metrics_title": "Metriche giornaliere",
+      "usage_metrics_active": "Utenti attivi",
+      "usage_metrics_queries": "Query quotidiane",
+      "usage_metrics_na": "--",
+      "usage_metrics_live": "pannello live",
+    },
+    'vi': {
+      "tagline": "Professional Social Media Solutions",
+      "adsense_banner": "V\u1eca TR\u00cd QU\u1ea2NG C\u00c1O",
+      "admin_active_note":
+          "Ch\u1ebf \u0111\u1ed9 qu\u1ea3n tr\u1ecb \u0111ang ho\u1ea1t \u0111\u1ed9ng",
+      "free_app_note":
+          "Ch\u00fang t\u00f4i \u0111ang ph\u00e1t tri\u1ec3n m\u1ed7i ng\u00e0y \u0111\u1ec3 mang \u0111\u1ebfn cho b\u1ea1n tr\u1ea3i nghi\u1ec7m t\u1ed1t h\u01a1n. Ph\u1ea3n h\u1ed3i c\u1ee7a b\u1ea1n r\u1ea5t c\u00f3 gi\u00e1 tr\u1ecb \u0111\u1ed1i v\u1edbi ch\u00fang t\u00f4i\u2014ch\u00fang t\u00f4i r\u1ea5t mong nh\u1eadn \u0111\u01b0\u1ee3c ph\u1ea3n h\u1ed3i t\u1eeb b\u1ea1n!",
+      "login_prompt":
+          "Vui l\u00f2ng \u0111\u0103ng nh\u1eadp \u0111\u1ec3 b\u1eaft \u0111\u1ea7u ph\u00e2n t\u00edch.",
+      "welcome": "Ch\u00e0o m\u1eebng, {username}",
+      "refresh_data": "L\u00c0M M\u1edaI D\u1eee LI\u1ec6U",
+      "login_with_instagram": "\u0110\u0102NG NH\u1eacP B\u1eb0NG INSTAGRAM",
+      "fetching_data":
+          "\u0110ang ph\u00e2n t\u00edch d\u1eef li\u1ec7u...\nVi\u1ec7c n\u00e0y c\u00f3 th\u1ec3 m\u1ea5t m\u1ed9t ch\u00fat th\u1eddi gian.",
+      "processing_data":
+          "\u0110ang x\u1eed l\u00fd d\u1eef li\u1ec7u...\nG\u1ea7n xong r\u1ed3i.",
+      "loading_ad":
+          "\u0110ang t\u1ea3i qu\u1ea3ng c\u00e1o...\nXin vui l\u00f2ng ch\u1edd \u0111\u1ee3i.",
+      "google_ad_warning":
+          "C\u1ea3nh b\u00e1o qu\u1ea3ng c\u00e1o c\u1ee7a Google: {reason}",
+      "analysis_secure":
+          "T\u1ea5t c\u1ea3 ph\u00e2n t\u00edch \u0111\u1ec1u \u0111\u01b0\u1ee3c x\u1eed l\u00fd an to\u00e0n c\u1ee5c b\u1ed9 tr\u00ean thi\u1ebft b\u1ecb c\u1ee7a b\u1ea1n.",
+      "today_total_analysis":
+          "T\u1ed5ng s\u1ed1 ph\u00e2n t\u00edch ng\u00e0y h\u00f4m nay: {count}",
+      "next_analysis": "Ph\u00e2n t\u00edch ti\u1ebfp theo",
+      "next_analysis_ready": "S\u1eb5n s\u00e0ng qu\u00e9t.",
+      "analysis_available_now": "Ph\u00e2n t\u00edch hi\u1ec7n c\u00f3 s\u1eb5n",
+      "analysis_ready_risk":
+          "Ph\u00e2n t\u00edch hi\u1ec7n \u0111\u00e3 s\u1eb5n s\u00e0ng, nh\u01b0ng ch\u1ea1y ph\u00e2n t\u00edch li\u00ean t\u1ee5c c\u00f3 th\u1ec3 khi\u1ebfn t\u00e0i kho\u1ea3n c\u1ee7a b\u1ea1n g\u1eb7p r\u1ee7i ro.",
+      "please_wait": "Xin vui l\u00f2ng \u0111\u1ee3i",
+      "warning": "C\u1ea3nh b\u00e1o",
+      "remaining_time": "Ph\u00e2n t\u00edch ti\u1ebfp theo: {time}",
+      "watch_ad":
+          "XEM QU\u1ea2NG C\u00c1O V\u00c0 B\u1eaeT \u0110\u1ea6U PH\u00c2N T\u00cdCH",
+      "start_analysis": "B\u1eaeT \u0110\u1ea6U PH\u00c2N T\u00cdCH",
+      "start_analysis_question": "B\u1eaft \u0111\u1ea7u ph\u00e2n t\u00edch?",
+      "clear_data_title":
+          "\u0110\u1eb7t l\u1ea1i d\u1eef li\u1ec7u \u1ee9ng d\u1ee5ng",
+      "clear_data_content":
+          "Vi\u1ec7c n\u00e0y s\u1ebd x\u00f3a t\u1ea5t c\u1ea3 d\u1eef li\u1ec7u c\u1ee5c b\u1ed9 v\u00e0 cookie phi\u00ean. B\u1ea1n c\u00f3 ch\u1eafc kh\u00f4ng?",
+      "cancel": "H\u1ee6Y",
+      "delete": "XÓA",
+      "error_title": "L\u1ed7i",
+      "data_fetch_error":
+          "Truy xu\u1ea5t d\u1eef li\u1ec7u kh\u00f4ng th\u00e0nh c\u00f4ng: {err}\n\nKh\u1eafc ph\u1ee5c s\u1ef1 c\u1ed1: H\u00e3y th\u1eed \u0111\u0103ng xu\u1ea5t v\u00e0 \u0111\u0103ng nh\u1eadp l\u1ea1i.",
+      "followers": "Ng\u01b0\u1eddi theo d\u00f5i",
+      "following": "\u0110ang theo d\u00f5i",
+      "new_followers": "Ng\u01b0\u1eddi theo d\u00f5i m\u1edbi",
+      "non_followers": "\u0110\u1eebng theo d\u00f5i l\u1ea1i",
+      "left_followers": "Ng\u01b0\u1eddi h\u1ee7y theo d\u00f5i",
+      "legal_warning":
+          "Tuy\u00ean b\u1ed1 mi\u1ec5n tr\u1eeb tr\u00e1ch nhi\u1ec7m ph\u00e1p l\u00fd",
+      "left_following":
+          "Ng\u01b0\u1eddi d\u00f9ng ch\u01b0a \u0111\u01b0\u1ee3c theo d\u00f5i",
+      "rate_us": "\u0110\u00e1nh gi\u00e1 ch\u00fang t\u00f4i",
+      "contact_us": "Li\u00ean h\u1ec7 v\u1edbi ch\u00fang t\u00f4i",
+      "remove_ads_and_limits":
+          "X\u00f3a qu\u1ea3ng c\u00e1o v\u00e0 th\u1eddi gian ch\u1edd",
+      "rate_test_message":
+          "H\u1ed9p n\u00e0y hi\u1ec7n \u0111ang \u0111\u01b0\u1ee3c th\u1eed nghi\u1ec7m.",
+      "story_section_title":
+          "Xem c\u00e2u chuy\u1ec7n m\u1ed9t c\u00e1ch b\u00ed m\u1eadt ho\u1eb7c thu ph\u00f3ng \u1ea3nh h\u1ed3 s\u01a1",
+      "story_login_required":
+          "Vui l\u00f2ng \u0111\u0103ng nh\u1eadp \u0111\u1ec3 xem truy\u1ec7n b\u00ed m\u1eadt.",
+      "story_ad_wait":
+          "S\u1ebd hi\u1ec3n th\u1ecb sau qu\u1ea3ng c\u00e1o, vui l\u00f2ng \u0111\u1ee3i.",
+      "story_action_title": "B\u1ea1n mu\u1ed1n l\u00e0m g\u00ec?",
+      "story_view_photo": "Ph\u00f3ng to \u1ea3nh h\u1ed3 s\u01a1",
+      "story_watch_secret": "Xem truy\u1ec7n b\u00ed m\u1eadt",
+      "story_no_data":
+          "Kh\u00f4ng c\u00f3 d\u1eef li\u1ec7u c\u00e2u chuy\u1ec7n.",
+      "story_close": "\u0110\u00d3NG",
+      "read_and_agree":
+          "T\u00d4I \u0110\u00c3 \u0110\u1eccC V\u00c0 \u0110\u1ed2NG \u00dd",
+      "withdraw_consent": "R\u00fat l\u1ea1i s\u1ef1 \u0111\u1ed3ng \u00fd",
+      "withdraw_consent_confirm_title": "X\u00e1c nh\u1eadn",
+      "withdraw_consent_confirm_body":
+          "C\u00e0i \u0111\u1eb7t \u0111\u1ed3ng \u00fd c\u1ee7a b\u1ea1n s\u1ebd \u0111\u01b0\u1ee3c \u0111\u1eb7t l\u1ea1i. B\u1ea1n c\u00f3 ch\u1eafc kh\u00f4ng?",
+      "withdraw_consent_confirm_yes": "C\u00f3",
+      "withdraw_consent_confirm_no": "H\u1ee7y",
+      "no_data": "Kh\u00f4ng c\u00f3 d\u1eef li\u1ec7u",
+      "new_badge": "M\u1edaI",
+      "login_title": "\u0110\u0103ng nh\u1eadp",
+      'user_label': 'Ng\u01B0\u1EDDi d\u00F9ng',
+      "redirecting":
+          "Phi\u00ean \u0111\u00e3 \u0111\u01b0\u1ee3c x\u00e1c minh, chuy\u1ec3n h\u01b0\u1edbng an to\u00e0n...",
+      "data_updated": "Ph\u00e2n t\u00edch ho\u00e0n t\u1ea5t \u2705",
+      "purchases_not_configured":
+          "Vi\u1ec7c mua h\u00e0ng hi\u1ec7n kh\u00f4ng kh\u1ea3 d\u1ee5ng. Vui l\u00f2ng th\u1eed l\u1ea1i sau.",
+      "premium_not_active":
+          "Vi\u1ec7c mua h\u00e0ng \u0111\u00e3 ho\u00e0n t\u1ea5t nh\u01b0ng Premium v\u1eabn ch\u01b0a ho\u1ea1t \u0111\u1ed9ng. Vui l\u00f2ng th\u1eed l\u1ea1i.",
+      "premium_welcome_box":
+          "Ch\u00e0o m\u1eebng b\u1ea1n \u0111\u1ebfn v\u1edbi Premium! Qu\u1ea3ng c\u00e1o v\u00e0 th\u1eddi gian ch\u1edd \u0111\u1ee3i \u0111\u01b0\u1ee3c lo\u1ea1i b\u1ecf.",
+      "premium_already_active":
+          "T\u01b0 c\u00e1ch th\u00e0nh vi\u00ean Premium c\u1ee7a b\u1ea1n \u0111ang ho\u1ea1t \u0111\u1ed9ng.",
+      "restore_purchases": "Kh\u00f4i ph\u1ee5c mua h\u00e0ng",
+      "restore_purchases_short": "PH\u1ee4C H\u1ed2I",
+      "restoring_purchases":
+          "\u0110ang kh\u00f4i ph\u1ee5c giao d\u1ecbch mua...",
+      "restore_purchases_success":
+          "\u0110\u00e3 kh\u00f4i ph\u1ee5c giao d\u1ecbch mua \u2705",
+      "restore_purchases_none":
+          "Kh\u00f4ng c\u00f3 giao d\u1ecbch mua n\u00e0o \u0111\u1ec3 kh\u00f4i ph\u1ee5c.",
+      "restore_purchases_failed":
+          "Kh\u00f4i ph\u1ee5c kh\u00f4ng th\u00e0nh c\u00f4ng: {err}",
+      "enter_pin": "Nh\u1eadp m\u00e3 PIN",
+      "pin_accepted":
+          "PIN \u0111\u01b0\u1ee3c ch\u1ea5p nh\u1eadn, \u0111\u1eb7t l\u1ea1i h\u1eb9n gi\u1edd \u2705",
+      "pin_incorrect": "M\u00e3 PIN kh\u00f4ng h\u1ee3p l\u1ec7",
+      "ok": "OK",
+      "legal_intro":
+          "B\u1eb1ng c\u00e1ch t\u1ea3i xu\u1ed1ng v\u00e0 s\u1eed d\u1ee5ng \u1ee9ng d\u1ee5ng n\u00e0y, m\u1ecdi Ng\u01b0\u1eddi d\u00f9ng \u0111\u01b0\u1ee3c coi l\u00e0 \u0111\u00e3 \u0111\u1ecdc, hi\u1ec3u v\u00e0 ch\u1ea5p nh\u1eadn tr\u01b0\u1edbc v\u0103n b\u1ea3n \"\u0110i\u1ec1u kho\u1ea3n s\u1eed d\u1ee5ng v\u00e0 Tuy\u00ean b\u1ed1 t\u1eeb ch\u1ed1i tr\u00e1ch nhi\u1ec7m\" b\u00ean d\u01b0\u1edbi:",
+      "article1_title":
+          "\u0110i\u1ec1u 1: B\u1ea3o m\u1eadt d\u1eef li\u1ec7u v\u00e0 Ki\u1ebfn tr\u00fac x\u1eed l\u00fd c\u1ee5c b\u1ed9",
+      "article2_title":
+          "\u0110i\u1ec1u 2: R\u1ee7i ro n\u1ec1n t\u1ea3ng c\u1ee7a b\u00ean th\u1ee9 ba",
+      "article3_title":
+          "\u0110i\u1ec1u 3: Tuy\u00ean b\u1ed1 mi\u1ec5n tr\u1eeb tr\u00e1ch nhi\u1ec7m b\u1ea3o h\u00e0nh v\u00e0 gi\u1edbi h\u1ea1n tr\u00e1ch nhi\u1ec7m ph\u00e1p l\u00fd",
+      "article4_title":
+          "\u0110i\u1ec1u 4: Th\u00f4ng b\u00e1o v\u1ec1 s\u1edf h\u1eefu tr\u00ed tu\u1ec7 v\u00e0 \u0111\u1ed9c l\u1eadp",
+      "article5_title":
+          "\u0110i\u1ec1u 5: T\u00ednh li\u00ean t\u1ee5c c\u1ee7a d\u1ecbch v\u1ee5 v\u00e0 nh\u1eefng thay \u0111\u1ed5i v\u1ec1 n\u1ec1n t\u1ea3ng",
+      "article5_text":
+          "Nh\u1eefng thay \u0111\u1ed5i c\u01a1 b\u1ea3n \u0111\u1ed1i v\u1edbi API Instagram ho\u1eb7c c\u01a1 s\u1edf h\u1ea1 t\u1ea7ng web c\u00f3 th\u1ec3 khi\u1ebfn \u1ee9ng d\u1ee5ng m\u1ea5t m\u1ed9t ph\u1ea7n ho\u1eb7c to\u00e0n b\u1ed9 ch\u1ee9c n\u0103ng. Nh\u00e0 ph\u00e1t tri\u1ec3n kh\u00f4ng cam k\u1ebft c\u1eadp nh\u1eadt \u1ee9ng d\u1ee5ng ho\u1eb7c duy tr\u00ec d\u1ecbch v\u1ee5 \u0111\u1ec3 \u0111\u00e1p \u1ee9ng nh\u1eefng thay \u0111\u1ed5i v\u1ec1 c\u01a1 s\u1edf h\u1ea1 t\u1ea7ng \u0111\u01b0\u1ee3c coi l\u00e0 \"b\u1ea5t kh\u1ea3 kh\u00e1ng\".",
+      "ad_wait_message":
+          "Ph\u00e2n t\u00edch ho\u00e0n t\u1ea5t, k\u1ebft qu\u1ea3 s\u1ebd hi\u1ec3n th\u1ecb sau qu\u1ea3ng c\u00e1o.",
+      "analysis_failed_title":
+          "Ph\u00e2n t\u00edch kh\u00f4ng th\u00e0nh c\u00f4ng",
+      "analysis_failed_reason": "L\u00fd do: {reason}",
+      "analysis_failed_hint":
+          "M\u1eb9o: \u0110\u0103ng xu\u1ea5t v\u00e0 \u0111\u0103ng nh\u1eadp l\u1ea1i c\u00f3 th\u1ec3 h\u1eefu \u00edch.",
+      "analysis_fast_no_change":
+          "Ki\u1ec3m tra nhanh: S\u1ed1 l\u01b0\u1ee3ng gi\u1ed1ng nhau. Kh\u00f4ng c\u00f3 thay \u0111\u1ed5i n\u00e0o \u0111\u01b0\u1ee3c ph\u00e1t hi\u1ec7n.",
+      "usage_metrics_title": "S\u1ed1 li\u1ec7u h\u00e0ng ng\u00e0y",
+      "usage_metrics_active":
+          "Ng\u01b0\u1eddi d\u00f9ng \u0111ang ho\u1ea1t \u0111\u1ed9ng",
+      "usage_metrics_queries": "Truy v\u1ea5n h\u00e0ng ng\u00e0y",
+      "usage_metrics_na": "--",
+      "usage_metrics_live":
+          "b\u1ea3ng \u0111i\u1ec1u khi\u1ec3n tr\u1ef1c ti\u1ebfp",
+    },
+    'th': {
+      "tagline": "Professional Social Media Solutions",
+      "adsense_banner":
+          "\u0e1e\u0e37\u0e49\u0e19\u0e17\u0e35\u0e48\u0e42\u0e06\u0e29\u0e13\u0e32",
+      "admin_active_note":
+          "\u0e42\u0e2b\u0e21\u0e14\u0e1c\u0e39\u0e49\u0e14\u0e39\u0e41\u0e25\u0e23\u0e30\u0e1a\u0e1a\u0e40\u0e1b\u0e34\u0e14\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19\u0e2d\u0e22\u0e39\u0e48",
+      "free_app_note":
+          "\u0e40\u0e23\u0e32\u0e01\u0e33\u0e25\u0e31\u0e07\u0e1e\u0e31\u0e12\u0e19\u0e32\u0e17\u0e38\u0e01\u0e27\u0e31\u0e19\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e43\u0e2b\u0e49\u0e04\u0e38\u0e13\u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e1b\u0e23\u0e30\u0e2a\u0e1a\u0e01\u0e32\u0e23\u0e13\u0e4c\u0e17\u0e35\u0e48\u0e14\u0e35\u0e22\u0e34\u0e48\u0e07\u0e02\u0e36\u0e49\u0e19 \u0e04\u0e27\u0e32\u0e21\u0e04\u0e34\u0e14\u0e40\u0e2b\u0e47\u0e19\u0e02\u0e2d\u0e07\u0e04\u0e38\u0e13\u0e21\u0e35\u0e04\u0e48\u0e32\u0e2a\u0e33\u0e2b\u0e23\u0e31\u0e1a\u0e40\u0e23\u0e32 \u0e40\u0e23\u0e32\u0e22\u0e34\u0e19\u0e14\u0e35\u0e23\u0e31\u0e1a\u0e1f\u0e31\u0e07\u0e08\u0e32\u0e01\u0e04\u0e38\u0e13!",
+      "login_prompt":
+          "\u0e01\u0e23\u0e38\u0e13\u0e32\u0e40\u0e02\u0e49\u0e32\u0e2a\u0e39\u0e48\u0e23\u0e30\u0e1a\u0e1a\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e23\u0e34\u0e48\u0e21\u0e01\u0e32\u0e23\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c",
+      "welcome":
+          "\u0e22\u0e34\u0e19\u0e14\u0e35\u0e15\u0e49\u0e2d\u0e19\u0e23\u0e31\u0e1a {username}",
+      "refresh_data":
+          "\u0e23\u0e35\u0e40\u0e1f\u0e23\u0e0a\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25",
+      "login_with_instagram":
+          "\u0e40\u0e02\u0e49\u0e32\u0e2a\u0e39\u0e48\u0e23\u0e30\u0e1a\u0e1a\u0e14\u0e49\u0e27\u0e22\u0e2d\u0e34\u0e19\u0e2a\u0e15\u0e32\u0e41\u0e01\u0e23\u0e21",
+      "fetching_data":
+          "\u0e01\u0e33\u0e25\u0e31\u0e07\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25...\n\u0e01\u0e32\u0e23\u0e14\u0e33\u0e40\u0e19\u0e34\u0e19\u0e01\u0e32\u0e23\u0e19\u0e35\u0e49\u0e2d\u0e32\u0e08\u0e43\u0e0a\u0e49\u0e40\u0e27\u0e25\u0e32\u0e2a\u0e31\u0e01\u0e04\u0e23\u0e39\u0e48",
+      "processing_data":
+          "\u0e01\u0e33\u0e25\u0e31\u0e07\u0e1b\u0e23\u0e30\u0e21\u0e27\u0e25\u0e1c\u0e25\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25...\n\u0e40\u0e01\u0e37\u0e2d\u0e1a\u0e40\u0e2a\u0e23\u0e47\u0e08\u0e41\u0e25\u0e49\u0e27",
+      "loading_ad":
+          "\u0e01\u0e33\u0e25\u0e31\u0e07\u0e42\u0e2b\u0e25\u0e14\u0e42\u0e06\u0e29\u0e13\u0e32...\n\u0e01\u0e23\u0e38\u0e13\u0e32\u0e23\u0e2d\u0e2a\u0e31\u0e01\u0e04\u0e23\u0e39\u0e48.",
+      "google_ad_warning":
+          "\u0e04\u0e33\u0e40\u0e15\u0e37\u0e2d\u0e19\u0e42\u0e06\u0e29\u0e13\u0e32 Google: {reason}",
+      "analysis_secure":
+          "\u0e01\u0e32\u0e23\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14\u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e01\u0e32\u0e23\u0e1b\u0e23\u0e30\u0e21\u0e27\u0e25\u0e1c\u0e25\u0e2d\u0e22\u0e48\u0e32\u0e07\u0e1b\u0e25\u0e2d\u0e14\u0e20\u0e31\u0e22\u0e43\u0e19\u0e2d\u0e38\u0e1b\u0e01\u0e23\u0e13\u0e4c\u0e02\u0e2d\u0e07\u0e04\u0e38\u0e13",
+      "today_total_analysis":
+          "\u0e01\u0e32\u0e23\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14\u0e27\u0e31\u0e19\u0e19\u0e35\u0e49: {count}",
+      "next_analysis":
+          "\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c\u0e15\u0e48\u0e2d\u0e44\u0e1b",
+      "next_analysis_ready":
+          "\u0e1e\u0e23\u0e49\u0e2d\u0e21\u0e2a\u0e41\u0e01\u0e19",
+      "analysis_available_now":
+          "\u0e01\u0e32\u0e23\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c\u0e1e\u0e23\u0e49\u0e2d\u0e21\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19\u0e41\u0e25\u0e49\u0e27",
+      "analysis_ready_risk": "\u0e01\u0e32\u0e23\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c\u0e1e\u0e23\u0e49\u0e2d\u0e21\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19\u0e41\u0e25\u0e49\u0e27 \u0e41\u0e15\u0e48\u0e01\u0e32\u0e23\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c\u0e15\u0e34\u0e14\u0e15\u0e48\u0e2d\u0e01\u0e31\u0e19\u0e2d\u0e32\u0e08\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e04\u0e27\u0e32\u0e21\u0e40\u0e2a\u0e35\u0e48\u0e22\u0e07\u0e43\u0e2b\u0e49\u0e1a\u0e31\u0e0d\u0e0a\u0e35\u0e02\u0e2d\u0e07\u0e04\u0e38\u0e13",
+      "please_wait":
+          "\u0e01\u0e23\u0e38\u0e13\u0e32\u0e23\u0e2d\u0e2a\u0e31\u0e01\u0e04\u0e23\u0e39\u0e48",
+      "warning": "\u0e04\u0e33\u0e40\u0e15\u0e37\u0e2d\u0e19",
+      "remaining_time":
+          "\u0e01\u0e32\u0e23\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c\u0e16\u0e31\u0e14\u0e44\u0e1b: {time}",
+      "watch_ad":
+          "\u0e14\u0e39\u0e42\u0e06\u0e29\u0e13\u0e32\u0e41\u0e25\u0e30\u0e40\u0e23\u0e34\u0e48\u0e21\u0e01\u0e32\u0e23\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c",
+      "start_analysis":
+          "\u0e40\u0e23\u0e34\u0e48\u0e21\u0e01\u0e32\u0e23\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c",
+      "start_analysis_question":
+          "\u0e40\u0e23\u0e34\u0e48\u0e21\u0e01\u0e32\u0e23\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c?",
+      "clear_data_title":
+          "\u0e23\u0e35\u0e40\u0e0b\u0e47\u0e15\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e41\u0e2d\u0e1b",
+      "clear_data_content":
+          "\u0e01\u0e32\u0e23\u0e14\u0e33\u0e40\u0e19\u0e34\u0e19\u0e01\u0e32\u0e23\u0e19\u0e35\u0e49\u0e08\u0e30\u0e25\u0e49\u0e32\u0e07\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e43\u0e19\u0e40\u0e04\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e41\u0e25\u0e30\u0e04\u0e38\u0e01\u0e01\u0e35\u0e49\u0e40\u0e0b\u0e2a\u0e0a\u0e31\u0e19\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14 \u0e04\u0e38\u0e13\u0e41\u0e19\u0e48\u0e43\u0e08\u0e40\u0e2b\u0e23\u0e2d?",
+      "cancel": "\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01",
+      "delete": "\u0e25\u0e1a",
+      "error_title":
+          "\u0e40\u0e01\u0e34\u0e14\u0e02\u0e49\u0e2d\u0e1c\u0e34\u0e14\u0e1e\u0e25\u0e32\u0e14",
+      "data_fetch_error":
+          "\u0e01\u0e32\u0e23\u0e14\u0e36\u0e07\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e25\u0e49\u0e21\u0e40\u0e2b\u0e25\u0e27: {err}\n\n\u0e01\u0e32\u0e23\u0e41\u0e01\u0e49\u0e44\u0e02\u0e1b\u0e31\u0e0d\u0e2b\u0e32: \u0e25\u0e2d\u0e07\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01\u0e23\u0e30\u0e1a\u0e1a\u0e41\u0e25\u0e49\u0e27\u0e40\u0e02\u0e49\u0e32\u0e2a\u0e39\u0e48\u0e23\u0e30\u0e1a\u0e1a\u0e2d\u0e35\u0e01\u0e04\u0e23\u0e31\u0e49\u0e07",
+      "followers": "\u0e1c\u0e39\u0e49\u0e15\u0e34\u0e14\u0e15\u0e32\u0e21",
+      "following":
+          "\u0e01\u0e33\u0e25\u0e31\u0e07\u0e15\u0e34\u0e14\u0e15\u0e32\u0e21",
+      "new_followers":
+          "\u0e1c\u0e39\u0e49\u0e15\u0e34\u0e14\u0e15\u0e32\u0e21\u0e43\u0e2b\u0e21\u0e48",
+      "non_followers":
+          "\u0e44\u0e21\u0e48\u0e15\u0e34\u0e14\u0e15\u0e32\u0e21\u0e01\u0e25\u0e31\u0e1a",
+      "left_followers":
+          "\u0e40\u0e25\u0e34\u0e01\u0e15\u0e34\u0e14\u0e15\u0e32\u0e21",
+      "legal_warning":
+          "\u0e02\u0e49\u0e2d\u0e08\u0e33\u0e01\u0e31\u0e14\u0e04\u0e27\u0e32\u0e21\u0e23\u0e31\u0e1a\u0e1c\u0e34\u0e14\u0e0a\u0e2d\u0e1a\u0e17\u0e32\u0e07\u0e01\u0e0e\u0e2b\u0e21\u0e32\u0e22",
+      "left_following":
+          "\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e17\u0e35\u0e48\u0e40\u0e25\u0e34\u0e01\u0e15\u0e34\u0e14\u0e15\u0e32\u0e21",
+      "rate_us":
+          "\u0e43\u0e2b\u0e49\u0e04\u0e30\u0e41\u0e19\u0e19\u0e40\u0e23\u0e32",
+      "contact_us":
+          "\u0e15\u0e34\u0e14\u0e15\u0e48\u0e2d\u0e40\u0e23\u0e32",
+      "remove_ads_and_limits":
+          "\u0e25\u0e1a\u0e42\u0e06\u0e29\u0e13\u0e32\u0e41\u0e25\u0e30\u0e40\u0e27\u0e25\u0e32\u0e23\u0e2d",
+      "rate_test_message":
+          "\u0e01\u0e25\u0e48\u0e2d\u0e07\u0e19\u0e35\u0e49\u0e2d\u0e22\u0e39\u0e48\u0e23\u0e30\u0e2b\u0e27\u0e48\u0e32\u0e07\u0e01\u0e32\u0e23\u0e17\u0e14\u0e2a\u0e2d\u0e1a",
+      "story_section_title":
+          "\u0e14\u0e39\u0e40\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e25\u0e31\u0e1a\u0e2b\u0e23\u0e37\u0e2d\u0e0b\u0e39\u0e21\u0e23\u0e39\u0e1b\u0e42\u0e1b\u0e23\u0e44\u0e1f\u0e25\u0e4c",
+      "story_login_required":
+          "\u0e01\u0e23\u0e38\u0e13\u0e32\u0e40\u0e02\u0e49\u0e32\u0e2a\u0e39\u0e48\u0e23\u0e30\u0e1a\u0e1a\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e14\u0e39\u0e40\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e23\u0e32\u0e27\u0e2d\u0e22\u0e48\u0e32\u0e07\u0e25\u0e31\u0e1a\u0e46",
+      "story_ad_wait":
+          "\u0e08\u0e30\u0e41\u0e2a\u0e14\u0e07\u0e2b\u0e25\u0e31\u0e07\u0e42\u0e06\u0e29\u0e13\u0e32 \u0e01\u0e23\u0e38\u0e13\u0e32\u0e23\u0e2d\u0e2a\u0e31\u0e01\u0e04\u0e23\u0e39\u0e48",
+      "story_action_title":
+          "\u0e04\u0e38\u0e13\u0e2d\u0e22\u0e32\u0e01\u0e08\u0e30\u0e17\u0e33\u0e2d\u0e30\u0e44\u0e23?",
+      "story_view_photo":
+          "\u0e02\u0e22\u0e32\u0e22\u0e23\u0e39\u0e1b\u0e42\u0e1b\u0e23\u0e44\u0e1f\u0e25\u0e4c",
+      "story_watch_secret":
+          "\u0e14\u0e39\u0e40\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e25\u0e31\u0e1a\u0e46",
+      "story_no_data":
+          "\u0e44\u0e21\u0e48\u0e21\u0e35\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e40\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e23\u0e32\u0e27",
+      "story_close": "\u0e1b\u0e34\u0e14",
+      "read_and_agree":
+          "\u0e09\u0e31\u0e19\u0e44\u0e14\u0e49\u0e2d\u0e48\u0e32\u0e19\u0e41\u0e25\u0e30\u0e40\u0e2b\u0e47\u0e19\u0e14\u0e49\u0e27\u0e22",
+      "withdraw_consent":
+          "\u0e16\u0e2d\u0e19\u0e04\u0e27\u0e32\u0e21\u0e22\u0e34\u0e19\u0e22\u0e2d\u0e21",
+      "withdraw_consent_confirm_title": "\u0e22\u0e37\u0e19\u0e22\u0e31\u0e19",
+      "withdraw_consent_confirm_body":
+          "\u0e01\u0e32\u0e23\u0e15\u0e31\u0e49\u0e07\u0e04\u0e48\u0e32\u0e04\u0e27\u0e32\u0e21\u0e22\u0e34\u0e19\u0e22\u0e2d\u0e21\u0e02\u0e2d\u0e07\u0e04\u0e38\u0e13\u0e08\u0e30\u0e16\u0e39\u0e01\u0e23\u0e35\u0e40\u0e0b\u0e47\u0e15 \u0e04\u0e38\u0e13\u0e41\u0e19\u0e48\u0e43\u0e08\u0e40\u0e2b\u0e23\u0e2d?",
+      "withdraw_consent_confirm_yes": "\u0e43\u0e0a\u0e48",
+      "withdraw_consent_confirm_no": "\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01",
+      "no_data":
+          "\u0e44\u0e21\u0e48\u0e21\u0e35\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25",
+      "new_badge": "\u0e43\u0e2b\u0e21\u0e48",
+      "login_title":
+          "\u0e40\u0e02\u0e49\u0e32\u0e2a\u0e39\u0e48\u0e23\u0e30\u0e1a\u0e1a",
+      'user_label': '\u0E1C\u0E39\u0E49\u0E43\u0E0A\u0E49',
+      "redirecting":
+          "\u0e40\u0e0b\u0e2a\u0e0a\u0e31\u0e48\u0e19\u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e01\u0e32\u0e23\u0e22\u0e37\u0e19\u0e22\u0e31\u0e19 \u0e01\u0e33\u0e25\u0e31\u0e07\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e40\u0e2a\u0e49\u0e19\u0e17\u0e32\u0e07\u0e2d\u0e22\u0e48\u0e32\u0e07\u0e1b\u0e25\u0e2d\u0e14\u0e20\u0e31\u0e22...",
+      "data_updated":
+          "\u0e01\u0e32\u0e23\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c\u0e40\u0e2a\u0e23\u0e47\u0e08\u0e2a\u0e21\u0e1a\u0e39\u0e23\u0e13\u0e4c \u2705",
+      "purchases_not_configured":
+          "\u0e01\u0e32\u0e23\u0e0b\u0e37\u0e49\u0e2d\u0e44\u0e21\u0e48\u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e17\u0e33\u0e44\u0e14\u0e49\u0e43\u0e19\u0e02\u0e13\u0e30\u0e19\u0e35\u0e49 \u0e42\u0e1b\u0e23\u0e14\u0e25\u0e2d\u0e07\u0e2d\u0e35\u0e01\u0e04\u0e23\u0e31\u0e49\u0e07\u0e43\u0e19\u0e20\u0e32\u0e22\u0e2b\u0e25\u0e31\u0e07",
+      "premium_not_active":
+          "\u0e01\u0e32\u0e23\u0e0b\u0e37\u0e49\u0e2d\u0e40\u0e2a\u0e23\u0e47\u0e08\u0e2a\u0e21\u0e1a\u0e39\u0e23\u0e13\u0e4c \u0e41\u0e15\u0e48 Premium \u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19\u0e44\u0e14\u0e49 \u0e42\u0e1b\u0e23\u0e14\u0e25\u0e2d\u0e07\u0e2d\u0e35\u0e01\u0e04\u0e23\u0e31\u0e49\u0e07",
+      "premium_welcome_box":
+          "\u0e22\u0e34\u0e19\u0e14\u0e35\u0e15\u0e49\u0e2d\u0e19\u0e23\u0e31\u0e1a\u0e2a\u0e39\u0e48\u0e1e\u0e23\u0e35\u0e40\u0e21\u0e35\u0e48\u0e22\u0e21! \u0e42\u0e06\u0e29\u0e13\u0e32\u0e41\u0e25\u0e30\u0e40\u0e27\u0e25\u0e32\u0e23\u0e2d\u0e08\u0e30\u0e16\u0e39\u0e01\u0e25\u0e1a\u0e2d\u0e2d\u0e01",
+      "premium_already_active":
+          "\u0e2a\u0e21\u0e32\u0e0a\u0e34\u0e01\u0e23\u0e30\u0e14\u0e31\u0e1a\u0e1e\u0e23\u0e35\u0e40\u0e21\u0e35\u0e22\u0e21\u0e02\u0e2d\u0e07\u0e04\u0e38\u0e13\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19\u0e44\u0e14\u0e49",
+      "restore_purchases":
+          "\u0e04\u0e37\u0e19\u0e04\u0e48\u0e32\u0e01\u0e32\u0e23\u0e0b\u0e37\u0e49\u0e2d",
+      "restore_purchases_short": "\u0e04\u0e37\u0e19\u0e04\u0e48\u0e32",
+      "restoring_purchases":
+          "\u0e01\u0e33\u0e25\u0e31\u0e07\u0e01\u0e39\u0e49\u0e04\u0e37\u0e19\u0e01\u0e32\u0e23\u0e0b\u0e37\u0e49\u0e2d...",
+      "restore_purchases_success":
+          "\u0e04\u0e37\u0e19\u0e04\u0e48\u0e32\u0e01\u0e32\u0e23\u0e0b\u0e37\u0e49\u0e2d\u0e41\u0e25\u0e49\u0e27 \u2705",
+      "restore_purchases_none":
+          "\u0e44\u0e21\u0e48\u0e21\u0e35\u0e01\u0e32\u0e23\u0e0b\u0e37\u0e49\u0e2d\u0e17\u0e35\u0e48\u0e08\u0e30\u0e01\u0e39\u0e49\u0e04\u0e37\u0e19",
+      "restore_purchases_failed":
+          "\u0e01\u0e32\u0e23\u0e04\u0e37\u0e19\u0e04\u0e48\u0e32\u0e25\u0e49\u0e21\u0e40\u0e2b\u0e25\u0e27: {err}",
+      "enter_pin": "\u0e43\u0e2a\u0e48 PIN",
+      "pin_accepted":
+          "PIN \u0e22\u0e2d\u0e21\u0e23\u0e31\u0e1a\u0e41\u0e25\u0e49\u0e27 \u0e23\u0e35\u0e40\u0e0b\u0e47\u0e15\u0e15\u0e31\u0e27\u0e08\u0e31\u0e1a\u0e40\u0e27\u0e25\u0e32 \u2705",
+      "pin_incorrect":
+          "PIN \u0e44\u0e21\u0e48\u0e16\u0e39\u0e01\u0e15\u0e49\u0e2d\u0e07",
+      "ok": "\u0e15\u0e01\u0e25\u0e07",
+      "legal_intro":
+          "\u0e42\u0e14\u0e22\u0e01\u0e32\u0e23\u0e14\u0e32\u0e27\u0e19\u0e4c\u0e42\u0e2b\u0e25\u0e14\u0e41\u0e25\u0e30\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19\u0e41\u0e2d\u0e1b\u0e1e\u0e25\u0e34\u0e40\u0e04\u0e0a\u0e31\u0e19\u0e19\u0e35\u0e49 \u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e17\u0e38\u0e01\u0e04\u0e19\u0e08\u0e30\u0e16\u0e37\u0e2d\u0e27\u0e48\u0e32\u0e44\u0e14\u0e49\u0e2d\u0e48\u0e32\u0e19 \u0e17\u0e33\u0e04\u0e27\u0e32\u0e21\u0e40\u0e02\u0e49\u0e32\u0e43\u0e08 \u0e41\u0e25\u0e30\u0e22\u0e2d\u0e21\u0e23\u0e31\u0e1a\u0e02\u0e49\u0e2d\u0e04\u0e27\u0e32\u0e21 \"\u0e02\u0e49\u0e2d\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e01\u0e32\u0e23\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19\u0e41\u0e25\u0e30\u0e02\u0e49\u0e2d\u0e08\u0e33\u0e01\u0e31\u0e14\u0e04\u0e27\u0e32\u0e21\u0e23\u0e31\u0e1a\u0e1c\u0e34\u0e14\u0e0a\u0e2d\u0e1a\" \u0e14\u0e49\u0e32\u0e19\u0e25\u0e48\u0e32\u0e07\u0e19\u0e35\u0e49\u0e25\u0e48\u0e27\u0e07\u0e2b\u0e19\u0e49\u0e32\u0e42\u0e14\u0e22\u0e44\u0e21\u0e48\u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e40\u0e1e\u0e34\u0e01\u0e16\u0e2d\u0e19\u0e44\u0e14\u0e49:",
+      "article1_title":
+          "\u0e1a\u0e17\u0e04\u0e27\u0e32\u0e21\u0e17\u0e35\u0e48 1: \u0e04\u0e27\u0e32\u0e21\u0e40\u0e1b\u0e47\u0e19\u0e2a\u0e48\u0e27\u0e19\u0e15\u0e31\u0e27\u0e02\u0e2d\u0e07\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e41\u0e25\u0e30\u0e2a\u0e16\u0e32\u0e1b\u0e31\u0e15\u0e22\u0e01\u0e23\u0e23\u0e21\u0e01\u0e32\u0e23\u0e1b\u0e23\u0e30\u0e21\u0e27\u0e25\u0e1c\u0e25\u0e43\u0e19\u0e17\u0e49\u0e2d\u0e07\u0e16\u0e34\u0e48\u0e19",
+      "article2_title":
+          "\u0e1a\u0e17\u0e04\u0e27\u0e32\u0e21 2: \u0e04\u0e27\u0e32\u0e21\u0e40\u0e2a\u0e35\u0e48\u0e22\u0e07\u0e02\u0e2d\u0e07\u0e41\u0e1e\u0e25\u0e15\u0e1f\u0e2d\u0e23\u0e4c\u0e21\u0e1a\u0e38\u0e04\u0e04\u0e25\u0e17\u0e35\u0e48\u0e2a\u0e32\u0e21",
+      "article3_title":
+          "\u0e02\u0e49\u0e2d 3: \u0e01\u0e32\u0e23\u0e1b\u0e0f\u0e34\u0e40\u0e2a\u0e18\u0e01\u0e32\u0e23\u0e23\u0e31\u0e1a\u0e1b\u0e23\u0e30\u0e01\u0e31\u0e19\u0e41\u0e25\u0e30\u0e02\u0e49\u0e2d\u0e08\u0e33\u0e01\u0e31\u0e14\u0e04\u0e27\u0e32\u0e21\u0e23\u0e31\u0e1a\u0e1c\u0e34\u0e14",
+      "article4_title":
+          "\u0e21\u0e32\u0e15\u0e23\u0e32 4: \u0e1b\u0e23\u0e30\u0e01\u0e32\u0e28\u0e40\u0e01\u0e35\u0e48\u0e22\u0e27\u0e01\u0e31\u0e1a\u0e17\u0e23\u0e31\u0e1e\u0e22\u0e4c\u0e2a\u0e34\u0e19\u0e17\u0e32\u0e07\u0e1b\u0e31\u0e0d\u0e0d\u0e32\u0e41\u0e25\u0e30\u0e04\u0e27\u0e32\u0e21\u0e40\u0e1b\u0e47\u0e19\u0e2d\u0e34\u0e2a\u0e23\u0e30",
+      "article5_title":
+          "\u0e1a\u0e17\u0e04\u0e27\u0e32\u0e21 5: \u0e04\u0e27\u0e32\u0e21\u0e15\u0e48\u0e2d\u0e40\u0e19\u0e37\u0e48\u0e2d\u0e07\u0e02\u0e2d\u0e07\u0e1a\u0e23\u0e34\u0e01\u0e32\u0e23\u0e41\u0e25\u0e30\u0e01\u0e32\u0e23\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e41\u0e1b\u0e25\u0e07\u0e41\u0e1e\u0e25\u0e15\u0e1f\u0e2d\u0e23\u0e4c\u0e21",
+      "article5_text":
+          "\u0e01\u0e32\u0e23\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e41\u0e1b\u0e25\u0e07\u0e02\u0e31\u0e49\u0e19\u0e1e\u0e37\u0e49\u0e19\u0e10\u0e32\u0e19\u0e43\u0e19 Instagram API \u0e2b\u0e23\u0e37\u0e2d\u0e42\u0e04\u0e23\u0e07\u0e2a\u0e23\u0e49\u0e32\u0e07\u0e1e\u0e37\u0e49\u0e19\u0e10\u0e32\u0e19\u0e02\u0e2d\u0e07\u0e40\u0e27\u0e47\u0e1a\u0e2d\u0e32\u0e08\u0e17\u0e33\u0e43\u0e2b\u0e49\u0e41\u0e2d\u0e1b\u0e1e\u0e25\u0e34\u0e40\u0e04\u0e0a\u0e31\u0e19\u0e2a\u0e39\u0e0d\u0e40\u0e2a\u0e35\u0e22\u0e1f\u0e31\u0e07\u0e01\u0e4c\u0e0a\u0e31\u0e19\u0e01\u0e32\u0e23\u0e17\u0e33\u0e07\u0e32\u0e19\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19\u0e2b\u0e23\u0e37\u0e2d\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14 \u0e19\u0e31\u0e01\u0e1e\u0e31\u0e12\u0e19\u0e32\u0e44\u0e21\u0e48\u0e21\u0e35\u0e02\u0e49\u0e2d\u0e1c\u0e39\u0e01\u0e21\u0e31\u0e14\u0e17\u0e35\u0e48\u0e08\u0e30\u0e2d\u0e31\u0e1b\u0e40\u0e14\u0e15\u0e41\u0e2d\u0e1b\u0e1e\u0e25\u0e34\u0e40\u0e04\u0e0a\u0e31\u0e19\u0e2b\u0e23\u0e37\u0e2d\u0e1a\u0e33\u0e23\u0e38\u0e07\u0e23\u0e31\u0e01\u0e29\u0e32\u0e1a\u0e23\u0e34\u0e01\u0e32\u0e23\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e15\u0e2d\u0e1a\u0e2a\u0e19\u0e2d\u0e07\u0e15\u0e48\u0e2d\u0e01\u0e32\u0e23\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e41\u0e1b\u0e25\u0e07\u0e42\u0e04\u0e23\u0e07\u0e2a\u0e23\u0e49\u0e32\u0e07\u0e1e\u0e37\u0e49\u0e19\u0e10\u0e32\u0e19\u0e14\u0e31\u0e07\u0e01\u0e25\u0e48\u0e32\u0e27 \u0e0b\u0e36\u0e48\u0e07\u0e16\u0e37\u0e2d\u0e40\u0e1b\u0e47\u0e19 \"\u0e40\u0e2b\u0e15\u0e38\u0e2a\u0e38\u0e14\u0e27\u0e34\u0e2a\u0e31\u0e22\"",
+      "ad_wait_message":
+          "\u0e01\u0e32\u0e23\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c\u0e40\u0e2a\u0e23\u0e47\u0e08\u0e2a\u0e21\u0e1a\u0e39\u0e23\u0e13\u0e4c \u0e1c\u0e25\u0e25\u0e31\u0e1e\u0e18\u0e4c\u0e08\u0e30\u0e41\u0e2a\u0e14\u0e07\u0e2b\u0e25\u0e31\u0e07\u0e42\u0e06\u0e29\u0e13\u0e32",
+      "analysis_failed_title":
+          "\u0e01\u0e32\u0e23\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c\u0e25\u0e49\u0e21\u0e40\u0e2b\u0e25\u0e27",
+      "analysis_failed_reason":
+          "\u0e40\u0e2b\u0e15\u0e38\u0e1c\u0e25: {reason}",
+      "analysis_failed_hint":
+          "\u0e40\u0e04\u0e25\u0e47\u0e14\u0e25\u0e31\u0e1a: \u0e01\u0e32\u0e23\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01\u0e23\u0e30\u0e1a\u0e1a\u0e41\u0e25\u0e30\u0e01\u0e25\u0e31\u0e1a\u0e40\u0e02\u0e49\u0e32\u0e2a\u0e39\u0e48\u0e23\u0e30\u0e1a\u0e1a\u0e43\u0e2b\u0e21\u0e48\u0e2d\u0e32\u0e08\u0e0a\u0e48\u0e27\u0e22\u0e44\u0e14\u0e49",
+      "analysis_fast_no_change":
+          "\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a\u0e14\u0e48\u0e27\u0e19: \u0e08\u0e33\u0e19\u0e27\u0e19\u0e40\u0e17\u0e48\u0e32\u0e01\u0e31\u0e19 \u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e01\u0e32\u0e23\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e41\u0e1b\u0e25\u0e07",
+      "usage_metrics_title":
+          "\u0e15\u0e31\u0e27\u0e0a\u0e35\u0e49\u0e27\u0e31\u0e14\u0e23\u0e32\u0e22\u0e27\u0e31\u0e19",
+      "usage_metrics_active":
+          "\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19\u0e17\u0e35\u0e48\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19\u0e2d\u0e22\u0e39\u0e48",
+      "usage_metrics_queries":
+          "\u0e2a\u0e2d\u0e1a\u0e16\u0e32\u0e21\u0e17\u0e38\u0e01\u0e27\u0e31\u0e19",
+      "usage_metrics_na": "--",
+      "usage_metrics_live":
+          "\u0e41\u0e1c\u0e07\u0e16\u0e48\u0e32\u0e22\u0e17\u0e2d\u0e14\u0e2a\u0e14",
+    },
+    'pl': {
+      "tagline": "Professional Social Media Solutions",
+      "adsense_banner": "PRZESTRZE\u0143 NA REKLAM\u0118",
+      "admin_active_note": "Tryb administratora aktywny",
+      "free_app_note":
+          "Ewoluujemy ka\u017cdego dnia, aby zapewni\u0107 Ci lepsze do\u015bwiadczenia. Twoja opinia jest dla nas cenna \u2014 ch\u0119tnie j\u0105 poznamy!",
+      "login_prompt": "Zaloguj si\u0119, aby rozpocz\u0105\u0107 analiz\u0119.",
+      "welcome": "Witamy, {username}",
+      "refresh_data": "OD\u015aWIE\u017b DANE",
+      "login_with_instagram": "ZALOGUJ SI\u0118 NA INSTAGRAMIE",
+      "fetching_data":
+          "Analiza danych...\nTo mo\u017ce chwil\u0119 potrwa\u0107.",
+      "processing_data": "Przetwarzanie danych...\nPrawie gotowe.",
+      "loading_ad": "\u0141adowanie reklamy...\nProsz\u0119 czeka\u0107.",
+      "google_ad_warning":
+          "Ostrze\u017cenie dotycz\u0105ce reklamy Google: {reason}",
+      "analysis_secure":
+          "Wszystkie analizy s\u0105 bezpiecznie przetwarzane lokalnie na Twoim urz\u0105dzeniu.",
+      "today_total_analysis": "\u0141\u0105czne dzisiejsze analizy: {count}",
+      "next_analysis": "Nast\u0119pna analiza",
+      "next_analysis_ready": "Gotowy do skanowania.",
+      "analysis_available_now": "Analiza jest ju\u017c dost\u0119pna",
+      "analysis_ready_risk":
+          "Analiza jest ju\u017c dost\u0119pna, ale powtarzanie analiz mo\u017ce narazi\u0107 Twoje konto na ryzyko.",
+      "please_wait": "Prosz\u0119 czeka\u0107",
+      "warning": "Ostrze\u017cenie",
+      "remaining_time": "Nast\u0119pna analiza: {time}",
+      "watch_ad": "OBEJRZYJ REKLAM\u0118 I ROZPOCZNIJ ANALIZ\u0118",
+      "start_analysis": "ROZPOCZNIJ ANALIZ\u0118",
+      "start_analysis_question": "Rozpocz\u0105\u0107 analiz\u0119?",
+      "clear_data_title": "Zresetuj dane aplikacji",
+      "clear_data_content":
+          "Spowoduje to usuni\u0119cie wszystkich danych lokalnych i plik\u00f3w cookie sesji. Czy jeste\u015b pewien?",
+      "cancel": "ANULUJ",
+      "delete": "USU\u0143",
+      "error_title": "B\u0142\u0105d",
+      "data_fetch_error":
+          "Pobieranie danych nie powiod\u0142o si\u0119: {err}\n\nRozwi\u0105zywanie problem\u00f3w: spr\u00f3buj si\u0119 wylogowa\u0107 i zalogowa\u0107 ponownie.",
+      "followers": "Obserwatorzy",
+      "following": "Obserwuj\u0119",
+      "new_followers": "Nowi obserwuj\u0105cy",
+      "non_followers": "Nie obserwuj\u0105 Ci\u0119",
+      "left_followers": "Przesta\u0144 obserwowa\u0107",
+      "legal_warning": "Zastrze\u017cenie prawne",
+      "left_following": "Nieobserwowani u\u017cytkownicy",
+      "rate_us": "Oce\u0144 nas",
+      "contact_us": "Skontaktuj si\u0119 z nami",
+      "remove_ads_and_limits":
+          "Usu\u0144 reklamy i czasy oczekiwania",
+      "rate_test_message":
+          "To urz\u0105dzenie jest obecnie w fazie test\u00f3w.",
+      "story_section_title":
+          "Ogl\u0105daj historie w tajemnicy lub powi\u0119kszaj zdj\u0119cia profilowe",
+      "story_login_required":
+          "Zaloguj si\u0119, aby ogl\u0105da\u0107 historie w tajemnicy.",
+      "story_ad_wait":
+          "Zostanie wy\u015bwietlone po reklamie, prosz\u0119 czeka\u0107.",
+      "story_action_title": "Co chcia\u0142by\u015b robi\u0107?",
+      "story_view_photo": "Powi\u0119ksz zdj\u0119cie profilowe",
+      "story_watch_secret": "Obejrzyj histori\u0119 w tajemnicy",
+      "story_no_data": "Brak dost\u0119pnych danych historii.",
+      "story_close": "ZAMKNIJ",
+      "read_and_agree": "Przeczyta\u0142em i zgadzam si\u0119",
+      "withdraw_consent": "Wycofaj zgod\u0119",
+      "withdraw_consent_confirm_title": "Potwierd\u017a",
+      "withdraw_consent_confirm_body":
+          "Twoje ustawienia zgody zostan\u0105 zresetowane. Czy jeste\u015b pewien?",
+      "withdraw_consent_confirm_yes": "Tak",
+      "withdraw_consent_confirm_no": "Anuluj",
+      "no_data": "Brak danych",
+      "new_badge": "NOWO\u015a\u0106",
+      "login_title": "Zaloguj si\u0119",
+      'user_label': 'U\u017Cytkownik',
+      "redirecting": "Sesja zweryfikowana, przekierowanie bezpieczne...",
+      "data_updated": "Analiza zako\u0144czona \u2705",
+      "purchases_not_configured":
+          "Zakupy nie s\u0105 obecnie dost\u0119pne. Spr\u00f3buj ponownie p\u00f3\u017aniej.",
+      "premium_not_active":
+          "Zakup zako\u0144czony, ale Premium nie jest jeszcze aktywny. Spr\u00f3buj ponownie.",
+      "premium_welcome_box":
+          "Witamy w Premium! Reklamy i czasy oczekiwania zosta\u0142y usuni\u0119te.",
+      "premium_already_active": "Twoje cz\u0142onkostwo Premium jest aktywne.",
+      "restore_purchases": "Przywr\u00f3\u0107 zakupy",
+      "restore_purchases_short": "PRZYWR\u00d3\u0106",
+      "restoring_purchases": "Przywracanie zakup\u00f3w...",
+      "restore_purchases_success": "Zakupy przywr\u00f3cone \u2705",
+      "restore_purchases_none": "Brak zakup\u00f3w do przywr\u00f3cenia.",
+      "restore_purchases_failed":
+          "Przywracanie nie powiod\u0142o si\u0119: {err}",
+      "enter_pin": "Wprowad\u017a PIN",
+      "pin_accepted": "PIN zaakceptowany, reset timera \u2705",
+      "pin_incorrect": "Nieprawid\u0142owy PIN",
+      "ok": "OK",
+      "legal_intro":
+          "Pobieraj\u0105c i korzystaj\u0105c z tej aplikacji, uznaje si\u0119, \u017ce ka\u017cdy U\u017cytkownik z wyprzedzeniem przeczyta\u0142, zrozumia\u0142 i nieodwo\u0142alnie zaakceptowa\u0142 poni\u017cszy tekst \u201eWarunk\u00f3w u\u017cytkowania i zastrze\u017cenia\u201d:",
+      "article1_title":
+          "Artyku\u0142 1: Prywatno\u015b\u0107 danych i architektura lokalnego przetwarzania",
+      "article2_title":
+          "Artyku\u0142 2: Ryzyko zwi\u0105zane z platformami stron trzecich",
+      "article3_title":
+          "Artyku\u0142 3: Wy\u0142\u0105czenie gwarancji i ograniczenie odpowiedzialno\u015bci",
+      "article4_title":
+          "Artyku\u0142 4: Informacja o w\u0142asno\u015bci intelektualnej i niezale\u017cno\u015bci",
+      "article5_title":
+          "Artyku\u0142 5: Ci\u0105g\u0142o\u015b\u0107 us\u0142ug i zmiany na platformie",
+      "article5_text":
+          "Zasadnicze zmiany w API Instagrama lub infrastrukturze sieciowej mog\u0105 spowodowa\u0107, \u017ce aplikacja utraci cz\u0119\u015bciowo lub ca\u0142kowicie swoj\u0105 funkcjonalno\u015b\u0107. Deweloper nie zobowi\u0105zuje si\u0119 do aktualizacji aplikacji lub utrzymywania us\u0142ugi w odpowiedzi na takie zmiany infrastrukturalne, kt\u00f3re s\u0105 uznawane za \u201esi\u0142\u0119 wy\u017csz\u0105\u201d.",
+      "ad_wait_message":
+          "Analiza zako\u0144czona, wyniki zostan\u0105 pokazane po og\u0142oszeniu.",
+      "analysis_failed_title": "Analiza nie powiod\u0142a si\u0119",
+      "analysis_failed_reason": "Pow\u00f3d: {reason}",
+      "analysis_failed_hint":
+          "Wskaz\u00f3wka: wylogowanie i ponowne zalogowanie mo\u017ce pom\u00f3c.",
+      "analysis_fast_no_change":
+          "Szybkie sprawdzenie: Liczby s\u0105 takie same. Nie wykryto \u017cadnych zmian.",
+      "usage_metrics_title": "Dzienne wska\u017aniki",
+      "usage_metrics_active": "Aktywni u\u017cytkownicy",
+      "usage_metrics_queries": "Codzienne zapytania",
+      "usage_metrics_na": "--",
+      "usage_metrics_live": "panel na \u017cywo",
+    },
   };
 
   String _t(String key, [Map<String, String>? args]) {
-    String res = _localized[_lang]?[key] ?? key;
+    String res = _legalLocalized[_lang]?[key] ??
+        _localized[_lang]?[key] ??
+        _legalLocalized['en']?[key] ??
+        _localized['en']?[key] ??
+        key;
     if (args != null) {
       args.forEach((k, v) {
         res = res.replaceAll('{$k}', v);
@@ -2041,38 +5035,117 @@ class _DashboardScreenState extends State<DashboardScreen>
     return res;
   }
 
+  String _privacyPolicyLabel() {
+    const Map<String, String> labels = {
+      'tr': 'Gizlilik Politikası',
+      'en': 'Privacy Policy',
+      'de': 'Datenschutzrichtlinie',
+      'ko': '개인정보 처리방침',
+      'ja': 'プライバシーポリシー',
+      'ru': 'Политика конфиденциальности',
+      'pt': 'Política de Privacidade',
+      'ar': 'سياسة الخصوصية',
+      'es': 'Política de privacidad',
+      'es-mx': 'Política de privacidad',
+      'hi': 'गोपनीयता नीति',
+      'hu': 'Adatvédelmi szabályzat',
+      'zh-hans': '隐私政策',
+      'id': 'Kebijakan Privasi',
+      'nl': 'Privacybeleid',
+      'fr': 'Politique de confidentialité',
+      'it': 'Informativa sulla privacy',
+      'vi': 'Chính sách quyền riêng tư',
+      'th': 'นโยบายความเป็นส่วนตัว',
+      'pl': 'Polityka prywatności',
+    };
+    return labels[_lang] ?? labels['en']!;
+  }
+
+  bool _isSupportedLanguageCode(String code) {
+    return _supportedLanguageCodes.contains(code.trim().toLowerCase());
+  }
+
+  String _resolveLanguageFromLocale(String localeRaw) {
+    final String locale = localeRaw.trim().toLowerCase().replaceAll('-', '_');
+    if (locale.isEmpty) return 'en';
+
+    final String languageCode = locale.split('_').first.trim();
+
+    if (languageCode == 'es') {
+      if (locale.startsWith('es_mx') || locale.startsWith('es_419'))
+        return 'es-mx';
+      return 'es';
+    }
+
+    if (languageCode == 'zh') {
+      if (locale.contains('_hant') ||
+          locale.endsWith('_tw') ||
+          locale.endsWith('_hk') ||
+          locale.endsWith('_mo')) {
+        return 'zh-hans';
+      }
+      return 'zh-hans';
+    }
+
+    if (languageCode == 'in') return 'id';
+
+    switch (languageCode) {
+      case 'tr':
+      case 'en':
+      case 'de':
+      case 'ko':
+      case 'ja':
+      case 'ru':
+      case 'pt':
+      case 'ar':
+      case 'hi':
+      case 'hu':
+      case 'id':
+      case 'nl':
+      case 'fr':
+      case 'it':
+      case 'vi':
+      case 'th':
+      case 'pl':
+        return languageCode;
+      default:
+        return 'en';
+    }
+  }
+
   Future<void> _loadLanguagePreference() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? pref = prefs.getString('language_code');
-    if (pref != null) {
+    final String pref =
+        (prefs.getString('language_code') ?? '').trim().toLowerCase();
+    if (_isSupportedLanguageCode(pref)) {
       if (mounted) setState(() => _lang = pref);
       return;
     }
+
     try {
-      final String locale = Platform.localeName;
-      if (locale.toLowerCase().startsWith('tr')) {
-        if (mounted) setState(() => _lang = 'tr');
-      } else {
-        if (mounted) setState(() => _lang = 'en');
-      }
+      final String resolved = _resolveLanguageFromLocale(Platform.localeName);
+      if (mounted) setState(() => _lang = resolved);
     } catch (_) {
       if (mounted) setState(() => _lang = 'en');
     }
   }
 
   Future<void> _setLanguage(String code) async {
+    final String normalized = code.trim().toLowerCase();
+    if (!_isSupportedLanguageCode(normalized)) return;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('language_code', code);
-    if (mounted) setState(() => _lang = code);
-  }
-
-  void _toggleLanguage() {
-    _setLanguage(_lang == 'tr' ? 'en' : 'tr');
+    await prefs.setString('language_code', normalized);
+    if (mounted) setState(() => _lang = normalized);
   }
 
   @override
   void initState() {
     super.initState();
+    try {
+      _lang = _resolveLanguageFromLocale(Platform.localeName);
+    } catch (_) {
+      _lang = 'en';
+    }
     WidgetsBinding.instance.addObserver(this);
     PurchasesService.instance.isPremium.addListener(_onPremiumChanged);
     PurchasesService.instance.lastPurchaseError
@@ -2093,7 +5166,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       _maybeLoadBannerAfterConsent();
       _maybeRequestATT();
 
-      if (kDebugMode || _forceFirestoreTest) {
+      if (_forceFirestoreTest) {
         Future.delayed(const Duration(seconds: 5), () {
           if (!mounted) return;
           unawaited(_testFirestoreWrite());
@@ -2137,10 +5210,12 @@ class _DashboardScreenState extends State<DashboardScreen>
       setState(() {
         _isAdLoaded = false;
         _bannerAdError = null;
+        _googleAdWarning = null;
       });
     } else {
       _isAdLoaded = false;
       _bannerAdError = null;
+      _googleAdWarning = null;
     }
   }
 
@@ -2270,6 +5345,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     _bannerAd = null;
     _isAdLoaded = false;
     _bannerAdError = null;
+    _googleAdWarning = null;
     _adsHidden = true;
   }
 
@@ -2348,9 +5424,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(_lang == 'tr'
-              ? 'Mağaza linki bulunamadı.'
-              : 'Store link not set.'),
+          content: Text(localizeTrEn(
+              _lang, 'Mağaza linki bulunamadı.', 'Store link not set.')),
           backgroundColor: Colors.redAccent,
         ));
       }
@@ -2361,8 +5436,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (uri == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-              _lang == 'tr' ? 'Geçersiz mağaza linki.' : 'Invalid store link.'),
+          content: Text(localizeTrEn(
+              _lang, 'Geçersiz mağaza linki.', 'Invalid store link.')),
           backgroundColor: Colors.redAccent,
         ));
       }
@@ -2371,8 +5446,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-              _lang == 'tr' ? 'Link açılamadı.' : 'Could not open the link.'),
+          content: Text(localizeTrEn(
+              _lang, 'Link açılamadı.', 'Could not open the link.')),
           backgroundColor: Colors.redAccent,
         ));
       }
@@ -2452,7 +5527,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         popCritical: true,
       );
       final String err =
-          _lang == 'tr' ? 'Lütfen tekrar deneyin.' : 'Please try again.';
+          localizeTrEn(_lang, 'Lütfen tekrar deneyin.', 'Please try again.');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(_t('restore_purchases_failed', {'err': err})),
         duration: const Duration(seconds: 4),
@@ -2548,6 +5623,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             setState(() {
               _isAdLoaded = true;
               _bannerAdError = null;
+              _googleAdWarning = null;
             });
         },
         onAdFailedToLoad: (ad, err) {
@@ -2557,6 +5633,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             setState(() {
               _isAdLoaded = false;
               _bannerAdError = err.message;
+              _googleAdWarning = err.message;
             });
         },
       ),
@@ -2566,6 +5643,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       await _bannerAd!.load();
     } catch (e) {
       if (kDebugMode) print('Ad load error: $e');
+      _setGoogleAdWarning(e.toString());
     }
   }
 
@@ -2575,7 +5653,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (_isRewardedLoading) {
       return {
         "status": false,
-        "error": _lang == 'tr' ? 'Yükleniyor...' : 'Loading...',
+        "error": localizeTrEn(_lang, 'Yükleniyor...', 'Loading...'),
       };
     }
     setState(() {
@@ -2615,12 +5693,13 @@ class _DashboardScreenState extends State<DashboardScreen>
               try {
                 ad.dispose();
               } catch (_) {}
+              final String errMsg =
+                  '${localizeTrEn(_lang, 'Gösterim hatası', 'Show error')}: ${err.message}';
+              _setGoogleAdWarning(errMsg);
               if (!c.isCompleted) {
                 c.complete({
                   "status": false,
-                  "error": _lang == 'tr'
-                      ? "Gösterim hatası: ${err.message}"
-                      : "Show error: ${err.message}",
+                  "error": errMsg,
                 });
               }
             },
@@ -2628,22 +5707,27 @@ class _DashboardScreenState extends State<DashboardScreen>
           try {
             ad.show();
           } catch (e) {
+            final String errMsg =
+                '${localizeTrEn(_lang, 'Hata', 'Exception')}: $e';
+            _setGoogleAdWarning(errMsg);
             if (!c.isCompleted) {
               c.complete({
                 "status": false,
-                "error": _lang == 'tr' ? "Hata: $e" : "Exception: $e",
+                "error": errMsg,
               });
             }
           }
         },
         onAdFailedToLoad: (LoadAdError err) {
           debugPrint("Ad failed to load: $err");
+          final String errMsg =
+              '${localizeTrEn(_lang, 'Yükleme hatası', 'Load error')}: ${err.message} '
+              '(${localizeTrEn(_lang, 'Kod', 'Code')}: ${err.code})';
+          _setGoogleAdWarning(errMsg);
           if (!c.isCompleted) {
             c.complete({
               "status": false,
-              "error": _lang == 'tr'
-                  ? "Yükleme hatası: ${err.message} (Kod: ${err.code})"
-                  : "Load error: ${err.message} (Code: ${err.code})",
+              "error": errMsg,
             });
           }
         },
@@ -2652,7 +5736,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     Map<String, dynamic> result = {
       "status": false,
-      "error": _lang == 'tr' ? "Zaman aşımı" : "Timeout",
+      "error": localizeTrEn(_lang, "Zaman aşımı", "Timeout"),
     };
     try {
       result = await c.future.timeout(const Duration(seconds: 45));
@@ -2665,6 +5749,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       _isRewardedLoading = false;
     });
     if (result["status"] == true) {
+      _clearGoogleAdWarning();
       try {
         if (mounted) {
           setState(() {
@@ -2673,6 +5758,9 @@ class _DashboardScreenState extends State<DashboardScreen>
         }
       } catch (_) {}
       unawaited(TelemetryService.instance.recordRewardedAdWatched());
+    } else {
+      final String err = (result["error"] ?? '').toString().trim();
+      if (err.isNotEmpty) _setGoogleAdWarning(err);
     }
     return result;
   }
@@ -2782,11 +5870,40 @@ class _DashboardScreenState extends State<DashboardScreen>
     return '$hrs:$mins:$secs';
   }
 
+  String _currentGoogleAdWarningText() {
+    final String warning = (_googleAdWarning ?? '').trim();
+    if (warning.isNotEmpty) return warning;
+    return (_bannerAdError ?? '').trim();
+  }
+
+  void _setGoogleAdWarning(String warning) {
+    final String clean = warning.trim();
+    if (clean.isEmpty) return;
+    if (mounted) {
+      setState(() {
+        _googleAdWarning = clean;
+      });
+    } else {
+      _googleAdWarning = clean;
+    }
+  }
+
+  void _clearGoogleAdWarning() {
+    if (mounted) {
+      setState(() {
+        _googleAdWarning = null;
+      });
+    } else {
+      _googleAdWarning = null;
+    }
+  }
+
   void _showDiagSnackBar(
     String message, {
     Color backgroundColor = Colors.red,
     Duration duration = const Duration(seconds: 5),
   }) {
+    if (!_userFacingFirebaseDiagnosticsEnabled) return;
     final SnackBar sb = SnackBar(
       content: Text(message),
       backgroundColor: backgroundColor,
@@ -2799,13 +5916,97 @@ class _DashboardScreenState extends State<DashboardScreen>
     _diagScaffoldKey.currentState?.showSnackBar(sb);
   }
 
+  String _firebaseProjectId() {
+    try {
+      final String projectId = Firebase.app().options.projectId.trim();
+      if (projectId.isNotEmpty) return projectId;
+    } catch (_) {}
+    return '';
+  }
+
+  String _trimForDiagLog(String input, {int maxLength = 320}) {
+    final String value = input.trim();
+    if (value.length <= maxLength) return value;
+    return '${value.substring(0, maxLength)}...';
+  }
+
+  bool _isFirestoreDatabaseMissingBody(String rawBody) {
+    final String body = rawBody.toLowerCase();
+    return body.contains('database (default) does not exist');
+  }
+
+  String _firestoreSetupUrlForProject(String projectId) {
+    final String clean = projectId.trim();
+    if (clean.isEmpty) return _firestoreSetupBaseUrl;
+    return '$_firestoreSetupBaseUrl$clean';
+  }
+
+  String _encodeFirestoreRestPath(String documentPath) {
+    return documentPath
+        .split('/')
+        .where((part) => part.trim().isNotEmpty)
+        .map(Uri.encodeComponent)
+        .join('/');
+  }
+
+  Map<String, dynamic> _toFirestoreRestValue(dynamic value) {
+    if (value == null) return <String, dynamic>{'nullValue': null};
+    if (value is bool) return <String, dynamic>{'booleanValue': value};
+    if (value is int) {
+      return <String, dynamic>{'integerValue': value.toString()};
+    }
+    if (value is double) return <String, dynamic>{'doubleValue': value};
+    if (value is String) return <String, dynamic>{'stringValue': value};
+    if (value is Timestamp) {
+      return <String, dynamic>{
+        'timestampValue': value.toDate().toUtc().toIso8601String(),
+      };
+    }
+    if (value is DateTime) {
+      return <String, dynamic>{
+        'timestampValue': value.toUtc().toIso8601String(),
+      };
+    }
+    if (value is List) {
+      return <String, dynamic>{
+        'arrayValue': <String, dynamic>{
+          'values': value.map(_toFirestoreRestValue).toList(),
+        },
+      };
+    }
+    if (value is Map) {
+      final Map<String, dynamic> fields = <String, dynamic>{};
+      value.forEach((key, nestedValue) {
+        final String nestedKey = key.toString().trim();
+        if (nestedKey.isEmpty) return;
+        fields[nestedKey] = _toFirestoreRestValue(nestedValue);
+      });
+      return <String, dynamic>{
+        'mapValue': <String, dynamic>{'fields': fields},
+      };
+    }
+    return <String, dynamic>{'stringValue': value.toString()};
+  }
+
+  Map<String, dynamic> _toFirestoreRestFields(Map<String, dynamic> data) {
+    final Map<String, dynamic> fields = <String, dynamic>{};
+    data.forEach((key, value) {
+      final String cleanKey = key.trim();
+      if (cleanKey.isEmpty) return;
+      fields[cleanKey] = _toFirestoreRestValue(value);
+    });
+    return fields;
+  }
+
   String _buildFirebaseStatusSummary() {
     final User? currentUser = FirebaseAuth.instance.currentUser;
     final String uid = currentUser?.uid ?? '(none)';
     final bool isAnon = currentUser?.isAnonymous ?? false;
     final bool hasCookie = (savedCookie ?? '').trim().isNotEmpty;
     final bool hasUserId = (savedUserId ?? '').trim().isNotEmpty;
+    final String projectId = _firebaseProjectId();
     return 'time=${DateTime.now().toIso8601String()}\n'
+        'firebase_project_id=${projectId.isEmpty ? '(missing)' : projectId}\n'
         'firebase_auth_uid=$uid\n'
         'firebase_auth_is_anonymous=$isAnon\n'
         'app_is_logged_in=$isLoggedIn\n'
@@ -2892,6 +6093,322 @@ class _DashboardScreenState extends State<DashboardScreen>
     return buffer.toString().trimRight();
   }
 
+  Future<bool> _probeFirestoreViaRest({
+    required User user,
+    required String documentPath,
+  }) async {
+    final String projectId = _firebaseProjectId();
+    if (projectId.isEmpty) {
+      _logFirebaseDiagnostic(
+        'firestore_rest',
+        'probe blocked: projectId is empty',
+        isError: true,
+      );
+      return false;
+    }
+
+    final String encodedPath = _encodeFirestoreRestPath(documentPath);
+    final Uri uri = Uri.parse(
+      'https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents/$encodedPath',
+    );
+
+    String token;
+    try {
+      final String? rawToken =
+          await user.getIdToken(true).timeout(_firestoreAuthTimeout);
+      token = rawToken?.trim() ?? '';
+    } catch (e, st) {
+      _logFirebaseDiagnostic(
+        'firestore_rest',
+        'probe token fetch failed',
+        error: e,
+        stackTrace: st,
+        isError: true,
+      );
+      return false;
+    }
+    if (token.isEmpty) {
+      _logFirebaseDiagnostic(
+        'firestore_rest',
+        'probe token fetch returned empty token',
+        isError: true,
+      );
+      return false;
+    }
+
+    try {
+      final http.Response response = await http.get(
+        uri,
+        headers: <String, String>{
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      ).timeout(_firestoreRestTimeout);
+      final String rawBody = response.body;
+      final String body = _trimForDiagLog(rawBody);
+      if (response.statusCode == 200) {
+        _logFirebaseDiagnostic(
+          'firestore_rest',
+          'probe success status=${response.statusCode} path=$documentPath',
+        );
+        return true;
+      }
+      if (response.statusCode == 404) {
+        if (_isFirestoreDatabaseMissingBody(rawBody)) {
+          _logFirebaseDiagnostic(
+            'firestore_rest',
+            'probe failed: Firestore (default) database missing for project=$projectId setup=${_firestoreSetupUrlForProject(projectId)}',
+            isError: true,
+            popCritical: true,
+          );
+          return false;
+        }
+        _logFirebaseDiagnostic(
+          'firestore_rest',
+          'probe doc-not-found status=404 path=$documentPath (expected before first write)',
+        );
+        return true;
+      }
+
+      _logFirebaseDiagnostic(
+        'firestore_rest',
+        'probe failed status=${response.statusCode} path=$documentPath body=$body',
+        isError: true,
+      );
+      return false;
+    } catch (e, st) {
+      _logFirebaseDiagnostic(
+        'firestore_rest',
+        'probe request exception path=$documentPath',
+        error: e,
+        stackTrace: st,
+        isError: true,
+      );
+      return false;
+    }
+  }
+
+  Future<bool> _writeFirestoreViaRest({
+    required User user,
+    required String documentPath,
+    required Map<String, dynamic> data,
+    bool merge = true,
+    required String reason,
+  }) async {
+    final String projectId = _firebaseProjectId();
+    if (projectId.isEmpty) {
+      _logFirebaseDiagnostic(
+        'firestore_rest',
+        'write blocked: projectId is empty reason=$reason',
+        isError: true,
+      );
+      return false;
+    }
+    if (data.isEmpty) {
+      _logFirebaseDiagnostic(
+        'firestore_rest',
+        'write blocked: empty payload reason=$reason path=$documentPath',
+        isError: true,
+      );
+      return false;
+    }
+
+    String token;
+    try {
+      final String? rawToken =
+          await user.getIdToken(true).timeout(_firestoreAuthTimeout);
+      token = rawToken?.trim() ?? '';
+    } catch (e, st) {
+      _logFirebaseDiagnostic(
+        'firestore_rest',
+        'write token fetch failed reason=$reason',
+        error: e,
+        stackTrace: st,
+        isError: true,
+      );
+      return false;
+    }
+    if (token.isEmpty) {
+      _logFirebaseDiagnostic(
+        'firestore_rest',
+        'write token fetch returned empty token reason=$reason',
+        isError: true,
+      );
+      return false;
+    }
+
+    final String encodedPath = _encodeFirestoreRestPath(documentPath);
+    final String baseUrl =
+        'https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents/$encodedPath';
+
+    final List<String> queryParts = <String>[];
+    if (merge) {
+      for (final String key in data.keys) {
+        queryParts.add(
+          'updateMask.fieldPaths=${Uri.encodeQueryComponent(key)}',
+        );
+      }
+    }
+    final Uri uri = Uri.parse(
+      queryParts.isEmpty ? baseUrl : '$baseUrl?${queryParts.join('&')}',
+    );
+
+    final Map<String, dynamic> body = <String, dynamic>{
+      'fields': _toFirestoreRestFields(data),
+    };
+
+    try {
+      final http.Response response = await http
+          .patch(
+            uri,
+            headers: <String, String>{
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(_firestoreRestTimeout);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        _logFirebaseDiagnostic(
+          'firestore_rest',
+          'write success status=${response.statusCode} path=$documentPath reason=$reason merge=$merge',
+        );
+        return true;
+      }
+
+      if (response.statusCode == 404 &&
+          _isFirestoreDatabaseMissingBody(response.body)) {
+        _logFirebaseDiagnostic(
+          'firestore_rest',
+          'write failed: Firestore (default) database missing for project=$projectId setup=${_firestoreSetupUrlForProject(projectId)}',
+          isError: true,
+          popCritical: true,
+        );
+        return false;
+      }
+
+      _logFirebaseDiagnostic(
+        'firestore_rest',
+        'write failed status=${response.statusCode} path=$documentPath reason=$reason merge=$merge body=${_trimForDiagLog(response.body)}',
+        isError: true,
+      );
+      return false;
+    } catch (e, st) {
+      _logFirebaseDiagnostic(
+        'firestore_rest',
+        'write request exception path=$documentPath reason=$reason',
+        error: e,
+        stackTrace: st,
+        isError: true,
+      );
+      return false;
+    }
+  }
+
+  Future<void> _runFirestoreRestDiagnosticProbe() async {
+    _logFirebaseDiagnostic('firestore_rest', 'manual rest probe started');
+    final User? user = await _ensureFirestoreAuthUser();
+    if (user == null) {
+      _showDiagSnackBar(
+        localizeTrEn(_lang, 'REST probe basarisiz: auth yok.',
+            'REST probe failed: missing auth.'),
+        backgroundColor: Colors.red,
+      );
+      return;
+    }
+
+    final bool ok = await _probeFirestoreViaRest(
+      user: user,
+      documentPath: 'test_collection/test_doc',
+    );
+
+    _showDiagSnackBar(
+      ok
+          ? (localizeTrEn(
+              _lang,
+              'REST probe basarili (Firestore endpoint erisilebilir).',
+              'REST probe success (Firestore endpoint reachable).'))
+          : (localizeTrEn(_lang, 'REST probe basarisiz (loglara bak).',
+              'REST probe failed (check logs).')),
+      backgroundColor: ok ? Colors.green : Colors.red,
+      duration: const Duration(seconds: 5),
+    );
+  }
+
+  Future<void> _runFirestoreWriteWithRestFallback({
+    required String label,
+    required Future<void> Function() sdkWrite,
+    required String documentPath,
+    required Map<String, dynamic> restData,
+    bool merge = true,
+  }) async {
+    try {
+      await _runFirestoreWriteWithRetry(
+        sdkWrite,
+        label: label,
+        popCriticalOnFinalFailure: false,
+      );
+      return;
+    } catch (e, st) {
+      final bool retryable = _isRetryableFirestoreError(e);
+      if (!retryable) {
+        _logFirebaseDiagnostic(
+          'firestore_write',
+          '$label failed with non-retryable error; REST fallback skipped',
+          error: e,
+          stackTrace: st,
+          isError: true,
+          popCritical: true,
+        );
+        Error.throwWithStackTrace(e, st);
+      }
+
+      _logFirebaseDiagnostic(
+        'firestore_write',
+        '$label sdk path exhausted; trying REST fallback path=$documentPath',
+        error: e,
+        stackTrace: st,
+        isError: true,
+      );
+
+      final User? user =
+          FirebaseAuth.instance.currentUser ?? await _ensureFirestoreAuthUser();
+      if (user == null) {
+        _logFirebaseDiagnostic(
+          'firestore_write',
+          '$label REST fallback blocked: auth unavailable',
+          isError: true,
+          popCritical: true,
+        );
+        Error.throwWithStackTrace(e, st);
+      }
+
+      final bool restOk = await _writeFirestoreViaRest(
+        user: user,
+        documentPath: documentPath,
+        data: restData,
+        merge: merge,
+        reason: label,
+      );
+      if (restOk) {
+        _logFirebaseDiagnostic(
+          'firestore_write',
+          '$label recovered via REST fallback path=$documentPath',
+        );
+        return;
+      }
+
+      _logFirebaseDiagnostic(
+        'firestore_write',
+        '$label REST fallback failed after sdk timeout',
+        isError: true,
+        popCritical: true,
+      );
+      Error.throwWithStackTrace(e, st);
+    }
+  }
+
   Future<void> _runFirebaseAuthDiagnosticProbe() async {
     _logFirebaseDiagnostic('auth_probe', 'manual probe started');
     final User? user = await _ensureFirestoreAuthUser();
@@ -2903,9 +6420,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         popCritical: true,
       );
       _showDiagSnackBar(
-        _lang == 'tr'
-            ? 'Firebase Auth probe basarisiz.'
-            : 'Firebase Auth probe failed.',
+        localizeTrEn(_lang, 'Firebase Auth probe basarisiz.',
+            'Firebase Auth probe failed.'),
         backgroundColor: Colors.red,
       );
       return;
@@ -2918,9 +6434,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         'probe success uid=${user.uid} anon=${user.isAnonymous} tokenExp=${tokenResult.expirationTime?.toIso8601String() ?? '(null)'}',
       );
       _showDiagSnackBar(
-        _lang == 'tr'
-            ? 'Firebase Auth probe basarili.'
-            : 'Firebase Auth probe success.',
+        localizeTrEn(_lang, 'Firebase Auth probe basarili.',
+            'Firebase Auth probe success.'),
         backgroundColor: Colors.green,
       );
     } catch (e, st) {
@@ -2933,9 +6448,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         popCritical: true,
       );
       _showDiagSnackBar(
-        _lang == 'tr'
-            ? 'Firebase token probe basarisiz.'
-            : 'Firebase token probe failed.',
+        localizeTrEn(_lang, 'Firebase token probe basarisiz.',
+            'Firebase token probe failed.'),
         backgroundColor: Colors.red,
       );
     }
@@ -2945,6 +6459,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     required String title,
     required String details,
   }) {
+    if (!_userFacingFirebaseDiagnosticsEnabled) return;
     if (!mounted) return;
     final String cleanTitle = title.trim().isEmpty ? 'ERROR' : title.trim();
     final String cleanDetails =
@@ -2980,9 +6495,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                 children: [
                   const SizedBox(height: 8),
                   Text(
-                    _lang == 'tr'
-                        ? 'KRITIK TESHIS HATASI'
-                        : 'CRITICAL DIAGNOSTIC ERROR',
+                    localizeTrEn(_lang, 'KRITIK TESHIS HATASI',
+                        'CRITICAL DIAGNOSTIC ERROR'),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 28,
@@ -3033,7 +6547,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           onPressed: () => Clipboard.setData(
                             ClipboardData(text: cleanDetails),
                           ),
-                          child: Text(_lang == 'tr' ? 'KOPYALA' : 'COPY'),
+                          child: Text(localizeTrEn(_lang, 'KOPYALA', 'COPY')),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -3052,8 +6566,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   _openDiagnosticsConsole(initialTabIndex: 0));
                             });
                           },
-                          child:
-                              Text(_lang == 'tr' ? 'LOG EKRANI' : 'OPEN LOGS'),
+                          child: Text(
+                              localizeTrEn(_lang, 'LOG EKRANI', 'OPEN LOGS')),
                         ),
                       ),
                     ],
@@ -3064,7 +6578,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     child: TextButton(
                       onPressed: () => Navigator.of(ctx).pop(),
                       child: Text(
-                        _lang == 'tr' ? 'KAPAT' : 'CLOSE',
+                        localizeTrEn(_lang, 'KAPAT', 'CLOSE'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
@@ -3085,7 +6599,9 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Future<void> _openDiagnosticsConsole({int initialTabIndex = 0}) async {
     if (!mounted) return;
-    final bool isTr = _lang == 'tr';
+    final String langCode = _lang;
+    final bool canRunWriteTest =
+        kDebugMode || _isAdminUser || _forceFirestoreTest;
     await showDialog<void>(
       context: context,
       barrierDismissible: true,
@@ -3096,27 +6612,29 @@ class _DashboardScreenState extends State<DashboardScreen>
           child: Scaffold(
             appBar: AppBar(
               title: Text(
-                isTr
-                    ? 'Firebase + Satin Alim Loglari'
-                    : 'Firebase + Purchase Logs',
+                localizeTrEn(
+                  langCode,
+                  'Firebase + Satin Alim Loglari',
+                  'Firebase + Purchase Logs',
+                ),
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
               bottom: TabBar(
                 tabs: [
-                  Tab(text: isTr ? 'Firebase' : 'Firebase'),
-                  Tab(text: isTr ? 'Store' : 'Store'),
+                  Tab(text: localizeTrEn(langCode, 'Firebase', 'Firebase')),
+                  Tab(text: localizeTrEn(langCode, 'Store', 'Store')),
                 ],
               ),
               actions: [
                 IconButton(
-                  tooltip: isTr ? 'Tumunu kopyala' : 'Copy all',
+                  tooltip: localizeTrEn(langCode, 'Tumunu kopyala', 'Copy all'),
                   onPressed: () => Clipboard.setData(
                     ClipboardData(text: _buildCombinedDiagnosticDump()),
                   ),
                   icon: const Icon(Icons.copy_all_rounded),
                 ),
                 IconButton(
-                  tooltip: isTr ? 'Kapat' : 'Close',
+                  tooltip: localizeTrEn(langCode, 'Kapat', 'Close'),
                   onPressed: () => Navigator.of(context).pop(),
                   icon: const Icon(Icons.close_rounded),
                 ),
@@ -3158,7 +6676,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                                     icon: const Icon(
                                         Icons.verified_user_outlined),
                                     label: Text(
-                                      isTr ? 'Auth Probe' : 'Auth Probe',
+                                      localizeTrEn(
+                                          langCode, 'Auth Probe', 'Auth Probe'),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -3167,11 +6686,14 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: ElevatedButton.icon(
-                                    onPressed: _testFirestoreWrite,
+                                    onPressed: canRunWriteTest
+                                        ? _testFirestoreWrite
+                                        : null,
                                     icon:
                                         const Icon(Icons.cloud_upload_outlined),
                                     label: Text(
-                                      isTr ? 'Write Test' : 'Write Test',
+                                      localizeTrEn(
+                                          langCode, 'Write Test', 'Write Test'),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -3179,9 +6701,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ),
                                 const SizedBox(width: 8),
                                 IconButton(
-                                  tooltip: isTr
-                                      ? 'Firebase loglarini temizle'
-                                      : 'Clear Firebase logs',
+                                  tooltip: localizeTrEn(
+                                    langCode,
+                                    'Firebase loglarini temizle',
+                                    'Clear Firebase logs',
+                                  ),
                                   onPressed: () {
                                     _firebaseDiagnosticEvents.value =
                                         <String>[];
@@ -3192,6 +6716,22 @@ class _DashboardScreenState extends State<DashboardScreen>
                               ],
                             ),
                           ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: _runFirestoreRestDiagnosticProbe,
+                                icon: const Icon(Icons.http_rounded),
+                                label: Text(
+                                  localizeTrEn(
+                                      langCode, 'REST Probe', 'REST Probe'),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           Expanded(
                             child: ValueListenableBuilder<List<String>>(
@@ -3200,9 +6740,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 if (logs.isEmpty) {
                                   return Center(
                                     child: Text(
-                                      isTr
-                                          ? 'Firebase logu henuz yok.'
-                                          : 'No Firebase logs yet.',
+                                      localizeTrEn(
+                                        langCode,
+                                        'Firebase logu henuz yok.',
+                                        'No Firebase logs yet.',
+                                      ),
                                     ),
                                   );
                                 }
@@ -3250,7 +6792,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                                     onPressed: _restorePurchasesPressed,
                                     icon: const Icon(Icons.restore_rounded),
                                     label: Text(
-                                      isTr ? 'Restore Test' : 'Restore Test',
+                                      localizeTrEn(langCode, 'Restore Test',
+                                          'Restore Test'),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -3260,6 +6803,15 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     onPressed: () async {
+                                      if (PurchasesService
+                                          .instance.isPremium.value) {
+                                        _showDiagSnackBar(
+                                          _t('premium_already_active'),
+                                          backgroundColor:
+                                              Colors.blueGrey.shade900,
+                                        );
+                                        return;
+                                      }
                                       await PurchasesService.instance.configure(
                                         androidApiKey: _revenueCatAndroidApiKey,
                                         iosApiKey: _revenueCatIosApiKey,
@@ -3271,31 +6823,41 @@ class _DashboardScreenState extends State<DashboardScreen>
                                       if (!mounted) return;
                                       if (result.cancelled) {
                                         _showDiagSnackBar(
-                                          isTr
-                                              ? 'Satin alim iptal edildi.'
-                                              : 'Purchase cancelled.',
+                                          localizeTrEn(
+                                            langCode,
+                                            'Satin alim iptal edildi.',
+                                            'Purchase cancelled.',
+                                          ),
                                           backgroundColor:
                                               Colors.blueGrey.shade900,
                                         );
                                       } else if (result.success) {
                                         _showDiagSnackBar(
-                                          isTr
-                                              ? 'Satin alim basarili.'
-                                              : 'Purchase successful.',
+                                          localizeTrEn(
+                                            langCode,
+                                            'Satin alim basarili.',
+                                            'Purchase successful.',
+                                          ),
                                           backgroundColor: Colors.green,
                                         );
                                       } else {
                                         _showDiagSnackBar(
-                                          isTr
-                                              ? 'Satin alim basarisiz.'
-                                              : 'Purchase failed.',
+                                          localizeTrEn(
+                                            langCode,
+                                            'Satin alim basarisiz.',
+                                            'Purchase failed.',
+                                          ),
                                           backgroundColor: Colors.red,
                                         );
                                       }
                                     },
                                     icon: const Icon(Icons.payment_rounded),
                                     label: Text(
-                                      isTr ? 'Purchase Test' : 'Purchase Test',
+                                      localizeTrEn(
+                                        langCode,
+                                        'Purchase Test',
+                                        'Purchase Test',
+                                      ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -3303,9 +6865,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ),
                                 const SizedBox(width: 8),
                                 IconButton(
-                                  tooltip: isTr
-                                      ? 'Store loglarini temizle'
-                                      : 'Clear store logs',
+                                  tooltip: localizeTrEn(
+                                    langCode,
+                                    'Store loglarini temizle',
+                                    'Clear store logs',
+                                  ),
                                   onPressed: () {
                                     PurchasesService.instance
                                         .clearLastPurchaseError();
@@ -3327,9 +6891,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 if (logs.isEmpty) {
                                   return Center(
                                     child: Text(
-                                      isTr
-                                          ? 'Store logu henuz yok.'
-                                          : 'No store logs yet.',
+                                      localizeTrEn(
+                                        langCode,
+                                        'Store logu henuz yok.',
+                                        'No store logs yet.',
+                                      ),
                                     ),
                                   );
                                 }
@@ -3549,6 +7115,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     Future<void> Function() op, {
     required String label,
     int maxAttempts = 3,
+    bool popCriticalOnFinalFailure = true,
   }) async {
     Object? lastError;
     StackTrace? lastStackTrace;
@@ -3571,7 +7138,8 @@ class _DashboardScreenState extends State<DashboardScreen>
           error: e,
           stackTrace: st,
           isError: true,
-          popCritical: !retryable || attempt >= maxAttempts,
+          popCritical: (!retryable || attempt >= maxAttempts) &&
+              popCriticalOnFinalFailure,
         );
         if (!retryable || attempt >= maxAttempts) break;
         await _safeResetFirestoreNetwork('$label attempt $attempt');
@@ -3597,9 +7165,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         popCritical: true,
       );
       _showDiagSnackBar(
-        _lang == 'tr'
-            ? 'Firebase Auth hatasi: kullanici dogrulanamadi.'
-            : 'Firebase auth error: user verification failed.',
+        localizeTrEn(_lang, 'Firebase Auth hatasi: kullanici dogrulanamadi.',
+            'Firebase auth error: user verification failed.'),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 5),
       );
@@ -3610,29 +7177,50 @@ class _DashboardScreenState extends State<DashboardScreen>
       final docRef = FirebaseFirestore.instance
           .collection('test_collection')
           .doc('test_doc');
+      final DateTime nowUtc = DateTime.now().toUtc();
+      final String nowTr = nowTurkeyIso8601();
+      final Map<String, dynamic> sdkPayload = <String, dynamic>{
+        'test_field': 'Hello Firestore!',
+        'timestamp': nowTr,
+        'random': nowUtc.millisecondsSinceEpoch,
+        'user_uid': currentUser.uid,
+      };
+      final Map<String, dynamic> restPayload = <String, dynamic>{
+        'test_field': 'Hello Firestore!',
+        'timestamp': nowTr,
+        'random': nowUtc.millisecondsSinceEpoch,
+        'user_uid': currentUser.uid,
+      };
 
-      await _runFirestoreWriteWithRetry(
-        () => docRef.set({
-          'test_field': 'Hello Firestore!',
-          'timestamp': FieldValue.serverTimestamp(),
-          'random': DateTime.now().millisecondsSinceEpoch,
-          'user_uid': currentUser.uid,
-        }),
+      await _runFirestoreWriteWithRestFallback(
         label: 'test_collection/test_doc set',
+        sdkWrite: () => docRef.set(sdkPayload),
+        documentPath: 'test_collection/test_doc',
+        restData: restPayload,
+        merge: false,
       );
 
-      final snapshot = await docRef
-          .get(const GetOptions(source: Source.server))
-          .timeout(_firestoreTimeout);
-      _logFirebaseDiagnostic(
-        'firestore_test',
-        'server read success data=${snapshot.data()}',
-      );
+      try {
+        final snapshot = await docRef
+            .get(const GetOptions(source: Source.server))
+            .timeout(_firestoreTimeout);
+        _logFirebaseDiagnostic(
+          'firestore_test',
+          'server read success data=${snapshot.data()}',
+        );
+      } catch (readError, readStackTrace) {
+        _logFirebaseDiagnostic(
+          'firestore_test',
+          'write succeeded but server read check failed (often rule-related)',
+          error: readError,
+          stackTrace: readStackTrace,
+          isError: true,
+        );
+      }
 
       _showDiagSnackBar(
-        _lang == 'tr'
-            ? 'Firestore test yazma basarili.'
-            : 'Firestore test write successful.',
+        localizeTrEn(_lang, 'Firestore test yazma basarili.',
+            'Firestore test write successful.'),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 3),
       );
@@ -3646,9 +7234,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         popCritical: true,
       );
       _showDiagSnackBar(
-        _lang == 'tr'
-            ? 'Firestore test hatasi olustu.'
-            : 'Firestore test failed.',
+        localizeTrEn(
+            _lang, 'Firestore test hatasi olustu.', 'Firestore test failed.'),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 5),
       );
@@ -3677,9 +7264,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         popCritical: true,
       );
       _showDiagSnackBar(
-        _lang == 'tr'
-            ? 'Firestore auth hatasi: kullanici dogrulanamadi.'
-            : 'Firestore auth error: user verification failed.',
+        localizeTrEn(_lang, 'Firestore auth hatasi: kullanici dogrulanamadi.',
+            'Firestore auth error: user verification failed.'),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 5),
       );
@@ -3688,13 +7274,14 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     try {
       final String today = DateTime.now().toString().substring(0, 10);
+      final String nowTr = nowTurkeyIso8601();
       await _runFirestoreWriteWithRetry(
         () => FirebaseFirestore.instance
             .collection('daily_stats')
             .doc(today)
             .set({
           counterName: FieldValue.increment(1),
-          'last_updated_at': FieldValue.serverTimestamp(),
+          'last_updated_at': nowTr,
         }, SetOptions(merge: true)),
         label: 'daily_stats/$today set($counterName)',
       );
@@ -3712,9 +7299,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         popCritical: true,
       );
       _showDiagSnackBar(
-        _lang == 'tr'
-            ? 'Firestore sayac yazma hatasi.'
-            : 'Firestore counter write failed.',
+        localizeTrEn(_lang, 'Firestore sayac yazma hatasi.',
+            'Firestore counter write failed.'),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 5),
       );
@@ -3729,15 +7315,21 @@ class _DashboardScreenState extends State<DashboardScreen>
     }
   }
 
+  String _igUserDocIdFromUsername(String username) {
+    final String normalized = _normalizeUserKey(username);
+    if (normalized == '.' || normalized == '..') return '';
+    return normalized;
+  }
+
   Future<void> _forceWriteIgUserDoc({
-    required String userId,
     required String username,
   }) async {
-    final String cleanUserId = userId.trim();
-    if (cleanUserId.isEmpty || cleanUserId == 'null') {
+    final String cleanUsername = username.trim();
+    final String userDocId = _igUserDocIdFromUsername(cleanUsername);
+    if (userDocId.isEmpty || userDocId == 'null') {
       _logFirebaseDiagnostic(
         'ig_users_write',
-        'skipped: invalid userId',
+        'skipped: invalid username',
         isError: true,
       );
       return;
@@ -3747,21 +7339,20 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (currentUser == null) {
       _logFirebaseDiagnostic(
         'ig_users_write',
-        'blocked: no auth user for ig_users/$cleanUserId',
+        'blocked: no auth user for ig_users/$userDocId',
         isError: true,
         popCritical: true,
       );
       _showDiagSnackBar(
-        _lang == 'tr'
-            ? 'Firestore auth yok: ig_users yazilamadi.'
-            : 'Firestore auth missing: ig_users write blocked.',
+        localizeTrEn(_lang, 'Firestore auth yok: ig_users yazilamadi.',
+            'Firestore auth missing: ig_users write blocked.'),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 5),
       );
       return;
     }
 
-    String version = '8.0.0';
+    String version = '10.0.0';
     try {
       final info = await PackageInfo.fromPlatform();
       final String v = info.version.trim();
@@ -3769,22 +7360,45 @@ class _DashboardScreenState extends State<DashboardScreen>
     } catch (_) {}
 
     try {
+      final String nowTr = nowTurkeyIso8601();
       _logFirebaseDiagnostic(
         'ig_users_write',
-        'write start doc=ig_users/$cleanUserId authUid=${currentUser.uid} username=$username',
+        'write start doc=ig_users/$userDocId authUid=${currentUser.uid} username=$cleanUsername',
       );
       final docRef =
-          FirebaseFirestore.instance.collection('ig_users').doc(cleanUserId);
-      await _runFirestoreWriteWithRetry(
-        () => docRef.set({
-          'username': username,
-          'userId': cleanUserId,
-          'platform': Platform.isAndroid ? 'android' : 'ios',
-          'is_premium': PurchasesService.instance.isPremium.value,
-          'last_seen': FieldValue.serverTimestamp(),
-          'version': version,
-        }, SetOptions(merge: true)),
-        label: 'ig_users/$cleanUserId set',
+          FirebaseFirestore.instance.collection('ig_users').doc(userDocId);
+      final Map<String, dynamic> sdkPayload = <String, dynamic>{
+        'username': cleanUsername,
+        'is_premium': PurchasesService.instance.isPremium.value,
+        'version': version,
+        'last_seen': nowTr,
+        'userId': FieldValue.delete(),
+        'platform': FieldValue.delete(),
+        'os_version': FieldValue.delete(),
+        'app_build': FieldValue.delete(),
+        'app_package': FieldValue.delete(),
+        'country_source': FieldValue.delete(),
+        'updated_at': FieldValue.delete(),
+        'last_session_id': FieldValue.delete(),
+        'user_id': FieldValue.delete(),
+        'last_seen_at': FieldValue.delete(),
+        'device_manufacturer': FieldValue.delete(),
+        'last_analysis_duration_ms': FieldValue.delete(),
+        'last_analysis_followers_count': FieldValue.delete(),
+        'last_analysis_following_count': FieldValue.delete(),
+      };
+      final Map<String, dynamic> restPayload = <String, dynamic>{
+        'username': cleanUsername,
+        'is_premium': PurchasesService.instance.isPremium.value,
+        'version': version,
+        'last_seen': nowTr,
+      };
+      await _runFirestoreWriteWithRestFallback(
+        label: 'ig_users/$userDocId set',
+        sdkWrite: () => docRef.set(sdkPayload, SetOptions(merge: true)),
+        documentPath: 'ig_users/$userDocId',
+        restData: restPayload,
+        merge: true,
       );
       try {
         await docRef
@@ -3793,24 +7407,23 @@ class _DashboardScreenState extends State<DashboardScreen>
       } catch (_) {}
       _logFirebaseDiagnostic(
         'ig_users_write',
-        'write success doc=ig_users/$cleanUserId',
+        'write success doc=ig_users/$userDocId',
       );
       try {
-        FirebaseCrashlytics.instance.log('ForceWrite ig_users/$cleanUserId ok');
+        FirebaseCrashlytics.instance.log('ForceWrite ig_users/$userDocId ok');
       } catch (_) {}
     } catch (e, st) {
       _logFirebaseDiagnostic(
         'ig_users_write',
-        'write failed doc=ig_users/$cleanUserId',
+        'write failed doc=ig_users/$userDocId',
         error: e,
         stackTrace: st,
         isError: true,
         popCritical: true,
       );
       _showDiagSnackBar(
-        _lang == 'tr'
-            ? 'Firestore ig_users yazma hatasi.'
-            : 'Firestore ig_users write failed.',
+        localizeTrEn(_lang, 'Firestore ig_users yazma hatasi.',
+            'Firestore ig_users write failed.'),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 5),
       );
@@ -3818,7 +7431,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         unawaited(FirebaseCrashlytics.instance.recordError(
           e,
           st,
-          reason: 'forceWriteIgUserDoc:$cleanUserId',
+          reason: 'forceWriteIgUserDoc:$userDocId',
           fatal: false,
         ));
       } catch (_) {}
@@ -3966,7 +7579,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       });
     }
     if (cookie != null && userId != null) {
-      final String fallback = _lang == 'tr' ? 'Kullanıcı' : 'User';
+      final String fallback = localizeTrEn(_lang, 'Kullanıcı', 'User');
       if (mounted) {
         setState(() {
           isLoggedIn = true;
@@ -3995,8 +7608,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         isPremium: PurchasesService.instance.isPremium.value,
       ));
       unawaited(_incrementFirestoreCounter('login_count'));
-      unawaited(
-          _forceWriteIgUserDoc(userId: userId, username: currentUsername));
+      unawaited(_forceWriteIgUserDoc(username: currentUsername));
       await _refreshSessionCookieFromWebViewStore();
       await _refreshUsernameForBanCheckIfNeeded();
       _applyUserFlags();
@@ -4132,9 +7744,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(_lang == 'tr'
-            ? 'Rıza formu açılıyor...'
-            : 'Opening consent form...'),
+        content: Text(localizeTrEn(
+            _lang, 'Rıza formu açılıyor...', 'Opening consent form...')),
         duration: const Duration(seconds: 2),
       ));
     }
@@ -4174,12 +7785,12 @@ class _DashboardScreenState extends State<DashboardScreen>
     }
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(ok
-          ? (_lang == 'tr'
-              ? 'Rıza tercihiniz güncellendi.'
-              : 'Your consent preference was updated.')
-          : (_lang == 'tr'
-              ? 'Rıza güncellenemedi. Lütfen tekrar deneyin.'
-              : 'Consent update failed. Please try again.')),
+          ? (localizeTrEn(_lang, 'Rıza tercihiniz güncellendi.',
+              'Your consent preference was updated.'))
+          : (localizeTrEn(
+              _lang,
+              'Rıza güncellenemedi. Lütfen tekrar deneyin.',
+              'Consent update failed. Please try again.'))),
       backgroundColor: ok ? Colors.green : Colors.red,
       duration: const Duration(seconds: 3),
     ));
@@ -4194,6 +7805,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     _bannerAd = null;
     _isAdLoaded = false;
     _bannerAdError = null;
+    _googleAdWarning = null;
     if (mounted) {
       setState(() {});
     }
@@ -4215,9 +7827,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                 Icon(Icons.block, size: 72, color: Colors.redAccent.shade200),
                 const SizedBox(height: 16),
                 Text(
-                  _lang == 'tr'
-                      ? 'Hesabınız engellendi'
-                      : 'Your account is blocked',
+                  localizeTrEn(_lang, 'Hesabınız engellendi',
+                      'Your account is blocked'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       fontSize: 18,
@@ -4226,9 +7837,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _lang == 'tr'
-                      ? 'Bu hesap için erişim kısıtlandı.'
-                      : 'Access is restricted for this account.',
+                  localizeTrEn(_lang, 'Bu hesap için erişim kısıtlandı.',
+                      'Access is restricted for this account.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       fontSize: 12,
@@ -4246,7 +7856,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: Text(_lang == 'tr' ? 'KAPAT' : 'CLOSE'),
+                  child: Text(localizeTrEn(_lang, 'KAPAT', 'CLOSE')),
                 ),
               ],
             ),
@@ -4296,27 +7906,80 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      IconButton(
-                                          icon: Icon(
-                                              isDarkMode
-                                                  ? Icons.light_mode
-                                                  : Icons.dark_mode,
-                                              color: headerColor),
-                                          onPressed: _toggleDarkMode),
-                                      IconButton(
-                                        icon: Row(
+                                      PopupMenuButton<String>(
+                                        tooltip: 'Language',
+                                        onSelected: (String code) {
+                                          unawaited(_setLanguage(code));
+                                        },
+                                        itemBuilder: (context) {
+                                          return _supportedLanguageCodes
+                                              .map((String code) {
+                                            final bool selected = code == _lang;
+                                            final String flag =
+                                                _languageFlags[code] ??
+                                                    '\u{1F310}';
+                                            final String nativeName =
+                                                _languageNativeNames[code] ??
+                                                    code.toUpperCase();
+                                            return PopupMenuItem<String>(
+                                              value: code,
+                                              child: Row(
+                                                children: [
+                                                  SizedBox(
+                                                    width: 30,
+                                                    child: Text(
+                                                      flag,
+                                                      style: TextStyle(
+                                                        fontSize: 17,
+                                                        fontWeight: selected
+                                                            ? FontWeight.bold
+                                                            : FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    nativeName,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                      fontWeight: selected
+                                                          ? FontWeight.w700
+                                                          : FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }).toList();
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 8,
+                                          ),
+                                          child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              Icon(Icons.language,
-                                                  color: headerColor),
-                                              const SizedBox(width: 6),
-                                              Text(_lang.toUpperCase(),
-                                                  style: TextStyle(
-                                                      color: headerColor,
-                                                      fontWeight:
-                                                          FontWeight.bold))
-                                            ]),
-                                        onPressed: _toggleLanguage,
+                                              Text(
+                                                _languageFlags[_lang] ??
+                                                    '\u{1F310}',
+                                                style: const TextStyle(
+                                                  fontSize: 17,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                _languageNativeNames[_lang] ??
+                                                    _lang.toUpperCase(),
+                                                style: TextStyle(
+                                                  color: headerColor,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
                                       if (_privacyOptionsRequired)
                                         IconButton(
@@ -4324,22 +7987,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                                               color: headerColor),
                                           onPressed: _showPrivacyOptionsForm,
                                         ),
-                                      IconButton(
-                                        icon: Icon(Icons.bug_report_outlined,
-                                            color: headerColor),
-                                        tooltip: _lang == 'tr'
-                                            ? 'Teshis loglari'
-                                            : 'Diagnostics',
-                                        onPressed: () {
-                                          unawaited(_openDiagnosticsConsole(
-                                              initialTabIndex: 0));
-                                        },
-                                      ),
                                     ])),
                             Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text('VERDICT',
+                                              Text('VERDICT',
                                     style: TextStyle(
                                         fontWeight: FontWeight.w900,
                                         fontSize: 26,
@@ -4354,13 +8006,24 @@ class _DashboardScreenState extends State<DashboardScreen>
                             ),
                             Align(
                                 alignment: Alignment.centerRight,
-                                child: IconButton(
-                                    icon: const Icon(
-                                        Icons.delete_sweep_outlined,
-                                        color: Colors.redAccent),
-                                    onPressed: (isProcessing || _isClearingData)
-                                        ? null
-                                        : _clearCache)),
+                                child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                          icon: Icon(
+                                              isDarkMode
+                                                  ? Icons.light_mode
+                                                  : Icons.dark_mode,
+                                              color: headerColor),
+                                          onPressed: _toggleDarkMode),
+                                      IconButton(
+                                          icon: const Icon(
+                                              Icons.delete_sweep_outlined,
+                                              color: Colors.redAccent),
+                                          onPressed: (isProcessing || _isClearingData)
+                                              ? null
+                                              : _clearCache),
+                                    ])),
                           ],
                         ),
                         const SizedBox(height: 20),
@@ -4384,8 +8047,39 @@ class _DashboardScreenState extends State<DashboardScreen>
                                       height: _bannerAd!.size.height.toDouble(),
                                       child: AdWidget(ad: _bannerAd!),
                                     )
-                                  else if (_bannerAdError != null)
-                                    const SizedBox(height: 50)
+                                  else if (_currentGoogleAdWarningText()
+                                      .isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 4),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.warning_amber_rounded,
+                                            size: 18,
+                                            color: Colors.orange.shade700,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              _t('google_ad_warning', {
+                                                'reason':
+                                                    _currentGoogleAdWarningText()
+                                              }),
+                                              maxLines: 3,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color: isDarkMode
+                                                    ? Colors.orange.shade200
+                                                    : Colors.orange.shade900,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
                                   else
                                     const SizedBox(
                                         height: 50,
@@ -4403,8 +8097,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ),
                   Center(
                     child: Container(
-                      constraints: const BoxConstraints(maxWidth: 500),
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      constraints: const BoxConstraints(maxWidth: 560),
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0),
                       child: Column(
                         children: [
                           if (isLoggedIn && _isAdminUser) ...[
@@ -4415,6 +8109,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                           if (_announcementText.trim().isNotEmpty) ...[
                             _buildInfoBox(Icons.info_outline, _announcementText,
                                 primaryColor),
+                            const SizedBox(height: 10),
+                          ],
+                          if (_isPremium) ...[
+                            _buildInfoBox(
+                                Icons.workspace_premium_rounded,
+                                _t('premium_welcome_box'),
+                                Colors.amber.shade700),
                             const SizedBox(height: 10),
                           ],
                           _buildInfoBox(Icons.info_outline, _t('free_app_note'),
@@ -4428,6 +8129,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 Icons.verified_user,
                                 _t('welcome', {'username': currentUsername}),
                                 Colors.green),
+                          const SizedBox(height: 16),
                           if (_remoteFlagsLoaded && _watchStoriesEnabled) ...[
                             const SizedBox(height: 12),
                             _buildStorySection(),
@@ -4435,7 +8137,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           ],
                           if (isProcessing)
                             Container(
-                              height: 330,
+                              height: 368,
                               alignment: Alignment.center,
                               child: ModernLoader(
                                 text: _isRewardedLoading
@@ -4452,7 +8154,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                             Column(
                               children: [
                                 _buildGrid(cardColor, textColor),
-                                _buildPurchaseErrorDebugBox(),
                               ],
                             ),
                           SizedBox(height: isProcessing ? 10 : 18),
@@ -4631,14 +8332,14 @@ class _DashboardScreenState extends State<DashboardScreen>
           SizedBox(
               width: cardWidth,
               height: cardHeight,
-              child: _buildBigCard('Bize Ulaşın', "", const Color(0xFFC13584),
+              child: _buildBigCard('contact_us', "", const Color(0xFFC13584),
                   Icons.chat_bubble_rounded, cardColor, textColor,
                   showCount: false)),
           SizedBox(
               width: cardWidth,
               height: cardHeight,
               child: _buildBigCard(
-                  'Tüm Reklam Birimlerini ve Bekleme Sürelerini Kaldır',
+                  'remove_ads_and_limits',
                   "",
                   const Color(0xFF833AB4),
                   Icons.ad_units_rounded,
@@ -4732,7 +8433,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   _buildDetailedLegalDialog(ctx, isInitial: false));
         } else if (titleKey == 'rate_us') {
           await _launchRateUrl();
-        } else if (titleKey == 'Bize Ulaşın') {
+        } else if (titleKey == 'contact_us') {
           try {
             final Uri url = Uri.parse('https://instagram.com/grkmcomert');
             final bool ok = await launchUrl(
@@ -4740,23 +8441,25 @@ class _DashboardScreenState extends State<DashboardScreen>
               mode: LaunchMode.externalApplication,
             );
             if (!ok && mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text('Link açılamadı.'),
-                duration: Duration(seconds: 2),
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(localizeTrEn(
+                    _lang, 'Link açılamadı.', 'Could not open the link.')),
+                duration: const Duration(seconds: 2),
                 backgroundColor: Colors.redAccent,
               ));
             }
           } catch (_) {
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text('Link açılamadı.'),
-                duration: Duration(seconds: 2),
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(localizeTrEn(
+                    _lang, 'Link açılamadı.', 'Could not open the link.')),
+                duration: const Duration(seconds: 2),
                 backgroundColor: Colors.redAccent,
               ));
             }
           }
         } else if (titleKey ==
-            'Tüm Reklam Birimlerini ve Bekleme Sürelerini Kaldır') {
+            'remove_ads_and_limits') {
           _logFirebaseDiagnostic(
               'purchase', 'purchase flow started from card tap');
           if (PurchasesService.instance.isPremium.value) {
@@ -4764,9 +8467,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 'purchase', 'purchase skipped: premium already active');
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(_lang == 'tr'
-                    ? 'Premium zaten aktif ✅'
-                    : 'Premium is already active ✅'),
+                content: Text(_t('premium_already_active')),
                 duration: const Duration(seconds: 2),
                 backgroundColor: Colors.blueGrey.shade900,
               ));
@@ -4814,9 +8515,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            _lang == 'tr'
-                                ? 'Satın alma başlatılıyor...'
-                                : 'Starting purchase...',
+                            localizeTrEn(
+                                _lang,
+                                'Satın alma başlatılıyor...',
+                                'Starting purchase...'),
                             style: TextStyle(
                               color: isDarkMode ? Colors.white : Colors.black,
                               fontWeight: FontWeight.w700,
@@ -4839,9 +8541,8 @@ class _DashboardScreenState extends State<DashboardScreen>
           if (result.cancelled) {
             _logFirebaseDiagnostic('purchase', 'purchase cancelled by user');
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(_lang == 'tr'
-                  ? 'Satın alma iptal edildi.'
-                  : 'Purchase cancelled.'),
+              content: Text(localizeTrEn(
+                  _lang, 'Satın alma iptal edildi.', 'Purchase cancelled.')),
               duration: const Duration(seconds: 2),
               backgroundColor: Colors.blueGrey.shade900,
             ));
@@ -4852,9 +8553,10 @@ class _DashboardScreenState extends State<DashboardScreen>
             _logFirebaseDiagnostic(
                 'purchase', 'purchase success: premium active');
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(_lang == 'tr'
-                  ? 'Premium aktif ✅ Reklamlar ve bekleme süreleri kapatıldı.'
-                  : 'Premium active ✅ Ads and wait times are disabled.'),
+              content: Text(localizeTrEn(
+                  _lang,
+                  'Premium aktif ✅ Reklamlar ve bekleme süreleri kapatıldı.',
+                  'Premium active ✅ Ads and wait times are disabled.')),
               duration: const Duration(seconds: 3),
               backgroundColor: Colors.green.shade700,
             ));
@@ -4868,9 +8570,10 @@ class _DashboardScreenState extends State<DashboardScreen>
             popCritical: true,
           );
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(_lang == 'tr'
-                ? 'Satın alma başarısız. Lütfen tekrar deneyin.'
-                : 'Purchase failed. Please try again.'),
+            content: Text(localizeTrEn(
+                _lang,
+                'Satın alma başarısız. Lütfen tekrar deneyin.',
+                'Purchase failed. Please try again.')),
             duration: const Duration(seconds: 4),
             backgroundColor: Colors.redAccent,
           ));
@@ -5214,9 +8917,10 @@ class _DashboardScreenState extends State<DashboardScreen>
           _syncCountsForUi();
         });
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(_lang == 'tr'
-              ? 'Oturum geçersiz. Lütfen tekrar giriş yapın.'
-              : 'Session is invalid. Please log in again.'),
+          content: Text(localizeTrEn(
+              _lang,
+              'Oturum geçersiz. Lütfen tekrar giriş yapın.',
+              'Session is invalid. Please log in again.')),
           backgroundColor: Colors.redAccent,
         ));
       }
@@ -5260,10 +8964,16 @@ class _DashboardScreenState extends State<DashboardScreen>
             if (wantWatch == true) {
               final adResult = await _showRewardedAdWithResult();
               if (adResult["status"] == false) {
+                final String adError =
+                    (adResult["error"] ?? '').toString().trim();
+                if (adError.isNotEmpty) _setGoogleAdWarning(adError);
                 if (mounted) {
-                  final String msg = _lang == 'tr'
-                      ? 'Reklam açılamadı. Lütfen tekrar deneyin.'
-                      : 'Ad could not be shown. Please try again.';
+                  final String msg = adError.isNotEmpty
+                      ? _t('google_ad_warning', {'reason': adError})
+                      : (localizeTrEn(
+                          _lang,
+                          'Reklam açılamadı. Lütfen tekrar deneyin.',
+                          'Ad could not be shown. Please try again.'));
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text(msg),
                     backgroundColor: Colors.red,
@@ -5324,9 +9034,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       final bool hasStoredData =
           followersMap.isNotEmpty || followingMap.isNotEmpty;
       if (hasStoredData && tFollowers == 0 && tFollowing == 0) {
-        _showAnalysisWarning(_lang == 'tr'
-            ? 'Instagram veri döndürmedi.'
-            : 'Instagram returned no data.');
+        _showAnalysisWarning(localizeTrEn(_lang, 'Instagram veri döndürmedi.',
+            'Instagram returned no data.'));
         return;
       }
 
@@ -5374,15 +9083,15 @@ class _DashboardScreenState extends State<DashboardScreen>
       _setAnalysisProgressCap(0.96);
 
       if (tFollowers > 0 && fetchedFollowers < (tFollowers * 0.85)) {
-        _showAnalysisWarning(_lang == 'tr'
-            ? 'Takipçi verileri eksik geldi.'
-            : 'Follower data was incomplete.');
+        _showAnalysisWarning(localizeTrEn(_lang,
+            'Takipçi verileri eksik geldi.', 'Follower data was incomplete.'));
         return;
       }
       if (tFollowing > 0 && fetchedFollowing < (tFollowing * 0.85)) {
-        _showAnalysisWarning(_lang == 'tr'
-            ? 'Takip edilen verileri eksik geldi.'
-            : 'Following data was incomplete.');
+        _showAnalysisWarning(localizeTrEn(
+            _lang,
+            'Takip edilen verileri eksik geldi.',
+            'Following data was incomplete.'));
         return;
       }
 
@@ -5402,9 +9111,15 @@ class _DashboardScreenState extends State<DashboardScreen>
 
           final adResult = await _showRewardedAdWithResult();
           if (adResult["status"] != true) {
-            _showAnalysisWarning(_lang == 'tr'
-                ? "Reklam açılamadı. Sonuçlar gösterilemedi."
-                : "Ad could not be shown. Results cannot be displayed.");
+            final String adError = (adResult["error"] ?? '').toString().trim();
+            if (adError.isNotEmpty) _setGoogleAdWarning(adError);
+            final String reason = adError.isNotEmpty
+                ? _t('google_ad_warning', {'reason': adError})
+                : (localizeTrEn(
+                    _lang,
+                    "Reklam açılamadı. Sonuçlar gösterilemedi.",
+                    "Ad could not be shown. Results cannot be displayed."));
+            _showAnalysisWarning(reason);
             return;
           }
           if (mounted) {
@@ -5431,46 +9146,48 @@ class _DashboardScreenState extends State<DashboardScreen>
               backgroundColor: Colors.green));
       }
     } catch (e) {
-      String reason = _lang == 'tr'
-          ? 'Beklenmeyen bir hata oluştu.'
-          : 'An unexpected error occurred.';
+      String reason = localizeTrEn(_lang, 'Beklenmeyen bir hata oluştu.',
+          'An unexpected error occurred.');
       final String raw = e.toString();
       if (raw.toLowerCase().contains('ig_warning')) {
         final String igMsg = _extractIgWarningTextFromError(e);
-        reason = _lang == 'tr'
-            ? 'Instagram bu işlemi geçici olarak kısıtladı. Biraz bekleyip tekrar deneyin.'
-            : 'Instagram temporarily restricted this action. Please wait a bit and try again.';
+        reason = localizeTrEn(
+            _lang,
+            'Instagram bu işlemi geçici olarak kısıtladı. Biraz bekleyip tekrar deneyin.',
+            'Instagram temporarily restricted this action. Please wait a bit and try again.');
         unawaited(_showIgWarningGuide(igMsg));
       } else if (raw.contains('http_401') || raw.contains('http_403')) {
-        reason = _lang == 'tr'
-            ? 'Oturum süresi doldu veya doğrulama gerekli.'
-            : 'Session expired or verification required.';
+        reason = localizeTrEn(
+            _lang,
+            'Oturum süresi doldu veya doğrulama gerekli.',
+            'Session expired or verification required.');
       } else if (raw.contains('http_429')) {
-        reason = _lang == 'tr'
-            ? 'Çok hızlı istek gönderildi.'
-            : 'Too many requests were sent.';
+        reason = localizeTrEn(_lang, 'Çok hızlı istek gönderildi.',
+            'Too many requests were sent.');
       } else if (raw.contains('checkpoint_required') ||
           raw.contains('challenge_required')) {
         final String code = raw.contains('checkpoint_required')
             ? 'checkpoint_required'
             : 'challenge_required';
-        reason = _lang == 'tr'
-            ? 'Instagram güvenlik doğrulaması istedi (şüpheli giriş / hesap kilidi). Instagram uygulamasından doğrulayın ve tekrar deneyin.'
-            : 'Instagram requires a security verification (suspicious login / account lock). Verify in the Instagram app and try again.';
+        reason = localizeTrEn(
+            _lang,
+            'Instagram güvenlik doğrulaması istedi (şüpheli giriş / hesap kilidi). Instagram uygulamasından doğrulayın ve tekrar deneyin.',
+            'Instagram requires a security verification (suspicious login / account lock). Verify in the Instagram app and try again.');
         unawaited(_showIgSecurityVerificationGuide(code));
       } else if (raw.contains('session_invalid')) {
-        reason = _lang == 'tr'
-            ? 'Instagram oturumu geçersiz veya doğrulama bekliyor.'
-            : 'Instagram session is invalid or pending verification.';
+        reason = localizeTrEn(
+            _lang,
+            'Instagram oturumu geçersiz veya doğrulama bekliyor.',
+            'Instagram session is invalid or pending verification.');
       } else if (raw.contains('invalid_json') ||
           raw.contains('invalid_payload')) {
-        reason = _lang == 'tr'
-            ? 'Instagram beklenmeyen bir yanıt döndürdü.'
-            : 'Instagram returned an unexpected response.';
+        reason = localizeTrEn(
+            _lang,
+            'Instagram beklenmeyen bir yanıt döndürdü.',
+            'Instagram returned an unexpected response.');
       } else if (raw.contains('http_')) {
-        reason = _lang == 'tr'
-            ? 'Instagram sunucusu hata döndürdü.'
-            : 'Instagram returned an error.';
+        reason = localizeTrEn(_lang, 'Instagram sunucusu hata döndürdü.',
+            'Instagram returned an error.');
       }
       _showAnalysisWarning(reason);
     } finally {
@@ -5558,7 +9275,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     final String cleanFeedbackMessage = feedbackMessage.trim();
     if (cleanFeedbackTitle.isNotEmpty) msg = cleanFeedbackTitle;
     if (cleanFeedbackMessage.isNotEmpty) {
-      msg = msg.isEmpty ? cleanFeedbackMessage : '$msg — $cleanFeedbackMessage';
+      msg =
+          msg.isEmpty ? cleanFeedbackMessage : '$msg — $cleanFeedbackMessage';
     }
 
     final String cleanMessage = message.trim();
@@ -6012,9 +9730,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(_lang == 'tr'
-              ? 'Oturum doğrulaması tamamlanamadı. Lütfen tekrar giriş yapın.'
-              : 'Session verification failed. Please log in again.'),
+          content: Text(localizeTrEn(
+              _lang,
+              'Oturum doğrulaması tamamlanamadı. Lütfen tekrar giriş yapın.',
+              'Session verification failed. Please log in again.')),
           backgroundColor: Colors.redAccent,
           duration: const Duration(seconds: 4),
         ));
@@ -6023,7 +9742,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     }
     final String username = usernameRaw.isNotEmpty
         ? usernameRaw
-        : (_lang == 'tr' ? 'Kullanıcı' : 'User');
+        : (localizeTrEn(_lang, 'Kullanıcı', 'User'));
 
     unawaited(() async {
       try {
@@ -6041,7 +9760,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       isPremium: PurchasesService.instance.isPremium.value,
     ));
     unawaited(_incrementFirestoreCounter('login_count'));
-    unawaited(_forceWriteIgUserDoc(userId: userId, username: username));
+    unawaited(_forceWriteIgUserDoc(username: username));
     if (mounted) {
       setState(() {
         isLoggedIn = true;
@@ -6361,6 +10080,8 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildInfoBox(IconData icon, String text, Color color) {
+    final String cleanText = text.trim();
+    if (cleanText.isEmpty) return const SizedBox.shrink();
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -6371,7 +10092,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         Icon(icon, color: color, size: 20),
         const SizedBox(width: 10),
         Expanded(
-            child: Text(text,
+            child: Text(cleanText,
                 style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -6380,137 +10101,50 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildPurchaseErrorDebugBox() {
-    final bool isTr = _lang == 'tr';
-    final Color border = Colors.redAccent;
-    final String title = isTr
-        ? 'Satın alma hata detayı (Apple)'
-        : 'Purchase error details (Apple)';
-    final String placeholder = isTr ? 'Henüz hata yok.' : 'No error yet.';
-
-    final ButtonStyle miniBtn = TextButton.styleFrom(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-      minimumSize: const Size(0, 0),
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      foregroundColor: isDarkMode ? Colors.white70 : Colors.black87,
-    );
-
-    return ValueListenableBuilder<String>(
-      valueListenable: PurchasesService.instance.lastPurchaseError,
-      builder: (context, err, _) {
-        final bool allowed = kDebugMode || _isAdminUser || _forcePurchaseDebug;
-        if (!allowed) return const SizedBox.shrink();
-
-        final String text = err.trim();
-
-        return Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: border.withOpacity(isDarkMode ? 0.16 : 0.06),
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: border.withOpacity(0.25)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.bug_report_outlined, color: border, size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: isDarkMode ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      style: miniBtn,
-                      onPressed: text.isEmpty
-                          ? null
-                          : () => Clipboard.setData(ClipboardData(text: text)),
-                      child: Text(isTr ? 'KOPYALA' : 'COPY',
-                          style: const TextStyle(fontSize: 11)),
-                    ),
-                    TextButton(
-                      style: miniBtn,
-                      onPressed: text.isEmpty
-                          ? null
-                          : () => PurchasesService.instance
-                              .clearLastPurchaseError(),
-                      child: Text(isTr ? 'TEMİZLE' : 'CLEAR',
-                          style: const TextStyle(fontSize: 11)),
-                    ),
-                    TextButton(
-                      style: miniBtn,
-                      onPressed: () {
-                        unawaited(_openDiagnosticsConsole(initialTabIndex: 1));
-                      },
-                      child: Text(isTr ? 'LOG EKRANI' : 'OPEN LOGS',
-                          style: const TextStyle(fontSize: 11)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 180),
-                  child: SingleChildScrollView(
-                    child: SelectableText(
-                      text.isEmpty ? placeholder : text,
-                      style: TextStyle(
-                        fontSize: 11,
-                        height: 1.25,
-                        fontFamily: 'monospace',
-                        color: isDarkMode ? Colors.white70 : Colors.black87,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _showIgSecurityVerificationGuide(String code) async {
     if (!mounted || _securityGuideVisible) return;
     _securityGuideVisible = true;
-    final bool isTr = _lang == 'tr';
+    final String langCode = _lang;
     final bool isCheckpoint = code.toLowerCase().contains('checkpoint');
-    final String title = isTr
-        ? 'Instagram Doğrulaması Gerekli'
-        : 'Instagram Verification Required';
-    final String description = isTr
-        ? 'Instagram hesabınız için güvenlik doğrulaması gerekiyor (şüpheli giriş bildirimi / geçici kilit). Bu yüzden verileri çekemiyoruz.'
-        : 'Instagram requires a security verification for your account (suspicious login / temporary lock). We can’t fetch data until it’s verified.';
-    final String typeHint = isTr
-        ? (isCheckpoint
-            ? 'Bu genelde “hesap kilidi / checkpoint” durumudur.'
-            : 'Bu genelde “şüpheli giriş” doğrulamasıdır.')
-        : (isCheckpoint
-            ? 'This is usually an “account lock / checkpoint”.'
-            : 'This is usually a “suspicious login” verification.');
-    final String steps = isTr
-        ? 'Ne yapmalıyım?\n'
-            '1) Instagram uygulamasını açın.\n'
-            '2) “Şüpheli giriş” uyarısı varsa “Bu bendim” diyerek doğrulayın.\n'
-            '3) Gerekirse şifrenizi değiştirip tekrar giriş yapın.\n'
-            '4) Bu uygulamaya dönüp “VERİLERİ GÜNCELLE”ye basın.'
-        : 'What to do:\n'
-            '1) Open the Instagram app.\n'
-            '2) If you see a “Suspicious login” alert, confirm it’s you.\n'
-            '3) If needed, change your password and log in again.\n'
-            '4) Come back here and tap “REFRESH DATA”.';
-    final String hint = isTr
-        ? 'Not: Doğrulama sonrası bazen 1–2 dakika beklemek gerekebilir.'
-        : 'Note: After verification, you may need to wait 1–2 minutes.';
+    final String title = localizeTrEn(
+      langCode,
+      'Instagram Doğrulaması Gerekli',
+      'Instagram Verification Required',
+    );
+    final String description = localizeTrEn(
+      langCode,
+      'Instagram hesabınız için güvenlik doğrulaması gerekiyor (şüpheli giriş bildirimi / geçici kilit). Bu yüzden verileri çekemiyoruz.',
+      'Instagram requires a security verification for your account (suspicious login / temporary lock). We can’t fetch data until it’s verified.',
+    );
+    final String typeHint = isCheckpoint
+        ? localizeTrEn(
+            langCode,
+            'Bu genelde “hesap kilidi / checkpoint” durumudur.',
+            'This is usually an “account lock / checkpoint”.',
+          )
+        : localizeTrEn(
+            langCode,
+            'Bu genelde “şüpheli giriş” doğrulamasıdır.',
+            'This is usually a “suspicious login” verification.',
+          );
+    final String steps = localizeTrEn(
+      langCode,
+      'Ne yapmalıyım?\n'
+          '1) Instagram uygulamasını açın.\n'
+          '2) “Şüpheli giriş” uyarısı varsa “Bu bendim” diyerek doğrulayın.\n'
+          '3) Gerekirse şifrenizi değiştirip tekrar giriş yapın.\n'
+          '4) Bu uygulamaya dönüp “VERİLERİ GÜNCELLE”ye basın.',
+      'What to do:\n'
+          '1) Open the Instagram app.\n'
+          '2) If you see a “Suspicious login” alert, confirm it’s you.\n'
+          '3) If needed, change your password and log in again.\n'
+          '4) Come back here and tap “REFRESH DATA”.',
+    );
+    final String hint = localizeTrEn(
+      langCode,
+      'Not: Doğrulama sonrası bazen 1–2 dakika beklemek gerekebilir.',
+      'Note: After verification, you may need to wait 1–2 minutes.',
+    );
 
     try {
       await showDialog<void>(
@@ -6527,7 +10161,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: Text(isTr ? 'Kapat' : 'Close')),
+                child: Text(localizeTrEn(langCode, 'Kapat', 'Close'))),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
@@ -6543,7 +10177,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                   );
                 } catch (_) {}
               },
-              child: Text(isTr ? "Instagram'ı Aç" : 'Open Instagram'),
+              child: Text(
+                  localizeTrEn(langCode, "Instagram'ı Aç", 'Open Instagram')),
             ),
           ],
         ),
@@ -6556,13 +10191,18 @@ class _DashboardScreenState extends State<DashboardScreen>
   Future<void> _showIgWarningGuide(String igMessage) async {
     if (!mounted || _igWarningVisible) return;
     _igWarningVisible = true;
-    final bool isTr = _lang == 'tr';
+    final String langCode = _lang;
 
-    final String title =
-        isTr ? 'Instagram Geçici Kısıtlama' : 'Instagram Temporary Restriction';
-    final String description = isTr
-        ? 'Instagram bu işlemi geçici olarak kısıtladı. Bu genelde çok sık istek / otomatik aktivite algılandığında olur. Veri çekme durduruldu.'
-        : 'Instagram temporarily restricted this action. This can happen when requests are too frequent or activity looks automated. We stopped fetching data.';
+    final String title = localizeTrEn(
+      langCode,
+      'Instagram Geçici Kısıtlama',
+      'Instagram Temporary Restriction',
+    );
+    final String description = localizeTrEn(
+      langCode,
+      'Instagram bu işlemi geçici olarak kısıtladı. Bu genelde çok sık istek / otomatik aktivite algılandığında olur. Veri çekme durduruldu.',
+      'Instagram temporarily restricted this action. This can happen when requests are too frequent or activity looks automated. We stopped fetching data.',
+    );
 
     final String cleanIg = (() {
       final String v = igMessage.trim();
@@ -6573,25 +10213,27 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     final String igBlock = cleanIg.isEmpty
         ? ''
-        : (isTr
-            ? 'Instagram mesajı:\n$cleanIg'
-            : 'Instagram message:\n$cleanIg');
+        : '${localizeTrEn(langCode, 'Instagram mesajı', 'Instagram message')}:\n$cleanIg';
 
-    final String steps = isTr
-        ? 'Ne yapabilirsin?\n'
-            '1) Instagram uygulamasını aç.\n'
-            '2) Bir uyarı/ek doğrulama varsa tamamla.\n'
-            '3) 10–30 dakika bekle.\n'
-            '4) Bu uygulamaya dönüp tekrar “VERİLERİ GÜNCELLE”ye bas.'
-        : 'What you can do:\n'
-            '1) Open the Instagram app.\n'
-            '2) Complete any alert or verification if shown.\n'
-            '3) Wait 10–30 minutes.\n'
-            '4) Come back here and tap “REFRESH DATA” again.';
+    final String steps = localizeTrEn(
+      langCode,
+      'Ne yapabilirsin?\n'
+          '1) Instagram uygulamasını aç.\n'
+          '2) Bir uyarı/ek doğrulama varsa tamamla.\n'
+          '3) 10–30 dakika bekle.\n'
+          '4) Bu uygulamaya dönüp tekrar “VERİLERİ GÜNCELLE”ye bas.',
+      'What you can do:\n'
+          '1) Open the Instagram app.\n'
+          '2) Complete any alert or verification if shown.\n'
+          '3) Wait 10–30 minutes.\n'
+          '4) Come back here and tap “REFRESH DATA” again.',
+    );
 
-    final String hint = isTr
-        ? 'Not: Arka arkaya çok sık analiz yapmak bu uyarıyı tetikleyebilir.'
-        : 'Note: Running analyses back-to-back can trigger this.';
+    final String hint = localizeTrEn(
+      langCode,
+      'Not: Arka arkaya çok sık analiz yapmak bu uyarıyı tetikleyebilir.',
+      'Note: Running analyses back-to-back can trigger this.',
+    );
 
     try {
       await showDialog<void>(
@@ -6610,7 +10252,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: Text(isTr ? 'Kapat' : 'Close')),
+                child: Text(localizeTrEn(langCode, 'Kapat', 'Close'))),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
@@ -6626,7 +10268,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                   );
                 } catch (_) {}
               },
-              child: Text(isTr ? "Instagram'ı Aç" : 'Open Instagram'),
+              child: Text(
+                  localizeTrEn(langCode, "Instagram'ı Aç", 'Open Instagram')),
             ),
           ],
         ),
@@ -6693,11 +10336,16 @@ class _DashboardScreenState extends State<DashboardScreen>
       adUnitOverride: 'ca-app-pub-7480771330660307/4726353967',
     );
     if (adResult["status"] == false) {
+      final String adError = (adResult["error"] ?? '').toString().trim();
+      if (adError.isNotEmpty) _setGoogleAdWarning(adError);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(_lang == 'tr'
-              ? 'Reklam açılamadı. Lütfen tekrar deneyin.'
-              : 'Ad could not be shown. Please try again.'),
+          content: Text(adError.isNotEmpty
+              ? _t('google_ad_warning', {'reason': adError})
+              : (localizeTrEn(
+                  _lang,
+                  'Reklam açılamadı. Lütfen tekrar deneyin.',
+                  'Ad could not be shown. Please try again.'))),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 4),
         ));
@@ -6752,7 +10400,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     final List<int> ids = List<int>.generate(20, (i) => i + 1);
     ids.shuffle(_storyRand);
-    final String fakePrefix = _lang == 'tr' ? 'kullanıcı' : 'user';
+    final String fakePrefix = _t('user_label');
     return ids.take(12).map((i) {
       return _StoryProfile(
           username: "${fakePrefix}_$i",
@@ -6907,7 +10555,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(_t('story_section_title'),
+                                              Text(_t('story_section_title'),
             style: TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 13,
@@ -6925,9 +10573,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                           isDarkMode ? Colors.white70 : Colors.black54))),
               const SizedBox(width: 8),
               Text(
-                _lang == 'tr'
-                    ? 'Hikayeler yükleniyor...'
-                    : 'Loading stories...',
+                localizeTrEn(
+                    _lang, 'Hikayeler yükleniyor...', 'Loading stories...'),
                 style: TextStyle(
                     fontSize: 10,
                     color: isDarkMode ? Colors.white60 : Colors.black54),
@@ -6986,7 +10633,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(_t('story_action_title'),
+                                              Text(_t('story_action_title'),
                       style: TextStyle(
                           fontWeight: FontWeight.bold, color: sheetTextColor)),
                   const SizedBox(height: 10),
@@ -7372,7 +11019,11 @@ class _DashboardScreenState extends State<DashboardScreen>
         if (mounted) Navigator.pop(context);
         final String msg = _lastIgWarning?.trim().isNotEmpty == true
             ? _lastIgWarning!
-            : "Kullanıcı verisi alınamadı (Gizli profil veya API hatası)";
+            : localizeTrEn(
+                _lang,
+                'Kullanıcı verisi alınamadı (Gizli profil veya API hatası)',
+                'Could not fetch user data (Private profile or API error).',
+              );
         if (mounted)
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(msg), backgroundColor: Colors.red));
@@ -7392,7 +11043,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       }
 
       if (mounted) {
-        final String modeLabel = _lang == 'tr' ? "GİZLİ MOD" : "Secret Mode";
+        final String modeLabel =
+            localizeTrEn(_lang, "GİZLİ MOD", "Secret Mode");
 
         await Navigator.push(
             context,
@@ -7543,7 +11195,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       content: SingleChildScrollView(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(_t('legal_intro'),
+                                              Text(_t('legal_intro'),
             style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -7567,7 +11219,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 TextButton(
                   onPressed: _launchPrivacyPolicyURL,
                   child: Text(
-                    _lang == 'tr' ? "Gizlilik Politikası" : "Privacy Policy",
+                    _privacyPolicyLabel(),
                     style: TextStyle(
                         color: isDarkMode ? Colors.white70 : Colors.blueGrey,
                         fontSize: 11,
@@ -7605,7 +11257,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     ))
                 : TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(_lang == 'tr' ? "KAPAT" : "CLOSE")),
+                    child: Text(localizeTrEn(_lang, "KAPAT", "CLOSE"))),
           ],
         )
       ],
@@ -7616,7 +11268,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     return Padding(
         padding: const EdgeInsets.only(bottom: 15),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(_t(titleKey),
+                                              Text(_t(titleKey),
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: isDarkMode ? Colors.white : Colors.blueAccent,
@@ -7917,7 +11569,7 @@ class DetailListPage extends StatelessWidget {
             foregroundColor: isDark ? Colors.white : Colors.black),
         body: items.isEmpty
             ? Center(
-                child: Text(lang == 'tr' ? 'Veri yok' : 'No data',
+                child: Text(localizeTrEn(lang, 'Veri yok', 'No data'),
                     style: TextStyle(color: itemTextColor)))
             : ListView.builder(
                 itemCount: names.length,
@@ -7961,7 +11613,7 @@ class DetailListPage extends StatelessWidget {
                     },
                     leading: ClipOval(child: avatar),
                     title: Row(children: [
-                      Text(names[i],
+                                              Text(names[i],
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: itemTextColor)),
@@ -7973,7 +11625,7 @@ class DetailListPage extends StatelessWidget {
                             decoration: BoxDecoration(
                                 color: Colors.green,
                                 borderRadius: BorderRadius.circular(4)),
-                            child: Text(lang == 'tr' ? 'YENİ' : 'NEW',
+                            child: Text(localizeTrEn(lang, 'YENİ', 'NEW'),
                                 style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
@@ -8004,7 +11656,7 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
   void _showLoginError(String trText, String enText) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(widget.lang == 'tr' ? trText : enText),
+      content: Text(localizeTrEn(widget.lang, trText, enText)),
       backgroundColor: Colors.redAccent,
       duration: const Duration(seconds: 4),
     ));
@@ -8131,7 +11783,8 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
           "status": "success",
           "cookie": cookieString,
           "user_id": resolvedUserId.trim(),
-          "username": username ?? (widget.lang == 'tr' ? "Kullanıcı" : "User"),
+          "username":
+              username ?? (localizeTrEn(widget.lang, "Kullanıcı", "User")),
           "user_agent": userAgent
         });
     } catch (e) {
@@ -8148,7 +11801,7 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
     return Scaffold(
         backgroundColor: widget.isDark ? Colors.black : Colors.white,
         appBar: AppBar(
-            title: Text(widget.lang == 'tr' ? 'Giriş Yap' : 'Login'),
+            title: Text(localizeTrEn(widget.lang, 'Giriş Yap', 'Login')),
             backgroundColor:
                 widget.isDark ? const Color(0xFF121212) : Colors.white,
             foregroundColor: widget.isDark ? Colors.white : Colors.black),
@@ -8164,9 +11817,10 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                        widget.lang == 'tr'
-                            ? 'Oturum doğrulandı, yönlendiriliyorsunuz...'
-                            : 'Session verified, redirecting...',
+                        localizeTrEn(
+                            widget.lang,
+                            'Oturum doğrulandı, yönlendiriliyorsunuz...',
+                            'Session verified, redirecting...'),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: widget.isDark ? Colors.white : Colors.black87,
@@ -8176,3 +11830,5 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
             : WebViewWidget(controller: _controller));
   }
 }
+
+
