@@ -148,7 +148,6 @@ class TelemetryService {
         final AndroidDeviceInfo info = await _deviceInfo.androidInfo;
         _cachedDeviceFields = {
           'device_model': info.model,
-          'device_brand': info.brand,
         };
       } else if (Platform.isIOS) {
         final IosDeviceInfo info = await _deviceInfo.iosInfo;
@@ -210,6 +209,7 @@ class TelemetryService {
       'platform': FieldValue.delete(),
       'os_version': FieldValue.delete(),
       'device_manufacturer': FieldValue.delete(),
+      'device_brand': FieldValue.delete(),
       'last_analysis_duration_ms': FieldValue.delete(),
       'last_analysis_followers_count': FieldValue.delete(),
       'last_analysis_following_count': FieldValue.delete(),
@@ -224,6 +224,7 @@ class TelemetryService {
       'platform': FieldValue.delete(),
       'os_version': FieldValue.delete(),
       'device_manufacturer': FieldValue.delete(),
+      'device_brand': FieldValue.delete(),
     };
   }
 
