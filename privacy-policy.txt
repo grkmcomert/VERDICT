@@ -1,0 +1,112 @@
+English:
+
+PRIVACY POLICY FOR VERDICT
+This Privacy Policy explains how VERDICT ("we," "us," or "our"), developed by Görkem Ali Cömert, collects, uses, and discloses information about you when you use our mobile application (the "App"). By accessing or using the App, you agree to this Privacy Policy. If you do not agree with our policies and practices, your choice is not to use our App.
+
+1. Disclaimer regarding Affiliation
+VERDICT is an independent third-party application and is not affiliated with, endorsed, sponsored, or administered by, Instagram, Facebook, or Meta Platforms, Inc. "Instagram" is a trademark of Meta Platforms, Inc. We utilize the Instagram platform strictly to provide analysis services based on the data available to you as a user.
+
+2. The Information We Collect
+We operate on a strict "On-Device Processing" principle. This means the core functionality of the App relies on data stored locally on your device. We do not operate a backend server to harvest or store your personal social media credentials.
+A. Personal Data (Authentication): To perform follower analysis, you must log in to your Instagram account.
+How it works: The App uses a secure WebView (a browser component within the app) to direct you to Instagram’s official login page.
+Our Access: We DO NOT see, store, or transmit your password. Your session cookies and authentication tokens are stored strictly within the local secure storage of your device (e.g., Android SharedPreferences, iOS Keychain) to maintain your session.
+Server Storage: We DO NOT upload your login credentials or your follower lists to any external server owned by us.
+B. Usage and Device Information: We, and our third-party service providers (Google AdMob, Firebase), may automatically collect certain information about your device to improve app performance and serve advertisements. This may include:
+Device model and manufacturer
+Operating system version
+Network type (WiFi/Cellular)
+Advertising ID (AAID for Android / IDFA for iOS)
+Crash logs and performance data
+
+3. How We Use Your Information
+We use the information collected for the following purposes:
+To Provide Services: To compare your "Followers" and "Following" lists locally on your device to identify unfollowers, new followers, and fans.
+To Maintain the App: To use Firebase Remote Config to manage app updates, maintenance modes, and feature toggles.
+To Serve Ads: To display relevant advertisements via Google AdMob, which helps keep this App free to use.
+
+4. Third-Party Services and Data Sharing
+We do not sell your personal data. However, we use trusted third-party services that may collect information used to identify your device for advertising and analytics purposes. We advise you to review the privacy policies of these third-party service providers:
+Google AdMob: Privacy Policy
+Google Firebase: Privacy Policy
+5. Data Retention and Deletion
+Local Data: Since your follower data and session cookies are stored locally on your device, you have full control.
+Deletion: You can delete all data stored by the App at any time by:
+Logging out via the App settings.
+Clearing the App's "Storage/Cache" in your phone settings.
+Uninstalling the App. Once uninstalled, no trace of your data remains with us.
+
+6. Security
+We strive to use commercially acceptable means to protect your Personal Information. By processing data locally and using standard encryption for local storage, we minimize the risk of data breaches. However, no method of transmission over the internet is 100% secure.
+
+7. Children’s Privacy
+Our Services do not address anyone under the age of 13. We do not knowingly collect personally identifiable information from children under 13.
+
+8. Changes to This Privacy Policy
+We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page. These changes are effective immediately after they are posted.
+
+9. Contact Us
+If you have any questions or suggestions, do not hesitate to contact us.
+
+Developer: Görkem Ali Cömert
+Contact: via Instagram @grkmcomert
+
+
+
+---------------------------------------------------------------------------------------------------------
+
+
+
+
+Turkish:
+
+VERDICT GİZLİLİK POLİTİKASI
+Bu Gizlilik Politikası, Görkem Ali Cömert tarafından geliştirilen VERDICT ("biz", "bize" veya "bizim") mobil uygulamasını kullandığınızda bilgilerinizin nasıl toplandığını açıklar. Uygulamaya erişerek veya kullanarak, bu Gizlilik Politikasını kabul etmiş olursunuz.
+
+1. Bağımsızlık Bildirimi ve Yasal Uyarı
+VERDICT, bağımsız bir üçüncü taraf uygulamasıdır ve Instagram, Facebook veya Meta Platforms, Inc. ile bağlantılı değildir. "Instagram", Meta Platforms, Inc. şirketinin ticari markasıdır. Biz, Instagram platformunu yalnızca bir kullanıcı olarak erişebildiğiniz veriler üzerinden analiz sağlamak amacıyla kullanmaktayız.
+
+2. Topladığımız Bilgiler
+Kati bir "Cihaz Üzerinde İşlem" (On-Device Processing) prensibiyle çalışıyoruz. Kişisel sosyal medya kimlik bilgilerinizi toplamak veya saklamak için bir sunucu işletmiyoruz.
+A. Kişisel Veriler (Kimlik Doğrulama): Takipçi analizi yapmak için Instagram hesabınıza giriş yapmanız gerekmektedir.
+Nasıl çalışır: Uygulama, sizi Instagram'ın resmi giriş sayfasına yönlendirmek için güvenli bir WebView kullanır.
+Erişimimiz: Şifrenizi GÖRMÜYORUZ, SAKLAMIYORUZ veya İLETMİYORUZ. Oturum çerezleriniz ve anahtarlarınız yalnızca cihazınızın yerel güvenli depolama alanında saklanır.
+Sunucu Depolaması: Giriş bilgilerinizi veya listelerinizi bize ait herhangi bir harici sunucuya YÜKLEMİYORUZ.
+B. Kullanım ve Cihaz Bilgileri: Google AdMob ve Firebase, uygulama performansını artırmak ve reklam sunmak amacıyla şu bilgileri toplayabilir:
+Cihaz modeli ve üreticisi
+İşletim sistemi sürümü
+Ağ türü (WiFi/Hücresel)
+Reklam Kimliği (Android için AAID / iOS için IDFA)
+Çökme günlükleri ve performans verileri
+
+3. Bilgilerinizi Nasıl Kullanıyoruz
+Hizmet Sağlamak İçin: Takipten çıkanları ve yeni takipçileri belirlemek amacıyla listeleri cihazınızda yerel olarak karşılaştırmak için.
+Uygulamayı Sürdürmek İçin: Güncellemeleri ve özellik geçişlerini yönetmek amacıyla Firebase Remote Config kullanmak için.
+Reklam Sunmak İçin: Uygulamanın ücretsiz kalmasına yardımcı olan Google AdMob aracılığıyla reklam göstermek için.
+
+4. Üçüncü Taraf Hizmetleri ve Veri Paylaşımı
+Kişisel verilerinizi satmıyoruz. Ancak, üçüncü taraf hizmet sağlayıcılarının politikalarını incelemenizi öneririz:
+Google AdMob: Gizlilik Politikası
+Google Firebase: Gizlilik Politikası
+
+5. Veri Saklama ve Silme
+Yerel Veriler: Veriler yerel olarak cihazınızda saklandığı için tam kontrol sizdedir.
+Silme: Verileri şu yollarla silebilirsiniz:
+Uygulama ayarlarından çıkış yaparak.
+Telefon ayarlarından Uygulamanın verilerini temizleyerek.
+Uygulamayı kaldırarak. Uygulama kaldırıldığında bizde verilerinize ait hiçbir iz kalmaz.
+
+6. Güvenlik
+Kişisel Bilgilerinizi korumak için ticari olarak kabul edilebilir yöntemleri kullanmaya gayret ediyoruz. Ancak, internet üzerinden hiçbir iletim yönteminin %100 güvenli olmadığını unutmayın.
+
+7. Çocukların Gizliliği
+Hizmetlerimiz 13 yaşın altındaki kimselere hitap etmemektedir. 13 yaşın altındaki çocuklardan bilerek bilgi toplamıyoruz.
+
+8. Bu Gizlilik Politikasındaki Değişiklikler
+Gizlilik Politikamızı zaman zaman güncelleyebiliriz. Yeni Gizlilik Politikasını bu sayfada yayınlayarak sizi haberdar edeceğiz. Bu değişiklikler yayınlandığı an geçerli olur.
+
+9. İletişim
+Gizlilik Politikamızla ilgili sorularınız için bizimle iletişime geçin:
+
+Geliştirici: Görkem Ali Cömert
+İletişim: Instagram üzerinden @grkmcomert
