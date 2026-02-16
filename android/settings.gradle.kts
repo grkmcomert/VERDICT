@@ -3,9 +3,15 @@ pluginManagement {
         run {
             val properties = java.util.Properties()
             file("local.properties").reader(Charsets.UTF_8).use { properties.load(it) }
-            val flutterSdkPath = properties.getProperty("flutter.sdk")
-            require(flutterSdkPath != null) { "flutter.sdk not set in local.properties" }
-            flutterSdkPath
+            val configuredPath = properties.getProperty("flutter.sdk")
+            require(configuredPath != null) { "flutter.sdk not set in local.properties" }
+            try {
+                val decoded =
+                    String(configuredPath.toByteArray(Charsets.ISO_8859_1), Charsets.UTF_8)
+                if (decoded.contains('\uFFFD')) configuredPath else decoded
+            } catch (_: Exception) {
+                configuredPath
+            }
         }
 
     includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
