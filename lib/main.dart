@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
@@ -1260,20 +1260,30 @@ String _localizeDidYouKnowFact(String lang, Map<String, String> fact) {
   return en;
 }
 
-class _ModernLoaderState extends State<ModernLoader> {
+class _ModernLoaderState extends State<ModernLoader>
+    with SingleTickerProviderStateMixin {
   final Random _factRand = Random();
   Timer? _factTimer;
   int _factIndex = 0;
+  late final AnimationController _mascotTicker;
 
   @override
   void initState() {
     super.initState();
+    _mascotTicker = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 920),
+    );
+    if (widget.progress != null) {
+      _mascotTicker.repeat();
+    }
     _startFactRotationIfNeeded();
   }
 
   @override
   void dispose() {
     _factTimer?.cancel();
+    _mascotTicker.dispose();
     super.dispose();
   }
 
@@ -1282,9 +1292,16 @@ class _ModernLoaderState extends State<ModernLoader> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.progress == null && widget.progress != null) {
       _startFactRotationIfNeeded();
+      if (!_mascotTicker.isAnimating) {
+        _mascotTicker.repeat();
+      }
     } else if (oldWidget.progress != null && widget.progress == null) {
       _factTimer?.cancel();
       _factTimer = null;
+      _mascotTicker.stop();
+      _mascotTicker.value = 0;
+    } else if (widget.progress != null && !_mascotTicker.isAnimating) {
+      _mascotTicker.repeat();
     }
   }
 
@@ -1403,13 +1420,15 @@ class _ModernLoaderState extends State<ModernLoader> {
   Widget _buildRunningMascot({
     required double progress,
     required Color accent,
+    required double motionPhase,
   }) {
     final double clamped = progress.clamp(0.0, 1.0);
     const double barHeight = 8;
-    const double catWidth = 40;
-    const double catHeight = 42;
+    const double mascotWidth = 40;
+    const double mascotHeight = 42;
     const double totalHeight = 62;
     const double barTop = 48;
+    const double mascotLift = 4;
     final Color catBase =
         widget.isDark ? const Color(0xFFF3F4F6) : const Color(0xFF111827);
 
@@ -1422,9 +1441,9 @@ class _ModernLoaderState extends State<ModernLoader> {
         builder: (context, animatedProgress, _) {
           final double p = animatedProgress.clamp(0.0, 1.0);
           return LayoutBuilder(builder: (context, constraints) {
-            final double maxX = max(0.0, constraints.maxWidth - catWidth);
+            final double maxX = max(0.0, constraints.maxWidth - mascotWidth);
             final double x = (maxX * p).clamp(0.0, maxX);
-            final double phase = (p * 16.0) % 1.0;
+            final double phase = ((p * 10.0) + (motionPhase * 1.8)) % 1.0;
             final double bob = -1.1 * sin(phase * 2 * pi);
             final double tilt = 0.028 * sin(phase * 2 * pi);
 
@@ -1491,7 +1510,7 @@ class _ModernLoaderState extends State<ModernLoader> {
                       painter: _ProgressTrailParticlesPainter(
                         progress: p,
                         phase: phase,
-                        catCenterX: x + (catWidth * 0.5),
+                        catCenterX: x + (mascotWidth * 0.5),
                         barTop: barTop,
                         barHeight: barHeight,
                         accentColor: accent,
@@ -1502,14 +1521,14 @@ class _ModernLoaderState extends State<ModernLoader> {
                 ),
                 Positioned(
                   left: x,
-                  top: barTop - catHeight + 1,
+                  top: barTop - mascotHeight - mascotLift,
                   child: Transform.translate(
                     offset: Offset(0, bob),
                     child: Transform.rotate(
                       angle: tilt,
                       child: CustomPaint(
-                        size: const Size(catWidth, catHeight),
-                        painter: _CatWalkerPainter(
+                        size: const Size(mascotWidth, mascotHeight),
+                        painter: _ChibiBuddyPainter(
                           phase: phase,
                           baseColor: catBase,
                           accentColor: accent,
@@ -1585,7 +1604,14 @@ class _ModernLoaderState extends State<ModernLoader> {
                     widget.isDark ? Colors.blueAccent : Colors.blue;
                 return Column(
                   children: [
-                    _buildRunningMascot(progress: value, accent: accent),
+                    AnimatedBuilder(
+                      animation: _mascotTicker,
+                      builder: (context, _) => _buildRunningMascot(
+                        progress: value,
+                        accent: accent,
+                        motionPhase: _mascotTicker.value,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Text(
                       "%$percent",
@@ -1631,23 +1657,28 @@ class _ProgressTrailParticlesPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (progress <= 0.0) return;
 
-    // Keep particles tighter and above the bar center so they stay distinct
-    // from the percentage label while remaining clearly visible.
-    final double centerY = barTop + (barHeight * 0.5) - 6.0;
+    // Move particles slightly upward and keep them behind the mascot.
+    final double centerY = barTop + (barHeight * 0.5) - 11.0;
     final double trailLength = min(catCenterX, 150.0);
     if (trailLength < 3) return;
 
     final double startX = max(0.0, catCenterX - trailLength);
     final Rect streakRect =
         Rect.fromLTWH(startX, centerY - 2.8, trailLength, 5.6);
+    final Color trailBlue = const Color(0xFF60A5FA);
+    final Color trailViolet = const Color(0xFFA78BFA);
+    final Color trailPink = const Color(0xFFF472B6);
+    final Color trailMint = const Color(0xFF34D399);
     final Paint streak = Paint()
       ..shader = LinearGradient(
         colors: [
-          accentColor.withOpacity(0.0),
-          accentColor.withOpacity(isDark ? 0.40 : 0.30),
-          accentColor.withOpacity(isDark ? 0.75 : 0.58),
+          trailBlue.withOpacity(0.0),
+          trailBlue.withOpacity(isDark ? 0.46 : 0.34),
+          trailViolet.withOpacity(isDark ? 0.68 : 0.54),
+          trailPink.withOpacity(isDark ? 0.72 : 0.58),
+          trailMint.withOpacity(isDark ? 0.66 : 0.50),
         ],
-        stops: const [0.0, 0.58, 1.0],
+        stops: const [0.0, 0.30, 0.58, 0.80, 1.0],
         begin: Alignment.centerLeft,
         end: Alignment.centerRight,
       ).createShader(streakRect);
@@ -1661,9 +1692,9 @@ class _ProgressTrailParticlesPainter extends CustomPainter {
     final Paint glow = Paint()
       ..shader = LinearGradient(
         colors: [
-          accentColor.withOpacity(0.0),
-          accentColor.withOpacity(isDark ? 0.24 : 0.16),
-          accentColor.withOpacity(isDark ? 0.46 : 0.34),
+          trailBlue.withOpacity(0.0),
+          trailViolet.withOpacity(isDark ? 0.24 : 0.16),
+          trailPink.withOpacity(isDark ? 0.42 : 0.30),
         ],
         begin: Alignment.centerLeft,
         end: Alignment.centerRight,
@@ -1687,10 +1718,17 @@ class _ProgressTrailParticlesPainter extends CustomPainter {
 
       final double opacity =
           (1.0 - life) * (1.0 - life) * (isDark ? 0.95 : 0.80);
+      final double hue = ((phase * 360.0) + (i * 17.0)) % 360.0;
+      final Color rainbow = HSVColor.fromAHSV(
+        1.0,
+        hue,
+        isDark ? 0.74 : 0.82,
+        isDark ? 0.98 : 0.94,
+      ).toColor();
       final Color particleColor = Color.lerp(
-        accentColor,
+        rainbow,
         Colors.white,
-        0.38 + (0.12 * sin((i + 1) * 0.67).abs()),
+        0.26 + (0.16 * sin((i + 1) * 0.67).abs()),
       )!
           .withOpacity(opacity);
 
@@ -1698,6 +1736,15 @@ class _ProgressTrailParticlesPainter extends CustomPainter {
         ..color = particleColor
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, i.isEven ? 2.9 : 2.2);
       canvas.drawCircle(Offset(x, y), radius, particle);
+
+      if (i % 7 == 0) {
+        final Paint sparkle = Paint()
+          ..color = particleColor.withOpacity(opacity * 0.80)
+          ..strokeWidth = 0.9
+          ..strokeCap = StrokeCap.round;
+        canvas.drawLine(Offset(x - 1.6, y), Offset(x + 1.6, y), sparkle);
+        canvas.drawLine(Offset(x, y - 1.6), Offset(x, y + 1.6), sparkle);
+      }
     }
   }
 
@@ -1713,13 +1760,13 @@ class _ProgressTrailParticlesPainter extends CustomPainter {
   }
 }
 
-class _CatWalkerPainter extends CustomPainter {
+class _ChibiBuddyPainter extends CustomPainter {
   final double phase;
   final Color baseColor;
   final Color accentColor;
   final bool isDark;
 
-  const _CatWalkerPainter({
+  const _ChibiBuddyPainter({
     required this.phase,
     required this.baseColor,
     required this.accentColor,
@@ -1734,6 +1781,7 @@ class _CatWalkerPainter extends CustomPainter {
     final double h = size.height;
     final double t = phase % 1.0;
     final double walk = sin(t * 2 * pi);
+    final double bounce = sin((t * 2 * pi) + (pi / 2));
     final double groundY = h - 4.0;
 
     final Color dark = _mix(baseColor, Colors.black, isDark ? 0.06 : 0.18);
@@ -1756,26 +1804,34 @@ class _CatWalkerPainter extends CustomPainter {
       shadowPaint,
     );
 
-    final Rect torsoRect = Rect.fromCenter(
-      center: Offset(w * 0.50, h * 0.60),
-      width: 12.2,
-      height: 15.2,
+    final Rect bodyRect = Rect.fromCenter(
+      center: Offset(w * 0.50, h * 0.62),
+      width: 13.8,
+      height: 15.8,
     );
-    final RRect torso =
-        RRect.fromRectAndRadius(torsoRect, const Radius.circular(6.8));
-    final Paint torsoPaint = Paint()
+    final RRect body =
+        RRect.fromRectAndRadius(bodyRect, const Radius.circular(7.8));
+    final Paint bodyPaint = Paint()
       ..shader = LinearGradient(
         colors: [light, dark],
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-      ).createShader(torsoRect);
-    canvas.drawRRect(torso, torsoPaint);
-    canvas.drawRRect(torso, outline);
+      ).createShader(bodyRect);
+    canvas.drawRRect(body, bodyPaint);
+    canvas.drawRRect(body, outline);
 
-    final Offset headCenter = Offset(w * 0.53, 10.2);
-    const double headRadius = 7.2;
-    final Rect headRect =
-        Rect.fromCircle(center: headCenter, radius: headRadius);
+    final Rect bellyRect = Rect.fromCenter(
+      center: Offset(bodyRect.center.dx, bodyRect.center.dy + 1.6),
+      width: 8.8,
+      height: 7.8,
+    );
+    final Paint bellyPaint =
+        Paint()..color = Colors.white.withOpacity(isDark ? 0.18 : 0.26);
+    canvas.drawOval(bellyRect, bellyPaint);
+
+    final Offset headCenter = Offset((w * 0.50) + 0.55, 11.6 + (bounce * 0.28));
+    const double headRadius = 8.0;
+    final Rect headRect = Rect.fromCircle(center: headCenter, radius: headRadius);
     final Paint headPaint = Paint()
       ..shader = LinearGradient(
         colors: [
@@ -1788,63 +1844,110 @@ class _CatWalkerPainter extends CustomPainter {
     canvas.drawCircle(headCenter, headRadius, headPaint);
     canvas.drawCircle(headCenter, headRadius, outline);
 
-    final Path leftEar = Path()
-      ..moveTo(headCenter.dx - 5.1, headCenter.dy - 4.2)
-      ..lineTo(headCenter.dx - 2.8, headCenter.dy - 9.8)
-      ..lineTo(headCenter.dx - 0.9, headCenter.dy - 4.2)
-      ..close();
-    final Path rightEar = Path()
-      ..moveTo(headCenter.dx + 0.9, headCenter.dy - 4.2)
-      ..lineTo(headCenter.dx + 2.8, headCenter.dy - 9.8)
-      ..lineTo(headCenter.dx + 5.1, headCenter.dy - 4.2)
-      ..close();
-    canvas.drawPath(leftEar, headPaint);
-    canvas.drawPath(rightEar, headPaint);
-    canvas.drawPath(leftEar, outline);
-    canvas.drawPath(rightEar, outline);
-
-    final Paint nearEye = Paint()
-      ..color = _mix(baseColor, Colors.white, isDark ? 0.14 : 0.07);
-    final Paint farEye = Paint()
-      ..color = _mix(baseColor, Colors.white, isDark ? 0.09 : 0.04);
+    final Paint earPaint = Paint()..color = _mix(baseColor, Colors.white, 0.06);
     canvas.drawCircle(
-        Offset(headCenter.dx + 2.0, headCenter.dy - 0.4), 1.0, nearEye);
-    canvas.drawCircle(
-        Offset(headCenter.dx + 0.2, headCenter.dy - 0.6), 0.56, farEye);
-
-    final Rect snoutRect = Rect.fromCenter(
-      center: Offset(headCenter.dx + 4.6, headCenter.dy + 1.2),
-      width: 4.9,
-      height: 4.2,
+      Offset(headCenter.dx - 5.7, headCenter.dy - 5.8),
+      2.45,
+      earPaint,
     );
-    final Paint snoutPaint = Paint()..color = _mix(light, Colors.white, 0.15);
-    canvas.drawOval(snoutRect, snoutPaint);
-    canvas.drawOval(snoutRect, outline);
+    canvas.drawCircle(
+      Offset(headCenter.dx + 6.0, headCenter.dy - 5.7),
+      3.0,
+      earPaint,
+    );
+    canvas.drawCircle(
+      Offset(headCenter.dx - 5.7, headCenter.dy - 5.8),
+      2.45,
+      outline,
+    );
+    canvas.drawCircle(
+      Offset(headCenter.dx + 6.0, headCenter.dy - 5.7),
+      3.0,
+      outline,
+    );
 
-    final Paint nose = Paint()
-      ..color = _mix(accentColor, Colors.white, 0.22).withOpacity(0.85);
-    final Path nosePath = Path()
-      ..moveTo(headCenter.dx + 5.2, headCenter.dy + 1.3)
-      ..lineTo(headCenter.dx + 4.2, headCenter.dy + 2.2)
-      ..lineTo(headCenter.dx + 5.8, headCenter.dy + 2.2)
-      ..close();
-    canvas.drawPath(nosePath, nose);
+    final Paint eyePaint = Paint()
+      ..color = _mix(baseColor, Colors.white, isDark ? 0.20 : 0.10);
+    const double gazeShift = 1.15;
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(
+          headCenter.dx - 2.9 + gazeShift,
+          headCenter.dy - 0.75,
+        ),
+        width: 2.0,
+        height: 2.8,
+      ),
+      eyePaint,
+    );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(
+          headCenter.dx + 2.2 + gazeShift,
+          headCenter.dy - 0.7,
+        ),
+        width: 2.25,
+        height: 2.95,
+      ),
+      eyePaint,
+    );
+    final Paint eyeShine = Paint()..color = Colors.white.withOpacity(0.9);
+    canvas.drawCircle(
+      Offset(headCenter.dx - 2.4 + gazeShift, headCenter.dy - 1.45),
+      0.42,
+      eyeShine,
+    );
+    canvas.drawCircle(
+      Offset(headCenter.dx + 2.7 + gazeShift, headCenter.dy - 1.4),
+      0.48,
+      eyeShine,
+    );
 
-    final Paint whiskerPaint = Paint()
-      ..color = Colors.black.withOpacity(isDark ? 0.30 : 0.16)
+    final Paint cheekPaint =
+        Paint()..color = const Color(0xFFFF7AB6).withOpacity(isDark ? 0.55 : 0.45);
+    canvas.drawCircle(
+      Offset(headCenter.dx - 4.3, headCenter.dy + 1.6),
+      1.05,
+      cheekPaint,
+    );
+    canvas.drawCircle(
+      Offset(headCenter.dx + 4.9, headCenter.dy + 1.7),
+      1.35,
+      cheekPaint,
+    );
+
+    final Paint nosePaint = Paint()
+      ..color = _mix(const Color(0xFFFF7AB6), Colors.white, 0.24);
+    final Offset nose = Offset(headCenter.dx + 0.85, headCenter.dy + 0.95);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: nose, width: 1.35, height: 0.95),
+        const Radius.circular(999),
+      ),
+      nosePaint,
+    );
+
+    final Paint smilePaint = Paint()
+      ..color = Colors.black.withOpacity(isDark ? 0.34 : 0.20)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.55
+      ..strokeWidth = 0.9
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(
-      Offset(headCenter.dx + 5.8, headCenter.dy + 1.6),
-      Offset(headCenter.dx + 8.2, headCenter.dy + 0.8),
-      whiskerPaint,
-    );
-    canvas.drawLine(
-      Offset(headCenter.dx + 5.7, headCenter.dy + 2.2),
-      Offset(headCenter.dx + 8.4, headCenter.dy + 2.2),
-      whiskerPaint,
-    );
+    final Path smile = Path()
+      ..moveTo(headCenter.dx - 1.1, headCenter.dy + 2.2)
+      ..quadraticBezierTo(
+        headCenter.dx + 0.8,
+        headCenter.dy + 3.15 + (0.18 * walk.abs()),
+        headCenter.dx + 2.0,
+        headCenter.dy + 2.2,
+      );
+    canvas.drawPath(smile, smilePaint);
+
+    final Paint starPaint =
+        Paint()..color = accentColor.withOpacity(0.92);
+    final Offset starC = Offset(headCenter.dx, headCenter.dy - 4.7);
+    canvas.drawCircle(starC, 0.9, starPaint);
+    canvas.drawLine(Offset(starC.dx - 1.6, starC.dy), Offset(starC.dx + 1.6, starC.dy), starPaint..strokeWidth = 0.7);
+    canvas.drawLine(Offset(starC.dx, starC.dy - 1.6), Offset(starC.dx, starC.dy + 1.6), starPaint);
 
     final double armSwing = 1.9 * sin(t * 2 * pi);
     final Paint limbPaint = Paint()
@@ -1859,13 +1962,13 @@ class _CatWalkerPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final Offset shoulderLeft =
-        Offset(torsoRect.left + 0.7, torsoRect.top + 3.8);
+        Offset(bodyRect.left + 0.7, bodyRect.top + 3.8);
     final Offset shoulderRight =
-        Offset(torsoRect.right - 0.7, torsoRect.top + 3.8);
+        Offset(bodyRect.right - 0.7, bodyRect.top + 3.8);
     final Offset handLeft =
-        Offset(shoulderLeft.dx - 1.4, torsoRect.center.dy + 2.0 + armSwing);
+        Offset(shoulderLeft.dx - 1.4, bodyRect.center.dy + 2.0 + armSwing);
     final Offset handRight =
-        Offset(shoulderRight.dx + 1.4, torsoRect.center.dy + 2.0 - armSwing);
+        Offset(shoulderRight.dx + 1.4, bodyRect.center.dy + 2.0 - armSwing);
     canvas.drawLine(shoulderLeft, handLeft, limbPaint);
     canvas.drawLine(shoulderRight, handRight, limbPaint);
     canvas.drawLine(shoulderLeft, handLeft, limbOutline);
@@ -1873,7 +1976,7 @@ class _CatWalkerPainter extends CustomPainter {
 
     final double leftLift = max(0.0, walk);
     final double rightLift = max(0.0, -walk);
-    final double hipY = torsoRect.bottom - 0.8;
+    final double hipY = bodyRect.bottom - 0.8;
     final Offset hipLeft = Offset(w * 0.50 - 3.4, hipY);
     final Offset hipRight = Offset(w * 0.50 + 3.4, hipY);
     final Offset footLeft = Offset(w * 0.50 - 3.9, groundY - (leftLift * 3.2));
@@ -1901,32 +2004,12 @@ class _CatWalkerPainter extends CustomPainter {
       shoePaint,
     );
 
-    final double tailSwing = 2.1 * sin((t * 2 * pi) + (pi / 2));
-    final Offset tailBase =
-        Offset(torsoRect.left + 0.4, torsoRect.center.dy + 1.2);
-    final Path tail = Path()
-      ..moveTo(tailBase.dx, tailBase.dy)
-      ..quadraticBezierTo(
-        tailBase.dx - 7.5,
-        tailBase.dy - 4.2 + tailSwing,
-        tailBase.dx - 5.4,
-        tailBase.dy - 8.2 + tailSwing,
-      );
-    final Paint tailPaint = Paint()
-      ..color = baseColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.8
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    canvas.drawPath(tail, tailPaint);
-    canvas.drawPath(tail, limbOutline);
-
     final double collarPulse = 0.34 + (0.14 * (0.5 + 0.5 * walk));
     final Paint collar = Paint()..color = accentColor.withOpacity(collarPulse);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromCenter(
-          center: Offset(w * 0.50, torsoRect.top + 1.7),
+          center: Offset(w * 0.50, bodyRect.top + 1.7),
           width: 8.7,
           height: 2.0,
         ),
@@ -1937,7 +2020,7 @@ class _CatWalkerPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _CatWalkerPainter oldDelegate) {
+  bool shouldRepaint(covariant _ChibiBuddyPainter oldDelegate) {
     return oldDelegate.phase != phase ||
         oldDelegate.baseColor != baseColor ||
         oldDelegate.accentColor != accentColor ||
@@ -2612,7 +2695,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Hikayeleri gizlice izle veya profil fotoğraflarını büyüt',
       'story_login_required':
-          'Hikayeleri gizlice izleyebilmemiz için geçerli bir Instagram oturumu gerekiyor. Giriş yaptıktan sonra da bu uyarıyı görüyorsanız Instagram hesabınızdan çıkış yapıp tekrar giriş yapın.',
+          'Hikayeleri gizlice izleyebilmek ve profil fotoğraflarını büyütmek için lütfen giriş yapınız.',
       'story_ad_wait': 'Reklamdan sonra gösterilecek. Lütfen bekleyin.',
       'story_action_title': 'Ne yapmak istersiniz?',
       'story_view_photo': 'Profil fotoğrafını büyüt',
@@ -2716,7 +2799,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'Remove Ads & Wait Times',
       'rate_test_message': 'This box is currently under test.',
       'story_section_title': 'Watch Stories Secretly or Zoom Profile Photos',
-      'story_login_required': 'A valid Instagram login is required to view stories privately. If you are already logged in and still see this warning, log out of Instagram and log in again.',
+      'story_login_required': 'Please log in to watch stories secretly and enlarge profile photos.',
       'story_ad_wait': 'Will be shown after the ad, please wait.',
       'story_action_title': 'What would you like to do?',
       'story_view_photo': 'Enlarge profile photo',
@@ -2835,7 +2918,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Stories heimlich ansehen oder Profilfotos vergrößern',
       'story_login_required':
-          'Zum anonymen Ansehen von Stories ist eine gültige Instagram-Anmeldung erforderlich. Wenn du bereits eingeloggt bist und diese Warnung weiter siehst, melde dich bei Instagram ab und wieder an.',
+          'Bitte melde dich an, um Stories anonym anzusehen und Profilfotos zu vergrößern.',
       'story_ad_wait': 'Wird nach der Werbung angezeigt, bitte warten.',
       'story_action_title': 'Was möchtest du tun?',
       'story_view_photo': 'Profilfoto vergrößern',
@@ -2919,7 +3002,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           '스토리를 몰래 보거나 프로필 사진 확대하기',
       'story_login_required':
-          '스토리를 익명으로 보려면 유효한 Instagram 로그인 세션이 필요합니다. 이미 로그인했는데도 이 안내가 계속 보이면 Instagram에서 로그아웃한 뒤 다시 로그인해 주세요.',
+          '스토리를 익명으로 보고 프로필 사진을 확대하려면 로그인해 주세요.',
       'story_ad_wait':
           '광고 후 표시됩니다. 잠시만 기다려 주세요.',
       'story_action_title': '무엇을 하시겠어요?',
@@ -3006,7 +3089,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'ストーリーをこっそり見る / プロフィール写真を拡大',
       'story_login_required':
-          'ストーリーを匿名で表示するには、有効なInstagramログインセッションが必要です。すでにログイン済みでもこの案内が出る場合は、Instagramで一度ログアウトしてから再ログインしてください。',
+          'ストーリーを匿名で見たり、プロフィール写真を拡大したりするにはログインしてください。',
       'story_ad_wait':
           '広告の後に表示されます。しばらくお待ちください。',
       'story_action_title': '何をしますか？',
@@ -3102,7 +3185,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Смотреть сторис анонимно или увеличивать фото профиля',
       'story_login_required':
-          'Чтобы смотреть сторис анонимно, нужен действующий вход в Instagram. Если вы уже вошли, но это сообщение не исчезает, выйдите из Instagram и войдите снова.',
+          'Пожалуйста, войдите, чтобы анонимно смотреть сторис и увеличивать фото профиля.',
       'story_ad_wait':
           'Появится после рекламы, пожалуйста, подождите.',
       'story_action_title': 'Что вы хотите сделать?',
@@ -3181,7 +3264,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'analysis_failed_hint': 'Dica: sair e entrar novamente pode ajudar.',
       'story_section_title':
           'Veja stories em segredo ou amplie fotos de perfil',
-      'story_login_required': 'Para ver stories de forma anônima, é necessário um login válido no Instagram. Se você já entrou e este aviso continua, saia do Instagram e entre novamente.',
+      'story_login_required': 'Faça login para ver stories anonimamente e ampliar fotos de perfil.',
       'story_ad_wait': 'Será exibido após o anúncio. Aguarde.',
       'story_action_title': 'O que você deseja fazer?',
       'story_view_photo': 'Ampliar foto de perfil',
@@ -3269,7 +3352,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'شاهد القصص بشكل مخفي أو كبّر صور الملف الشخصي',
       'story_login_required':
-          'لمشاهدة القصص بشكل سري، يلزم تسجيل دخول صالح في Instagram. إذا كنت مسجلا بالفعل وما زال هذا التنبيه يظهر، سجل الخروج من Instagram ثم سجل الدخول مرة أخرى.',
+          'يرجى تسجيل الدخول لمشاهدة القصص بشكل سري وتكبير صور الملف الشخصي.',
       'story_ad_wait':
           'سيتم العرض بعد الإعلان، يرجى الانتظار.',
       'story_action_title': 'ماذا تريد أن تفعل؟',
@@ -3353,7 +3436,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Ver historias en secreto o hacer zoom en las fotos del perfil",
       "story_login_required":
-          "Para ver historias en modo anónimo necesitas una sesión válida de Instagram. Si ya iniciaste sesión y este aviso sigue apareciendo, cierra sesión en Instagram y vuelve a iniciar sesión.",
+          "Inicia sesión para ver historias en modo anónimo y ampliar fotos de perfil.",
       "story_ad_wait": "Se mostrar\u00e1 despu\u00e9s del anuncio, espere.",
       "story_action_title": "\u00bfQu\u00e9 te gustar\u00eda hacer?",
       "story_view_photo": "Ampliar foto de perfil",
@@ -3470,7 +3553,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Ver historias en secreto o hacer zoom en las fotos del perfil",
       "story_login_required":
-          "Para ver historias en modo anónimo necesitas una sesión válida de Instagram. Si ya iniciaste sesión y este aviso sigue apareciendo, cierra sesión en Instagram y vuelve a iniciar sesión.",
+          "Inicia sesión para ver historias en modo anónimo y ampliar fotos de perfil.",
       "story_ad_wait": "Se mostrar\u00e1 despu\u00e9s del anuncio, espere.",
       "story_action_title": "\u00bfQu\u00e9 te gustar\u00eda hacer?",
       "story_view_photo": "Ampliar foto de perfil",
@@ -3614,7 +3697,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "\u0917\u0941\u092a\u094d\u0924 \u0930\u0942\u092a \u0938\u0947 \u0915\u0939\u093e\u0928\u093f\u092f\u093e\u0902 \u0926\u0947\u0916\u0947\u0902 \u092f\u093e \u092a\u094d\u0930\u094b\u092b\u093c\u093e\u0907\u0932 \u092b\u093c\u094b\u091f\u094b \u091c\u093c\u0942\u092e \u0915\u0930\u0947\u0902",
       "story_login_required":
-          "स्टोरी को गुप्त रूप से देखने के लिए Instagram में मान्य लॉगिन सत्र जरूरी है। यदि आपने पहले से लॉगिन किया है और यह संदेश फिर भी दिख रहा है, तो Instagram से लॉगआउट करके दोबारा लॉगिन करें।",
+          "स्टोरी को गुप्त रूप से देखने और प्रोफ़ाइल फोटो बड़ा करने के लिए कृपया लॉगिन करें।",
       "story_ad_wait":
           "\u0935\u093f\u091c\u094d\u091e\u093e\u092a\u0928 \u0915\u0947 \u092c\u093e\u0926 \u0926\u093f\u0916\u093e\u092f\u093e \u091c\u093e\u090f\u0917\u093e, \u0915\u0943\u092a\u092f\u093e \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e \u0915\u0930\u0947\u0902\u0964",
       "story_action_title":
@@ -3761,7 +3844,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "N\u00e9zze meg a t\u00f6rt\u00e9neteket titokban vagy nagy\u00edtsa ki a profilfot\u00f3kat",
       "story_login_required":
-          "A történetek névtelen megtekintéséhez érvényes Instagram-bejelentkezés szükséges. Ha már be vagy jelentkezve, de ez az üzenet továbbra is megjelenik, jelentkezz ki az Instagramból, majd jelentkezz be újra.",
+          "Kérjük, jelentkezz be a történetek névtelen megtekintéséhez és a profilképek nagyításához.",
       "story_ad_wait":
           "A hirdet\u00e9s ut\u00e1n jelenik meg, k\u00e9rj\u00fck, v\u00e1rjon.",
       "story_action_title": "Mit szeretn\u00e9l csin\u00e1lni?",
@@ -3889,7 +3972,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "\u79d8\u5bc6\u89c2\u770b\u6545\u4e8b\u6216\u7f29\u653e\u4e2a\u4eba\u8d44\u6599\u7167\u7247",
       "story_login_required":
-          "要匿名查看动态，需要有效的 Instagram 登录会话。如果你已经登录但仍看到此提示，请先退出 Instagram，再重新登录。",
+          "请登录以匿名查看动态并放大头像照片。",
       "story_ad_wait":
           "\u5c06\u5728\u5e7f\u544a\u540e\u663e\u793a\uff0c\u8bf7\u7a0d\u5019\u3002",
       "story_action_title": "\u4f60\u60f3\u505a\u4ec0\u4e48\uff1f",
@@ -4012,7 +4095,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Tonton Cerita Secara Diam-diam atau Zoom Foto Profil",
       "story_login_required":
-          "Untuk melihat story secara anonim, diperlukan sesi login Instagram yang valid. Jika Anda sudah login tetapi peringatan ini masih muncul, keluar dari Instagram lalu masuk kembali.",
+          "Silakan masuk untuk melihat story secara anonim dan memperbesar foto profil.",
       "story_ad_wait": "Akan ditampilkan setelah iklan, harap tunggu.",
       "story_action_title": "Apa yang ingin Anda lakukan?",
       "story_view_photo": "Perbesar foto profil",
@@ -4125,7 +4208,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "rate_test_message": "Deze box wordt momenteel getest.",
       "story_section_title":
           "Bekijk verhalen in het geheim of zoom in op profielfoto's",
-      "story_login_required": "Voor het anoniem bekijken van stories is een geldige Instagram-login nodig. Ben je al ingelogd maar zie je deze melding nog steeds, log dan uit bij Instagram en log opnieuw in.",
+      "story_login_required": "Log in om stories anoniem te bekijken en profielfoto's te vergroten.",
       "story_ad_wait":
           "Wordt weergegeven na de advertentie, even geduld a.u.b.",
       "story_action_title": "Wat zou je graag willen doen?",
@@ -4243,7 +4326,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Regardez des histoires en secret ou zoomez sur les photos de profil",
       "story_login_required":
-          "Pour voir les stories en mode anonyme, une session Instagram valide est nécessaire. Si vous êtes déjà connecté mais que ce message persiste, déconnectez-vous de Instagram puis reconnectez-vous.",
+          "Connectez-vous pour voir les stories en mode anonyme et agrandir les photos de profil.",
       "story_ad_wait":
           "Sera affich\u00e9 apr\u00e8s la publicit\u00e9, veuillez patienter.",
       "story_action_title": "Que souhaiteriez-vous faire\u00a0?",
@@ -4362,7 +4445,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "rate_test_message": "Questa scatola \u00e8 attualmente in fase di test.",
       "story_section_title":
           "Guarda le storie di nascosto o ingrandisci le foto del profilo",
-      "story_login_required": "Per vedere le storie in modo anonimo serve una sessione Instagram valida. Se hai già fatto login ma questo avviso continua a comparire, esci da Instagram e accedi di nuovo.",
+      "story_login_required": "Accedi per vedere le storie in modo anonimo e ingrandire le foto profilo.",
       "story_ad_wait": "Verr\u00e0 mostrato dopo l'annuncio, attendere.",
       "story_action_title": "Cosa ti piacerebbe fare?",
       "story_view_photo": "Ingrandisci la foto del profilo",
@@ -4490,7 +4573,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Xem c\u00e2u chuy\u1ec7n m\u1ed9t c\u00e1ch b\u00ed m\u1eadt ho\u1eb7c thu ph\u00f3ng \u1ea3nh h\u1ed3 s\u01a1",
       "story_login_required":
-          "Để xem story ẩn danh, bạn cần phiên đăng nhập Instagram hợp lệ. Nếu bạn đã đăng nhập mà vẫn thấy thông báo này, hãy đăng xuất khỏi Instagram rồi đăng nhập lại.",
+          "Vui lòng đăng nhập để xem story ẩn danh và phóng to ảnh hồ sơ.",
       "story_ad_wait":
           "S\u1ebd hi\u1ec3n th\u1ecb sau qu\u1ea3ng c\u00e1o, vui l\u00f2ng \u0111\u1ee3i.",
       "story_action_title": "B\u1ea1n mu\u1ed1n l\u00e0m g\u00ec?",
@@ -4649,7 +4732,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "\u0e14\u0e39\u0e40\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e25\u0e31\u0e1a\u0e2b\u0e23\u0e37\u0e2d\u0e0b\u0e39\u0e21\u0e23\u0e39\u0e1b\u0e42\u0e1b\u0e23\u0e44\u0e1f\u0e25\u0e4c",
       "story_login_required":
-          "การดูสตอรีแบบไม่ระบุตัวตนต้องใช้เซสชันเข้าสู่ระบบ Instagram ที่ถูกต้อง หากคุณเข้าสู่ระบบแล้วแต่ยังเห็นข้อความนี้ ให้ลงชื่อออกจาก Instagram แล้วเข้าสู่ระบบอีกครั้ง",
+          "โปรดเข้าสู่ระบบเพื่อดูสตอรีแบบไม่ระบุตัวตนและขยายรูปโปรไฟล์",
       "story_ad_wait":
           "\u0e08\u0e30\u0e41\u0e2a\u0e14\u0e07\u0e2b\u0e25\u0e31\u0e07\u0e42\u0e06\u0e29\u0e13\u0e32 \u0e01\u0e23\u0e38\u0e13\u0e32\u0e23\u0e2d\u0e2a\u0e31\u0e01\u0e04\u0e23\u0e39\u0e48",
       "story_action_title":
@@ -4794,7 +4877,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Ogl\u0105daj historie w tajemnicy lub powi\u0119kszaj zdj\u0119cia profilowe",
       "story_login_required":
-          "Aby oglądać relacje anonimowo, wymagane jest poprawne logowanie do Instagrama. Jeśli jesteś już zalogowany, a komunikat nadal się pojawia, wyloguj się z Instagrama i zaloguj ponownie.",
+          "Zaloguj się, aby oglądać relacje anonimowo i powiększać zdjęcia profilowe.",
       "story_ad_wait":
           "Zostanie wy\u015bwietlone po reklamie, prosz\u0119 czeka\u0107.",
       "story_action_title": "Co chcia\u0142by\u015b robi\u0107?",
@@ -5275,7 +5358,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Hikayeleri gizlice izle veya profil fotoğrafını büyüt',
       'story_login_required':
-          'Hikayeleri gizlice izleyebilmemiz için geçerli bir Instagram oturumu gerekiyor. Giriş yaptıktan sonra da bu uyarıyı görüyorsanız Instagram hesabınızdan çıkış yapıp tekrar giriş yapın.',
+          'Hikayeleri gizlice izleyebilmek ve profil fotoğraflarını büyütmek için lütfen giriş yapınız.',
       'story_ad_wait': 'Reklamdan sonra gösterilecek. Lütfen bekleyin.',
       'story_action_title': 'Ne yapmak istersiniz?',
       'story_view_photo': 'Profil fotoğrafını büyüt',
@@ -5287,7 +5370,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Watch stories secretly or zoom profile photos',
       'story_login_required':
-          'A valid Instagram login is required to view stories privately. If you are already logged in and still see this warning, log out of Instagram and log in again.',
+          'Please log in to watch stories secretly and enlarge profile photos.',
       'story_ad_wait': 'Will be shown after the ad. Please wait.',
       'story_action_title': 'What would you like to do?',
       'story_view_photo': 'Enlarge profile photo',
@@ -5299,7 +5382,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Stories heimlich ansehen oder Profilfotos vergrößern',
       'story_login_required':
-          'Zum anonymen Ansehen von Stories ist eine gültige Instagram-Anmeldung erforderlich. Wenn du bereits eingeloggt bist und diese Warnung weiter siehst, melde dich bei Instagram ab und wieder an.',
+          'Bitte melde dich an, um Stories anonym anzusehen und Profilfotos zu vergrößern.',
       'story_ad_wait': 'Wird nach der Werbung angezeigt. Bitte warten.',
       'story_action_title': 'Was möchtest du tun?',
       'story_view_photo': 'Profilfoto vergrößern',
@@ -5332,7 +5415,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     },
     'ko': {
       'story_section_title': '스토리를 몰래 보거나 프로필 사진을 확대하세요',
-      'story_login_required': '스토리를 익명으로 보려면 유효한 Instagram 로그인 세션이 필요합니다. 이미 로그인했는데도 이 안내가 계속 보이면 Instagram에서 로그아웃한 뒤 다시 로그인해 주세요.',
+      'story_login_required': '스토리를 익명으로 보고 프로필 사진을 확대하려면 로그인해 주세요.',
       'story_ad_wait': '광고 후 표시됩니다. 잠시만 기다려 주세요.',
       'story_action_title': '무엇을 하시겠어요?',
       'story_view_photo': '프로필 사진 확대',
@@ -5364,7 +5447,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     },
     'ja': {
       'story_section_title': 'ストーリーをこっそり見る / プロフィール写真を拡大',
-      'story_login_required': 'ストーリーを匿名で表示するには、有効なInstagramログインセッションが必要です。すでにログイン済みでもこの案内が出る場合は、Instagramで一度ログアウトしてから再ログインしてください。',
+      'story_login_required': 'ストーリーを匿名で見たり、プロフィール写真を拡大したりするにはログインしてください。',
       'story_ad_wait': '広告の後に表示されます。しばらくお待ちください。',
       'story_action_title': 'どうしますか？',
       'story_view_photo': 'プロフィール写真を拡大',
@@ -5397,7 +5480,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Смотреть сторис анонимно или увеличить фото профиля',
       'story_login_required':
-          'Чтобы смотреть сторис анонимно, нужен действующий вход в Instagram. Если вы уже вошли, но это сообщение не исчезает, выйдите из Instagram и войдите снова.',
+          'Пожалуйста, войдите, чтобы анонимно смотреть сторис и увеличивать фото профиля.',
       'story_ad_wait': 'Появится после рекламы. Пожалуйста, подождите.',
       'story_action_title': 'Что хотите сделать?',
       'story_view_photo': 'Увеличить фото профиля',
@@ -5431,7 +5514,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Ver stories em segredo ou ampliar foto de perfil',
       'story_login_required':
-          'Para ver stories de forma anônima, é necessário um login válido no Instagram. Se você já entrou e este aviso continua, saia do Instagram e entre novamente.',
+          'Faça login para ver stories anonimamente e ampliar fotos de perfil.',
       'story_ad_wait': 'Será exibido após o anúncio. Aguarde.',
       'story_action_title': 'O que você quer fazer?',
       'story_view_photo': 'Ampliar foto de perfil',
@@ -5465,7 +5548,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'شاهد القصص بسرية أو كبّر صورة الملف الشخصي',
       'story_login_required':
-          'لمشاهدة القصص بشكل سري، يلزم تسجيل دخول صالح في Instagram. إذا كنت مسجلا بالفعل وما زال هذا التنبيه يظهر، سجل الخروج من Instagram ثم سجل الدخول مرة أخرى.',
+          'يرجى تسجيل الدخول لمشاهدة القصص بشكل سري وتكبير صور الملف الشخصي.',
       'story_ad_wait': 'سيظهر بعد الإعلان. يرجى الانتظار.',
       'story_action_title': 'ماذا تريد أن تفعل؟',
       'story_view_photo': 'تكبير صورة الملف الشخصي',
@@ -5499,7 +5582,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Ver historias en secreto o ampliar foto de perfil',
       'story_login_required':
-          'Para ver historias en modo anónimo necesitas una sesión válida de Instagram. Si ya iniciaste sesión y este aviso sigue apareciendo, cierra sesión en Instagram y vuelve a iniciar sesión.',
+          'Inicia sesión para ver historias en modo anónimo y ampliar fotos de perfil.',
       'story_ad_wait':
           'Se mostrará después del anuncio. Espera un momento.',
       'story_action_title': '¿Qué te gustaría hacer?',
@@ -5512,7 +5595,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Ver historias en secreto o ampliar foto de perfil',
       'story_login_required':
-          'Para ver historias en modo anónimo necesitas una sesión válida de Instagram. Si ya iniciaste sesión y este aviso sigue apareciendo, cierra sesión en Instagram y vuelve a iniciar sesión.',
+          'Inicia sesión para ver historias en modo anónimo y ampliar fotos de perfil.',
       'story_ad_wait':
           'Se mostrará después del anuncio. Espera un momento.',
       'story_action_title': '¿Qué te gustaría hacer?',
@@ -5525,7 +5608,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'स्टोरी चुपचाप देखें या प्रोफाइल फोटो बड़ा करें',
       'story_login_required':
-          'स्टोरी को गुप्त रूप से देखने के लिए Instagram में मान्य लॉगिन सत्र जरूरी है। यदि आपने पहले से लॉगिन किया है और यह संदेश फिर भी दिख रहा है, तो Instagram से लॉगआउट करके दोबारा लॉगिन करें।',
+          'स्टोरी को गुप्त रूप से देखने और प्रोफ़ाइल फोटो बड़ा करने के लिए कृपया लॉगिन करें।',
       'story_ad_wait':
           'विज्ञापन के बाद दिखाया जाएगा। कृपया इंतज़ार करें।',
       'story_action_title': 'आप क्या करना चाहेंगे?',
@@ -5538,7 +5621,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Sztorik megtekintése titokban vagy profilkép nagyítása',
       'story_login_required':
-          'A történetek névtelen megtekintéséhez érvényes Instagram-bejelentkezés szükséges. Ha már be vagy jelentkezve, de ez az üzenet továbbra is megjelenik, jelentkezz ki az Instagramból, majd jelentkezz be újra.',
+          'Kérjük, jelentkezz be a történetek névtelen megtekintéséhez és a profilképek nagyításához.',
       'story_ad_wait':
           'A hirdetés után jelenik meg. Kérjük, várj.',
       'story_action_title': 'Mit szeretnél csinálni?',
@@ -5549,7 +5632,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     },
     'zh-hans': {
       'story_section_title': '匿名查看动态或放大头像',
-      'story_login_required': '要匿名查看动态，需要有效的 Instagram 登录会话。如果你已经登录但仍看到此提示，请先退出 Instagram，再重新登录。',
+      'story_login_required': '请登录以匿名查看动态并放大头像照片。',
       'story_ad_wait': '广告后显示，请稍候。',
       'story_action_title': '你想做什么？',
       'story_view_photo': '放大头像',
@@ -5561,7 +5644,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Lihat story diam-diam atau perbesar foto profil',
       'story_login_required':
-          'Untuk melihat story secara anonim, diperlukan sesi login Instagram yang valid. Jika Anda sudah login tetapi peringatan ini masih muncul, keluar dari Instagram lalu masuk kembali.',
+          'Silakan masuk untuk melihat story secara anonim dan memperbesar foto profil.',
       'story_ad_wait': 'Akan ditampilkan setelah iklan. Harap tunggu.',
       'story_action_title': 'Apa yang ingin Anda lakukan?',
       'story_view_photo': 'Perbesar foto profil',
@@ -5573,7 +5656,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Bekijk stories stiekem of vergroot de profielfoto',
       'story_login_required':
-          'Voor het anoniem bekijken van stories is een geldige Instagram-login nodig. Ben je al ingelogd maar zie je deze melding nog steeds, log dan uit bij Instagram en log opnieuw in.',
+          'Log in om stories anoniem te bekijken en profielfoto\'s te vergroten.',
       'story_ad_wait': 'Wordt na de advertentie getoond. Even geduld.',
       'story_action_title': 'Wat wil je doen?',
       'story_view_photo': 'Profielfoto vergroten',
@@ -5585,7 +5668,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Voir les stories discrètement ou agrandir la photo de profil',
       'story_login_required':
-          'Pour voir les stories en mode anonyme, une session Instagram valide est nécessaire. Si vous êtes déjà connecté mais que ce message persiste, déconnectez-vous de Instagram puis reconnectez-vous.',
+          'Connectez-vous pour voir les stories en mode anonyme et agrandir les photos de profil.',
       'story_ad_wait': 'S’affichera après la publicité. Veuillez patienter.',
       'story_action_title': 'Que souhaitez-vous faire ?',
       'story_view_photo': 'Agrandir la photo de profil',
@@ -5597,7 +5680,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Guarda le storie in segreto o ingrandisci la foto profilo',
       'story_login_required':
-          'Per vedere le storie in modo anonimo serve una sessione Instagram valida. Se hai già fatto login ma questo avviso continua a comparire, esci da Instagram e accedi di nuovo.',
+          'Accedi per vedere le storie in modo anonimo e ingrandire le foto profilo.',
       'story_ad_wait': 'Verrà mostrato dopo l’annuncio. Attendi.',
       'story_action_title': 'Cosa vuoi fare?',
       'story_view_photo': 'Ingrandisci la foto profilo',
@@ -5609,7 +5692,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Xem story bí mật hoặc phóng to ảnh hồ sơ',
       'story_login_required':
-          'Để xem story ẩn danh, bạn cần phiên đăng nhập Instagram hợp lệ. Nếu bạn đã đăng nhập mà vẫn thấy thông báo này, hãy đăng xuất khỏi Instagram rồi đăng nhập lại.',
+          'Vui lòng đăng nhập để xem story ẩn danh và phóng to ảnh hồ sơ.',
       'story_ad_wait': 'Sẽ hiển thị sau quảng cáo. Vui lòng chờ.',
       'story_action_title': 'Bạn muốn làm gì?',
       'story_view_photo': 'Phóng to ảnh hồ sơ',
@@ -5621,7 +5704,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'ดูสตอรีแบบลับ ๆ หรือขยายรูปโปรไฟล์',
       'story_login_required':
-          'การดูสตอรีแบบไม่ระบุตัวตนต้องใช้เซสชันเข้าสู่ระบบ Instagram ที่ถูกต้อง หากคุณเข้าสู่ระบบแล้วแต่ยังเห็นข้อความนี้ ให้ลงชื่อออกจาก Instagram แล้วเข้าสู่ระบบอีกครั้ง',
+          'โปรดเข้าสู่ระบบเพื่อดูสตอรีแบบไม่ระบุตัวตนและขยายรูปโปรไฟล์',
       'story_ad_wait': 'จะแสดงหลังโฆษณา กรุณารอสักครู่',
       'story_action_title': 'คุณต้องการทำอะไร?',
       'story_view_photo': 'ขยายรูปโปรไฟล์',
@@ -5633,7 +5716,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Oglądaj relacje anonimowo lub powiększ zdjęcie profilowe',
       'story_login_required':
-          'Aby oglądać relacje anonimowo, wymagane jest poprawne logowanie do Instagrama. Jeśli jesteś już zalogowany, a komunikat nadal się pojawia, wyloguj się z Instagrama i zaloguj ponownie.',
+          'Zaloguj się, aby oglądać relacje anonimowo i powiększać zdjęcia profilowe.',
       'story_ad_wait':
           'Zostanie pokazane po reklamie. Prosimy czekać.',
       'story_action_title': 'Co chcesz zrobić?',
@@ -8021,7 +8104,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       return;
     }
 
-    String version = '15.0.0';
+    String version = '16.0.0';
     try {
       final info = await PackageInfo.fromPlatform();
       final String v = info.version.trim();
@@ -8230,6 +8313,110 @@ class _DashboardScreenState extends State<DashboardScreen>
     return true;
   }
 
+  String _startupSessionEndedMessage() {
+    return localizeTrEn(
+      _lang,
+      'Oturumunuz sonlandı, lütfen tekrar giriş yapınız.',
+      'Session is invalid. Please log in again.',
+    );
+  }
+
+  void _showStartupSessionEndedWarning() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(_startupSessionEndedMessage()),
+        backgroundColor: Colors.redAccent,
+        duration: const Duration(seconds: 4),
+      ));
+    });
+  }
+
+  Future<bool?> _probeStartupSessionActive({
+    required String cookie,
+    required String userId,
+    required String userAgent,
+  }) async {
+    final String sessionId = _extractCookieValue(cookie, 'sessionid').trim();
+    if (sessionId.isEmpty) return false;
+
+    String dsUserId = _extractCookieValue(cookie, 'ds_user_id').trim();
+    if (dsUserId.isEmpty) dsUserId = userId.trim();
+    if (dsUserId.isEmpty || dsUserId == 'null') return false;
+
+    try {
+      final response = await http
+          .get(
+            Uri.parse(
+                'https://i.instagram.com/api/v1/accounts/current_user/?edit=true'),
+            headers: _buildAppHeaders(cookie, userAgent, dsUserId: dsUserId),
+          )
+          .timeout(const Duration(seconds: 4));
+
+      final int status = response.statusCode;
+      final String body = response.body.toLowerCase();
+      if (status == 200 && body.contains('"status":"ok"')) return true;
+      if (status == 401 || status == 403) return false;
+      if (body.contains('login_required') ||
+          body.contains('session_invalid') ||
+          body.contains('checkpoint_required') ||
+          body.contains('consent_required')) {
+        return false;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _clearSessionForRelogin() async {
+    _cancelCountdown();
+    _stopStoryAutoScroll();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('session_cookie');
+      await prefs.remove('session_user_id');
+      await prefs.remove('session_username');
+      await prefs.remove('session_user_agent');
+    } catch (_) {}
+
+    if (mounted) {
+      setState(() {
+        isLoggedIn = false;
+        _isBanned = false;
+        _hasAnalyzed = false;
+        currentUsername = "";
+        savedCookie = null;
+        savedUserId = null;
+        savedUserAgent = null;
+        followersMap = {};
+        followingMap = {};
+        nonFollowersMap = {};
+        unfollowersMap = {};
+        leftFollowingMap = {};
+        newFollowersMap = {};
+        _syncCountsForUi();
+      });
+    } else {
+      isLoggedIn = false;
+      _isBanned = false;
+      _hasAnalyzed = false;
+      currentUsername = "";
+      savedCookie = null;
+      savedUserId = null;
+      savedUserAgent = null;
+      followersMap = {};
+      followingMap = {};
+      nonFollowersMap = {};
+      unfollowersMap = {};
+      leftFollowingMap = {};
+      newFollowersMap = {};
+      _syncCountsForUi();
+    }
+  }
+
   Future<void> _tryAutoLogin() async {
     final prefs = await SharedPreferences.getInstance();
     String? cookie = prefs.getString('session_cookie');
@@ -8248,6 +8435,24 @@ class _DashboardScreenState extends State<DashboardScreen>
       });
     }
     if (cookie != null && userId != null) {
+      final String restoredUa = (ua ?? '').trim().isNotEmpty
+          ? ua!.trim()
+          : _defaultIgUserAgent;
+      final bool? active = await _probeStartupSessionActive(
+        cookie: cookie,
+        userId: userId,
+        userAgent: restoredUa,
+      );
+      if (active == false) {
+        _logFirebaseDiagnostic(
+          'session',
+          'startup check failed: session invalid -> relogin required',
+        );
+        await _clearSessionForRelogin();
+        _showStartupSessionEndedWarning();
+        return;
+      }
+
       final String fallback = localizeTrEn(_lang, 'Kullanıcı', 'User');
       if (mounted) {
         setState(() {
@@ -8256,7 +8461,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           savedCookie = cookie;
           savedUserId = userId;
           currentUsername = username ?? fallback;
-          savedUserAgent = ua;
+          savedUserAgent = restoredUa;
           _syncCountsForUi();
         });
       } else {
@@ -8265,7 +8470,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         savedCookie = cookie;
         savedUserId = userId;
         currentUsername = username ?? fallback;
-        savedUserAgent = ua;
+        savedUserAgent = restoredUa;
       }
       _logFirebaseDiagnostic(
         'session',
@@ -8560,131 +8765,186 @@ class _DashboardScreenState extends State<DashboardScreen>
                         horizontal: 10, vertical: 15),
                     child: Column(
                       children: [
-                        Column(
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                PopupMenuButton<String>(
-                                  tooltip: 'Language',
-                                  onSelected: (String code) {
-                                    unawaited(_setLanguage(code));
-                                  },
-                                  itemBuilder: (context) {
-                                    return _supportedLanguageCodes
-                                        .map((String code) {
-                                      final bool selected = code == _lang;
-                                      final String nativeName =
-                                          _languageNativeNames[code] ??
-                                              code.toUpperCase();
-                                      final String flag = _languageFlagFor(code);
-                                      return PopupMenuItem<String>(
-                                        value: code,
-                                        child: Row(
-                                          children: [
-                                            SizedBox(
-                                              width: 28,
-                                              child: Text(
-                                                flag,
-                                                textAlign: TextAlign.center,
-                                                style: const TextStyle(
-                                                    fontSize: 18),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              child: Text(
-                                                nativeName,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                  fontWeight: selected
-                                                      ? FontWeight.w700
-                                                      : FontWeight.w500,
+                        LayoutBuilder(builder: (context, constraints) {
+                          final bool compact = constraints.maxWidth < 420;
+                          final bool veryCompact = constraints.maxWidth < 360;
+                          final BoxConstraints headerButtonConstraints = compact
+                              ? const BoxConstraints(
+                                  minWidth: 34, minHeight: 34)
+                              : const BoxConstraints(
+                                  minWidth: 40, minHeight: 40);
+
+                          Widget headerIconButton({
+                            required IconData icon,
+                            required Color color,
+                            required VoidCallback? onPressed,
+                          }) {
+                            return IconButton(
+                              icon: Icon(
+                                icon,
+                                color: color,
+                                size: compact ? 19 : 22,
+                              ),
+                              onPressed: onPressed,
+                              padding: EdgeInsets.zero,
+                              constraints: headerButtonConstraints,
+                              visualDensity: VisualDensity.compact,
+                              splashRadius: compact ? 18 : 20,
+                            );
+                          }
+
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: PopupMenuButton<String>(
+                                    tooltip: 'Language',
+                                    onSelected: (String code) {
+                                      unawaited(_setLanguage(code));
+                                    },
+                                    itemBuilder: (context) {
+                                      return _supportedLanguageCodes
+                                          .map((String code) {
+                                        final bool selected = code == _lang;
+                                        final String nativeName =
+                                            _languageNativeNames[code] ??
+                                                code.toUpperCase();
+                                        final String flag =
+                                            _languageFlagFor(code);
+                                        return PopupMenuItem<String>(
+                                          value: code,
+                                          child: Row(
+                                            children: [
+                                              SizedBox(
+                                                width: 28,
+                                                child: Text(
+                                                  flag,
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                      fontSize: 18),
                                                 ),
                                               ),
-                                            ),
-                                            if (selected) ...[
                                               const SizedBox(width: 8),
-                                              const Icon(Icons.check, size: 16),
+                                              Expanded(
+                                                child: Text(
+                                                  nativeName,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    fontWeight: selected
+                                                        ? FontWeight.w700
+                                                        : FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                              if (selected) ...[
+                                                const SizedBox(width: 8),
+                                                const Icon(Icons.check,
+                                                    size: 16),
+                                              ],
+                                            ],
+                                          ),
+                                        );
+                                      }).toList();
+                                    },
+                                    child: Tooltip(
+                                      message:
+                                          '${_languageFlagFor(_lang)} ${_languageNativeNames[_lang] ?? _lang.toUpperCase()}',
+                                      child: Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: compact ? 4 : 8,
+                                          vertical: compact ? 6 : 8,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              _languageFlagFor(_lang),
+                                              style: TextStyle(
+                                                  fontSize:
+                                                      compact ? 16 : 18),
+                                            ),
+                                            if (!veryCompact) ...[
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                _compactLanguageName(_lang),
+                                                style: TextStyle(
+                                                  color: headerColor,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
                                             ],
                                           ],
                                         ),
-                                      );
-                                    }).toList();
-                                  },
-                                  child: Tooltip(
-                                    message:
-                                        '${_languageFlagFor(_lang)} ${_languageNativeNames[_lang] ?? _lang.toUpperCase()}',
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 8),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            _languageFlagFor(_lang),
-                                            style:
-                                                const TextStyle(fontSize: 18),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            _compactLanguageName(_lang),
-                                            style: TextStyle(
-                                              color: headerColor,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
                                       ),
                                     ),
                                   ),
                                 ),
-                                const Spacer(),
-                                if (_privacyOptionsRequired)
-                                  IconButton(
-                                    icon: Icon(Icons.privacy_tip_outlined,
-                                        color: headerColor),
-                                    onPressed: _showPrivacyOptionsForm,
+                              ),
+                              Expanded(
+                                flex: 4,
+                                child: Center(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text('VERDICT',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w900,
+                                                fontSize: compact ? 22 : 26,
+                                                color: headerColor,
+                                                letterSpacing:
+                                                    compact ? 2.2 : 3.0)),
+                                        Text(_t('tagline'),
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: compact ? 7 : 8,
+                                                color: headerColor
+                                                    .withOpacity(0.6))),
+                                      ],
+                                    ),
                                   ),
-                                IconButton(
-                                  icon: Icon(
-                                    isDarkMode
-                                        ? Icons.light_mode
-                                        : Icons.dark_mode,
-                                    color: headerColor,
-                                  ),
-                                  onPressed: _toggleDarkMode,
                                 ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.delete_sweep_outlined,
-                                    color: Colors.redAccent,
-                                  ),
-                                  onPressed: (isProcessing || _isClearingData)
-                                      ? null
-                                      : _clearCache,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text('VERDICT',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 26,
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (_privacyOptionsRequired)
+                                        headerIconButton(
+                                          icon: Icons.privacy_tip_outlined,
+                                          color: headerColor,
+                                          onPressed: _showPrivacyOptionsForm,
+                                        ),
+                                      headerIconButton(
+                                        icon: isDarkMode
+                                            ? Icons.light_mode
+                                            : Icons.dark_mode,
                                         color: headerColor,
-                                        letterSpacing: 3.0)),
-                                Text(_t('tagline'),
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 8,
-                                        color: headerColor.withOpacity(0.6))),
-                              ],
-                            ),
-                          ],
-                        ),
+                                        onPressed: _toggleDarkMode,
+                                      ),
+                                      headerIconButton(
+                                        icon: Icons.delete_sweep_outlined,
+                                        color: Colors.redAccent,
+                                        onPressed:
+                                            (isProcessing || _isClearingData)
+                                                ? null
+                                                : _clearCache,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }),
                         const SizedBox(height: 20),
                         if (!_adsDisabled)
                           Container(

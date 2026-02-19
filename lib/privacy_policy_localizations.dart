@@ -1,4 +1,4 @@
-﻿// Generated privacy policy localizations.
+// Generated privacy policy localizations.
 // Source language: English
 
 import 'dart:convert';
@@ -203,8 +203,9 @@ String _normalizePolicyLang(String lang) {
 
 String localizedPrivacyPolicyBody(String lang) {
   final String code = _normalizePolicyLang(lang);
+  final String? humanized = _humanizedPrivacyPolicyBodies[code];
   return _repairMojibakeText(
-      _privacyPolicyBodies[code] ?? _privacyPolicyBodies['en']!);
+      humanized ?? _privacyPolicyBodies[code] ?? _privacyPolicyBodies['en']!);
 }
 
 String localizedPrivacyPolicyLabel(String lang) {
@@ -327,13 +328,13 @@ const Map<String, String> _withdrawConsentLabels = {
 const Map<String, String> _privacyPolicyBodies = {
   'tr': '''VERDICT İÇİN GİZLİLİK POLİTİKASI
 
-Bu Gizlilik Politikası, Görkem Ali Cömert tarafından geliştirilen VERDICT'in ("biz", "bize" veya "bizim") mobil uygulamamızı ("Uygulama") kullandığınızda hakkınızdaki bilgileri nasıl topladığını, kullandığını ve ifşa ettiğini açıklamaktadır. Uygulamaya erişerek veya Uygulamayı kullanarak bu Gizlilik Politikasını kabul etmiş olursunuz. Politikalarımızı ve uygulamalarımızı kabul etmiyorsanız Uygulamamızı kullanmamayı tercih edebilirsiniz.
+Bu Gizlilik Politikası, Görkem Ali Cömert tarafından geliştirilen VERDICT uygulamasını kullanırken bilgilerinizle ilgili süreçleri nasıl yönettiğimizi açıklar. Uygulamaya erişerek veya Uygulamayı kullanarak bu Gizlilik Politikasını kabul etmiş olursunuz. Politikalarımızı ve uygulamalarımızı kabul etmiyorsanız Uygulamamızı kullanmamayı tercih edebilirsiniz.
 
-1. Üyeliğe İlişkin Sorumluluk Reddi
+1. Platform İlişkisi Hakkında Şeffaflık
 VERDICT bağımsız bir üçüncü taraf uygulamasıdır ve Instagram, Facebook veya Meta Platforms, Inc.'e bağlı değildir, bunlar tarafından desteklenmez, desteklenmez veya yönetilmez. "Instagram", Meta Platforms, Inc.'ün ticari markasıdır. Instagram platformunu kesinlikle kullanıcı olarak size sunulan verilere dayalı analiz hizmetleri sağlamak için kullanıyoruz.
 
 2. Topladığımız Bilgiler
-Katı bir "Cihaz İçi İşleme" prensibiyle çalışıyoruz. Bu, Uygulamanın temel işlevlerinin cihazınızda yerel olarak depolanan verilere dayandığı anlamına gelir. Kişisel sosyal medya kimlik bilgilerinizi toplamak veya saklamak için bir arka uç sunucusu işletmiyoruz.
+Uygulamayı gizlilik odaklı ve cihaz içi işleme önceliğiyle tasarladık. Analiz işlemlerinin büyük bölümü telefonunuzda yerel olarak gerçekleşir. Sosyal medya şifrelerinizi toplamak için bir arka uç sunucusu işletmiyoruz.
 A. Kişisel Veriler (Kimlik Doğrulama): Takipçi analizi yapabilmek için Instagram hesabınıza giriş yapmalısınız.
 Nasıl çalışır: Uygulama, sizi Instagram'nin resmi giriş sayfasına yönlendirmek için güvenli bir WebView (uygulama içindeki bir tarayıcı bileşeni) kullanır.
 Erişimimiz: Şifrenizi görmüyoruz, saklamıyoruz veya aktarmıyoruz. Oturum çerezleriniz ve kimlik doğrulama belirteçleriniz, oturumunuzu sürdürmek için kesinlikle cihazınızın yerel güvenli deposunda (örn. Android SharedPreferences, iOS Keychain) saklanır.
@@ -364,7 +365,7 @@ Telefon ayarlarınızda Uygulamanın "Depolama/Önbellek" kısmını temizleme.
 Uygulamanın Kaldırılması. Kaldırıldıktan sonra verilerinize dair hiçbir iz bizde kalmaz.
 
 6. Güvenlik
-Kişisel Bilgilerinizi korumak için ticari olarak kabul edilebilir araçları kullanmaya çalışıyoruz. Verileri yerel olarak işleyerek ve yerel depolama için standart şifrelemeyi kullanarak veri ihlali riskini en aza indiriyoruz. Ancak internet üzerinden hiçbir aktarım yöntemi %100 güvenli değildir.
+Güvenliğiniz bizim için önceliklidir. Verilerinizi cihazınızda korumak için standart şifreleme ve güvenli depolama yöntemleri kullanıyor, koruma önlemlerimizi düzenli olarak geliştiriyoruz.
 
 7. Çocukların Gizliliği
 Hizmetlerimiz 13 yaşın altındaki kişilere yönelik değildir. 13 yaşın altındaki çocuklardan bilerek kişisel olarak tanımlanabilir bilgiler toplamıyoruz.
@@ -376,13 +377,13 @@ Gizlilik Politikamızı zaman zaman güncelleyebiliriz. Yeni Gizlilik Politikas�
 Herhangi bir sorunuz veya öneriniz varsa bizimle iletişime geçmekten çekinmeyin.''',
   'en': '''PRIVACY POLICY FOR VERDICT
 
-This Privacy Policy explains how VERDICT ("we," "us," or "our"), developed by Görkem Ali Cömert, collects, uses, and discloses information about you when you use our mobile application (the "App"). By accessing or using the App, you agree to this Privacy Policy. If you do not agree with our policies and practices, your choice is not to use our App.
+This Privacy Policy explains how VERDICT, developed by Görkem Ali Cömert, handles information related to your use of our mobile application. By accessing or using the App, you agree to this Privacy Policy. If you do not agree with our policies and practices, your choice is not to use our App.
 
-1. Disclaimer regarding Affiliation
+1. Transparency About Platform Relationship
 VERDICT is an independent third-party application and is not affiliated with, endorsed, sponsored, or administered by, Instagram, Facebook, or Meta Platforms, Inc. "Instagram" is a trademark of Meta Platforms, Inc. We utilize the Instagram platform strictly to provide analysis services based on the data available to you as a user.
 
 2. The Information We Collect
-We operate on a strict "On-Device Processing" principle. This means the core functionality of the App relies on data stored locally on your device. We do not operate a backend server to harvest or store your personal social media credentials.
+We designed the App with privacy-first, on-device processing in mind. Most analysis runs locally on your phone. We do not run a backend server to collect your social media passwords.
 A. Personal Data (Authentication): To perform follower analysis, you must log in to your Instagram account.
 How it works: The App uses a secure WebView (a browser component within the app) to direct you to Instagram’s official login page.
 Our Access: We DO NOT see, store, or transmit your password. Your session cookies and authentication tokens are stored strictly within the local secure storage of your device (e.g., Android SharedPreferences, iOS Keychain) to maintain your session.
@@ -413,7 +414,7 @@ Clearing the App's "Storage/Cache" in your phone settings.
 Uninstalling the App. Once uninstalled, no trace of your data remains with us.
 
 6. Security
-We strive to use commercially acceptable means to protect your Personal Information. By processing data locally and using standard encryption for local storage, we minimize the risk of data breaches. However, no method of transmission over the internet is 100% secure.
+Your security matters to us. We protect data on your device with standard encryption and secure storage practices, and we continuously improve these protections.
 
 7. Children’s Privacy
 Our Services do not address anyone under the age of 13. We do not knowingly collect personally identifiable information from children under 13.
@@ -425,13 +426,13 @@ We may update our Privacy Policy from time to time. We will notify you of any ch
 If you have any questions or suggestions, do not hesitate to contact us.''',
   'de': '''DATENSCHUTZRICHTLINIE FÜR VERDICT
 
-In dieser Datenschutzrichtlinie wird erläutert, wie VERDICT („wir“, „uns“ oder „unser“), entwickelt von Görkem Ali Cömert, Informationen über Sie sammelt, verwendet und offenlegt, wenn Sie unsere mobile Anwendung (die „App“) nutzen. Durch den Zugriff auf oder die Nutzung der App stimmen Sie dieser Datenschutzrichtlinie zu. Wenn Sie mit unseren Richtlinien und Praktiken nicht einverstanden sind, haben Sie die Wahl, unsere App nicht zu nutzen.
+In dieser Datenschutzrichtlinie wird erläutert, wie VERDICT, entwickelt von Görkem Ali Cömert, Informationen im Zusammenhang mit Ihrer Nutzung unserer mobilen Anwendung verarbeitet. Durch den Zugriff auf oder die Nutzung der App stimmen Sie dieser Datenschutzrichtlinie zu. Wenn Sie mit unseren Richtlinien und Praktiken nicht einverstanden sind, haben Sie die Wahl, unsere App nicht zu nutzen.
 
-1. Haftungsausschluss bezüglich der Zugehörigkeit
+1. Transparenz zur Plattformbeziehung
 VERDICT ist eine unabhängige Drittanbieteranwendung und steht in keiner Verbindung zu Instagram, Facebook oder Meta Platforms, Inc. und wird von diesen nicht unterstützt, gesponsert oder verwaltet.
 
 2. Die von uns erfassten Informationen
-Wir arbeiten nach dem strikten „On-Device Processing“-Prinzip. Das bedeutet, dass die Kernfunktionalität der App auf lokal auf Ihrem Gerät gespeicherten Daten basiert. Wir betreiben keinen Backend-Server, um Ihre persönlichen Social-Media-Anmeldeinformationen zu sammeln oder zu speichern.
+Wir haben die App mit Fokus auf Privatsphäre und Verarbeitung direkt auf dem Gerät entwickelt. Der Großteil der Analyse läuft lokal auf Ihrem Telefon. Wir betreiben keinen Backend-Server, um Ihre Social-Media-Passwörter zu sammeln.
 A. Persönliche Daten (Authentifizierung): Um eine Follower-Analyse durchzuführen, müssen Sie sich bei Ihrem Instagram-Konto anmelden.
 So funktioniert es: Die App verwendet ein sicheres WebView (eine Browserkomponente innerhalb der App), um Sie zur offiziellen Anmeldeseite von Instagram weiterzuleiten.
 Unser Zugang: Wir sehen, speichern oder übermitteln Ihr Passwort NICHT. Ihre Sitzungscookies und Authentifizierungstoken werden ausschließlich im lokalen sicheren Speicher Ihres Geräts (z. B. Android SharedPreferences, iOS Keychain) gespeichert, um Ihre Sitzung aufrechtzuerhalten.
@@ -462,7 +463,7 @@ Löschen Sie den „Speicher/Cache“ der App in Ihren Telefoneinstellungen.
 Deinstallation der App. Nach der Deinstallation verbleiben keine Spuren Ihrer Daten bei uns.
 
 6. Sicherheit
-Wir sind bestrebt, kommerziell akzeptable Mittel einzusetzen, um Ihre personenbezogenen Daten zu schützen. Indem wir Daten lokal verarbeiten und Standardverschlüsselung für die lokale Speicherung verwenden, minimieren wir das Risiko von Datenschutzverletzungen. Allerdings ist keine Übertragungsmethode im Internet zu 100 % sicher.
+Ihre Sicherheit ist uns wichtig. Wir schützen Daten auf Ihrem Gerät mit standardisierter Verschlüsselung und sicheren Speicherverfahren und verbessern diese Schutzmaßnahmen kontinuierlich.
 
 7. Privatsphäre von Kindern
 Unsere Dienste richten sich nicht an Personen unter 13 Jahren. Wir erfassen wissentlich keine personenbezogenen Daten von Kindern unter 13 Jahren.
@@ -474,13 +475,13 @@ Wir können unsere Datenschutzrichtlinie von Zeit zu Zeit aktualisieren. Wir wer
 Wenn Sie Fragen oder Anregungen haben, zögern Sie nicht, uns zu kontaktieren.''',
   'ko': '''VERDICT에 대한 개인정보 보호정책
 
-본 개인정보 보호정책은 귀하가 당사 모바일 애플리케이션(이하 "앱")을 사용할 때 Görkem Ali Cömert가 개발한 VERDICT("당사", "당사" 또는 "당사의")이 귀하에 대한 정보를 수집, 사용 및 공개하는 방법을 설명합니다. 앱에 액세스하거나 앱을 사용함으로써 귀하는 본 개인정보 보호정책에 동의하게 됩니다. 귀하가 당사의 정책 및 관행에 동의하지 않는 경우 당사 앱을 사용하지 않는 것이 좋습니다.
+본 개인정보 보호정책은 Görkem Ali Cömert가 개발한 VERDICT가 모바일 애플리케이션 사용과 관련된 정보를 어떻게 관리하는지 설명합니다. 앱에 액세스하거나 앱을 사용함으로써 귀하는 본 개인정보 보호정책에 동의하게 됩니다. 귀하가 당사의 정책 및 관행에 동의하지 않는 경우 당사 앱을 사용하지 않는 것이 좋습니다.
 
-1. 제휴에 관한 면책조항
+1. 플랫폼 관계 안내
 VERDICT은 독립적인 제3자 애플리케이션이며 Instagram, Facebook 또는 Meta Platforms, Inc.와 제휴, 승인, 후원 또는 관리되지 않습니다. "Instagram"는 Meta Platforms, Inc.의 상표입니다. 우리는 사용자로서 귀하에게 제공되는 데이터를 기반으로 분석 서비스를 제공하기 위해 Instagram 플랫폼을 엄격하게 활용합니다.
 
 2. 당사가 수집하는 정보
-우리는 엄격한 "기기 내 처리" 원칙에 따라 운영됩니다. 이는 앱의 핵심 기능이 귀하의 장치에 로컬로 저장된 데이터에 의존한다는 것을 의미합니다. 당사는 귀하의 개인 소셜 미디어 자격 증명을 수집하거나 저장하기 위해 백엔드 서버를 운영하지 않습니다.
+앱은 개인정보 보호를 우선으로, 기기 내 처리 중심으로 설계되었습니다. 대부분의 분석은 휴대폰에서 로컬로 실행됩니다. 소셜 미디어 비밀번호를 수집하기 위한 백엔드 서버를 운영하지 않습니다.
 A. 개인 데이터(인증): 팔로어 분석을 수행하려면 Instagram 계정에 로그인해야 합니다.
 작동 방식: 앱은 보안 WebView(앱 내의 브라우저 구성 요소)을 사용하여 Instagram의 공식 로그인 페이지로 연결됩니다.
 당사의 액세스: 당사는 귀하의 비밀번호를 보거나 저장하거나 전송하지 않습니다. 세션 쿠키와 인증 토큰은 세션을 유지하기 위해 장치의 로컬 보안 저장소(예: Android SharedPreferences, iOS Keychain) 내에 엄격하게 저장됩니다.
@@ -511,7 +512,7 @@ Google Firebase: 개인정보 보호정책
 앱 제거. 제거한 후에는 귀하의 데이터에 대한 흔적이 남지 않습니다.
 
 6. 보안
-당사는 귀하의 개인정보를 보호하기 위해 상업적으로 허용되는 수단을 사용하려고 노력합니다. 데이터를 로컬에서 처리하고 로컬 저장소에 표준 암호화를 사용하여 데이터 침해 위험을 최소화합니다. 그러나 인터넷을 통한 전송 방법은 100% 안전하지 않습니다.
+사용자 보안은 저희에게 매우 중요합니다. 기기 내 데이터는 표준 암호화와 안전한 저장 방식으로 보호하며, 보호 수준을 지속적으로 개선하고 있습니다.
 
 7. 아동의 개인정보 보호
 당사 서비스는 13세 미만의 사용자에게 적용되지 않습니다. 당사는 13세 미만의 어린이로부터 고의로 개인 식별 정보를 수집하지 않습니다.
@@ -523,13 +524,13 @@ Google Firebase: 개인정보 보호정책
 질문이나 제안 사항이 있으면 주저하지 말고 저희에게 연락해 주세요.''',
   'ja': '''VERDICT のプライバシー ポリシー
 
-このプライバシー ポリシーは、Görkem Ali Cömert によって開発された VERDICT (「当社」、「当社」、または「当社の」) が、お客様が当社のモバイル アプリケーション (「アプリ」) を使用する際にお客様に関する情報をどのように収集、使用、および開示するかを説明します。アプリにアクセスまたは使用すると、このプライバシー ポリシーに同意したことになります。当社のポリシーと慣行に同意できない場合は、当社のアプリを使用しないことを選択してください。
+このプライバシー ポリシーは、Görkem Ali Cömert によって開発された VERDICT が、モバイル アプリの利用に関連する情報をどのように取り扱うかを説明します。アプリにアクセスまたは使用すると、このプライバシー ポリシーに同意したことになります。当社のポリシーと慣行に同意できない場合は、当社のアプリを使用しないことを選択してください。
 
-1. 所属に関する免責事項
+1. プラットフォームとの関係について
 VERDICT は独立したサードパーティ アプリケーションであり、Instagram、Facebook、または Meta Platforms, Inc. と提携、承認、スポンサー、または管理されていません。 「Instagram」は Meta Platforms, Inc. の商標です。当社は、ユーザーとして利用できるデータに基づいて分析サービスを提供するために Instagram プラットフォームを厳密に利用します。
 
 2. 当社が収集する情報
-当社は厳格な「オンデバイス処理」原則に基づいて運営しています。これは、アプリのコア機能がデバイス上にローカルに保存されたデータに依存していることを意味します。当社は、個人のソーシャル メディア認証情報を収集または保存するバックエンド サーバーを運用しません。
+本アプリは、プライバシーを最優先にし、端末内処理を中心に設計されています。分析の大部分はお使いのスマートフォン内でローカルに実行されます。SNSのパスワードを収集するためのバックエンド サーバーは運用していません。
 A. 個人データ (認証): フォロワー分析を実行するには、Instagram アカウントにログインする必要があります。
 仕組み: アプリは安全な WebView (アプリ内のブラウザ コンポーネント) を使用して、Instagram の公式ログイン ページに誘導します。
 当社のアクセス: 当社はあなたのパスワードを閲覧、保存、送信することはありません。セッション Cookie と認証トークンは、セッションを維持するために、デバイスのローカルの安全なストレージ (Android SharedPreferences, iOS Keychain など) 内に厳密に保存されます。
@@ -560,7 +561,7 @@ Google Firebase: プライバシー ポリシー
 アプリのアンインストール。アンインストールすると、データの痕跡は当社に残りません。
 
 6. セキュリティ
-当社は、お客様の個人情報を保護するために商業的に許容される手段を使用するよう努めます。データをローカルで処理し、ローカル ストレージに標準の暗号化を使用することで、データ侵害のリスクを最小限に抑えます。ただし、インターネット上で 100% 安全な送信方法はありません。
+お客様の安全は私たちにとって重要です。端末内データは標準的な暗号化と安全な保存方法で保護し、保護対策を継続的に改善しています。
 
 7. 子供のプライバシー
 当社のサービスは 13 歳未満には対応しません。当社は、13 歳未満の子供から故意に個人を特定できる情報を収集しません。
@@ -572,13 +573,13 @@ Google Firebase: プライバシー ポリシー
 ご質問やご提案がございましたら、お気軽にお問い合わせください。''',
   'ru': '''ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ ДЛЯ VERDICT
 
-В настоящей Политике конфиденциальности объясняется, как VERDICT («мы», «нас» или «наш»), разработанный Görkem Ali Cömert, собирает, использует и раскрывает информацию о вас, когда вы используете наше мобильное приложение («Приложение»). Получая доступ к Приложению или используя его, вы соглашаетесь с настоящей Политикой конфиденциальности. Если вы не согласны с нашей политикой и практикой, вы можете не использовать наше Приложение.
+В настоящей Политике конфиденциальности объясняется, как VERDICT, разработанный Görkem Ali Cömert, обрабатывает информацию, связанную с использованием вами нашего мобильного приложения. Получая доступ к Приложению или используя его, вы соглашаетесь с настоящей Политикой конфиденциальности. Если вы не согласны с нашей политикой и практикой, вы можете не использовать наше Приложение.
 
-1. Отказ от ответственности в отношении принадлежности
+1. Прозрачность о связи с платформой
 VERDICT является независимым сторонним приложением и не связан, не одобрен, не спонсируется и не администрируется Instagram, Facebook или Meta Platforms, Inc.. «Instagram» является товарным знаком Meta Platforms, Inc.. Мы используем платформу Instagram исключительно для предоставления услуг анализа на основе данных, доступных вам как пользователю.
 
 2. Информация, которую мы собираем
-Мы работаем по строгому принципу «Обработка на устройстве». Это означает, что основные функции приложения основаны на данных, хранящихся локально на вашем устройстве. Мы не используем внутренний сервер для сбора или хранения ваших личных учетных данных в социальных сетях.
+Мы разработали приложение с приоритетом конфиденциальности и обработкой данных на устройстве. Большая часть анализа выполняется локально на вашем телефоне. Мы не используем серверную часть для сбора ваших паролей от соцсетей.
 A. Персональные данные (аутентификация). Чтобы выполнить анализ подписчиков, вам необходимо войти в свою учетную запись Instagram.
 Как это работает: приложение использует безопасный WebView (компонент браузера в приложении), чтобы направить вас на официальную страницу входа Instagram.
 Наш доступ: Мы НЕ видим, не храним и не передаем ваш пароль. Файлы cookie сеанса и токены аутентификации хранятся строго в локальном безопасном хранилище вашего устройства (например, Android SharedPreferences, iOS Keychain) для поддержания вашего сеанса.
@@ -609,7 +610,7 @@ Google Firebase: Политика конфиденциальности
 Удаление приложения. После удаления у нас не останется никаких следов ваших данных.
 
 6. Безопасность
-Мы стремимся использовать коммерчески приемлемые средства для защиты вашей Личной информации. Обрабатывая данные локально и используя стандартное шифрование для локального хранилища, мы минимизируем риск утечки данных. Однако ни один метод передачи данных через Интернет не является на 100% безопасным.
+Ваша безопасность важна для нас. Мы защищаем данные на вашем устройстве с помощью стандартного шифрования и безопасного хранения и постоянно улучшаем эти меры защиты.
 
 7. Конфиденциальность детей
 Наши Услуги не предназначены для лиц младше 13 лет. Мы сознательно не собираем личную информацию от детей младше 13 лет.
@@ -621,13 +622,13 @@ Google Firebase: Политика конфиденциальности
 Если у вас есть какие-либо вопросы или предложения, не стесняйтесь обращаться к нам.''',
   'pt': '''POLÍTICA DE PRIVACIDADE PARA VERDICT
 
-Esta Política de Privacidade explica como o VERDICT ("nós", "nos" ou "nosso"), desenvolvido por Görkem Ali Cömert, coleta, usa e divulga informações sobre você quando você usa nosso aplicativo móvel (o "Aplicativo"). Ao acessar ou utilizar o App, você concorda com esta Política de Privacidade. Se você não concorda com nossas políticas e práticas, sua opção é não usar nosso Aplicativo.
+Esta Política de Privacidade explica como o VERDICT, desenvolvido por Görkem Ali Cömert, trata informações relacionadas ao uso do nosso aplicativo móvel. Ao acessar ou utilizar o App, você concorda com esta Política de Privacidade. Se você não concorda com nossas políticas e práticas, sua opção é não usar nosso Aplicativo.
 
-1. Isenção de responsabilidade quanto à afiliação
+1. Transparência sobre vínculo com plataformas
 VERDICT é um aplicativo de terceiros independente e não é afiliado, endossado, patrocinado ou administrado por Instagram, Facebook ou Meta Platforms, Inc. "Instagram" é uma marca registrada de Meta Platforms, Inc. Utilizamos a plataforma Instagram estritamente para fornecer serviços de análise com base nos dados disponíveis para você como usuário.
 
 2. As informações que coletamos
-Operamos com base em um princípio estrito de "processamento no dispositivo". Isso significa que a funcionalidade principal do Aplicativo depende de dados armazenados localmente no seu dispositivo. Não operamos um servidor back-end para coletar ou armazenar suas credenciais pessoais de mídia social.
+Desenvolvemos o App com foco em privacidade e processamento no próprio dispositivo. A maior parte das análises ocorre localmente no seu celular. Não operamos servidor de backend para coletar suas senhas de redes sociais.
 A. Dados Pessoais (Autenticação): Para realizar a análise do seguidor, você deve fazer login na sua conta Instagram.
 Como funciona: O aplicativo usa um WebView seguro (um componente do navegador dentro do aplicativo) para direcioná-lo para a página de login oficial do Instagram.
 Nosso acesso: NÃO vemos, armazenamos ou transmitimos sua senha. Seus cookies de sessão e tokens de autenticação são armazenados estritamente no armazenamento local seguro do seu dispositivo (por exemplo, Android SharedPreferences, iOS Keychain) para manter sua sessão.
@@ -658,7 +659,7 @@ Limpando o "Armazenamento/Cache" do aplicativo nas configurações do telefone.
 Desinstalando o aplicativo. Uma vez desinstalado, nenhum vestígio dos seus dados permanece conosco.
 
 6. Segurança
-Nós nos esforçamos para usar meios comercialmente aceitáveis para proteger suas informações pessoais. Ao processar dados localmente e usar criptografia padrão para armazenamento local, minimizamos o risco de violações de dados. No entanto, nenhum método de transmissão pela Internet é 100% seguro.
+Sua segurança é importante para nós. Protegemos os dados no seu dispositivo com criptografia padrão e práticas de armazenamento seguro, e melhoramos continuamente essas proteções.
 
 7. Privacidade das Crianças
 Nossos serviços não se destinam a menores de 13 anos. Não coletamos intencionalmente informações de identificação pessoal de crianças menores de 13 anos.
@@ -670,13 +671,13 @@ Poderemos atualizar nossa Política de Privacidade de tempos em tempos. Iremos n
 Se você tiver alguma dúvida ou sugestão, não hesite em nos contatar.''',
   'ar': '''سياسة الخصوصية لـ VERDICT
 
-تشرح سياسة الخصوصية هذه كيف يقوم VERDICT ("نحن" أو "لنا" أو "خاصتنا")، الذي طوره Görkem Ali Cömert، بجمع المعلومات الخاصة بك واستخدامها والكشف عنها عند استخدام تطبيق الهاتف المحمول الخاص بنا ("التطبيق"). من خلال الوصول إلى التطبيق أو استخدامه، فإنك توافق على سياسة الخصوصية هذه. إذا كنت لا توافق على سياساتنا وممارساتنا، فلديك خيار عدم استخدام تطبيقنا.
+تشرح سياسة الخصوصية هذه كيف يدير VERDICT الذي طوره Görkem Ali Cömert المعلومات المرتبطة باستخدامك لتطبيق الهاتف المحمول الخاص بنا. من خلال الوصول إلى التطبيق أو استخدامه فإنك توافق على سياسة الخصوصية هذه. إذا كنت لا توافق على سياساتنا وممارساتنا فلديك خيار عدم استخدام تطبيقنا.
 
-1. إخلاء المسؤولية فيما يتعلق بالانتساب
+1. توضيح علاقتنا بالمنصات
 VERDICT هو تطبيق مستقل تابع لجهة خارجية ولا ينتمي إلى Instagram أو Facebook أو Meta Platforms, Inc.، أو Instagram، أو يدعمه أو يرعاه أو يديره.
 
 2. المعلومات التي نجمعها
-نحن نعمل وفقًا لمبدأ "المعالجة على الجهاز" الصارم. وهذا يعني أن الوظيفة الأساسية للتطبيق تعتمد على البيانات المخزنة محليًا على جهازك. نحن لا نقوم بتشغيل خادم خلفي لجمع أو تخزين بيانات اعتماد الوسائط الاجتماعية الشخصية الخاصة بك.
+صممنا التطبيق مع أولوية واضحة للخصوصية والمعالجة على الجهاز. أغلب التحليلات تتم محليًا على هاتفك. لا نشغّل خادمًا خلفيًا لجمع كلمات مرور حساباتك الاجتماعية.
 أ. البيانات الشخصية (المصادقة): لإجراء تحليل المتابعين، يجب عليك تسجيل الدخول إلى حساب Instagram الخاص بك.
 كيف يعمل: يستخدم التطبيق WebView الآمن (أحد مكونات المتصفح داخل التطبيق) لتوجيهك إلى صفحة تسجيل الدخول الرسمية لـ Instagram.
 وصولنا: نحن لا نرى كلمة المرور الخاصة بك أو نخزنها أو نرسلها. يتم تخزين ملفات تعريف الارتباط الخاصة بجلستك ورموز المصادقة بشكل صارم داخل وحدة التخزين المحلية الآمنة لجهازك (على سبيل المثال، Android SharedPreferences, iOS Keychain) للحفاظ على جلستك.
@@ -707,7 +708,7 @@ Google Firebase: سياسة الخصوصية
 إلغاء تثبيت التطبيق. بمجرد إلغاء التثبيت، لن يبقى أي أثر لبياناتك معنا.
 
 6. الأمن
-نحن نسعى جاهدين لاستخدام وسائل مقبولة تجاريًا لحماية معلوماتك الشخصية. ومن خلال معالجة البيانات محليًا واستخدام التشفير القياسي للتخزين المحلي، فإننا نقلل من مخاطر اختراق البيانات. ومع ذلك، لا توجد وسيلة نقل عبر الإنترنت آمنة بنسبة 100%.
+أمانك مهم بالنسبة لنا. نحمي البيانات على جهازك باستخدام تشفير قياسي وممارسات تخزين آمنة، ونواصل تحسين وسائل الحماية بشكل مستمر.
 
 7. خصوصية الأطفال
 خدماتنا لا تستهدف أي شخص يقل عمره عن 13 عامًا. ونحن لا نجمع معلومات التعريف الشخصية عن عمد من الأطفال الذين تقل أعمارهم عن 13 عامًا.
@@ -719,13 +720,13 @@ Google Firebase: سياسة الخصوصية
 إذا كان لديك أي أسئلة أو اقتراحات، فلا تتردد في الاتصال بنا.''',
   'es': '''POLÍTICA DE PRIVACIDAD PARA VERDICT
 
-Esta Política de Privacidad explica cómo VERDICT ("nosotros", "nos" o "nuestro"), desarrollado por Görkem Ali Cömert, recopila, utiliza y divulga información sobre usted cuando utiliza nuestra aplicación móvil (la "Aplicación"). Al acceder o utilizar la aplicación, acepta esta Política de privacidad. Si no está de acuerdo con nuestras políticas y prácticas, su opción es no utilizar nuestra aplicación.
+Esta Política de Privacidad explica cómo VERDICT, desarrollado por Görkem Ali Cömert, gestiona la información relacionada con su uso de nuestra aplicación móvil. Al acceder o utilizar la aplicación, acepta esta Política de privacidad. Si no está de acuerdo con nuestras políticas y prácticas, su opción es no utilizar nuestra aplicación.
 
-1. Descargo de responsabilidad sobre la afiliación
+1. Transparencia sobre nuestra relación con la plataforma
 VERDICT es una aplicación de terceros independiente y no está afiliada, respaldada, patrocinada ni administrada por Instagram, Facebook o Meta Platforms, Inc.. "Instagram" es una marca comercial de Meta Platforms, Inc. Utilizamos la plataforma Instagram estrictamente para proporcionar servicios de análisis basados en los datos disponibles para usted como usuario.
 
 2. La información que recopilamos
-Operamos según un estricto principio de "procesamiento en el dispositivo". Esto significa que la funcionalidad principal de la aplicación se basa en datos almacenados localmente en su dispositivo. No operamos un servidor backend para recopilar o almacenar sus credenciales personales de redes sociales.
+Diseñamos la App con enfoque en privacidad y procesamiento en el propio dispositivo. La mayor parte del análisis se ejecuta localmente en tu teléfono. No operamos un servidor backend para recopilar tus contraseñas de redes sociales.
 A. Datos personales (Autenticación): Para realizar un análisis de seguidores, debe iniciar sesión en su cuenta Instagram.
 Cómo funciona: la aplicación utiliza un WebView seguro (un componente del navegador dentro de la aplicación) para dirigirlo a la página de inicio de sesión oficial de Instagram.
 Nuestro acceso: NO vemos, almacenamos ni transmitimos su contraseña. Las cookies de sesión y los tokens de autenticación se almacenan estrictamente dentro del almacenamiento seguro local de su dispositivo (por ejemplo, Android SharedPreferences, iOS Keychain) para mantener su sesión.
@@ -756,7 +757,7 @@ Borrar el "Almacenamiento/Caché" de la aplicación en la configuración de su t
 Desinstalar la aplicación. Una vez desinstalado, no queda ningún rastro de sus datos con nosotros.
 
 6. Seguridad
-Nos esforzamos por utilizar medios comercialmente aceptables para proteger su información personal. Al procesar datos localmente y utilizar cifrado estándar para el almacenamiento local, minimizamos el riesgo de violaciones de datos. Sin embargo, ningún método de transmisión por Internet es 100% seguro.
+Tu seguridad es importante para nosotros. Protegemos los datos en tu dispositivo con cifrado estándar y prácticas de almacenamiento seguro, y mejoramos estas protecciones de forma continua.
 
 7. Privacidad de los niños
 Nuestros Servicios no se dirigen a ninguna persona menor de 13 años. No recopilamos intencionadamente información de identificación personal de niños menores de 13 años.
@@ -768,13 +769,13 @@ Podemos actualizar nuestra Política de Privacidad de vez en cuando. Le notifica
 Si tienes alguna duda o sugerencia, no dudes en contactar con nosotros.''',
   'es-mx': '''POLÍTICA DE PRIVACIDAD PARA VERDICT
 
-Esta Política de Privacidad explica cómo VERDICT ("nosotros", "nos" o "nuestro"), desarrollado por Görkem Ali Cömert, recopila, utiliza y divulga información sobre usted cuando utiliza nuestra aplicación móvil (la "Aplicación"). Al acceder o utilizar la aplicación, acepta esta Política de privacidad. Si no está de acuerdo con nuestras políticas y prácticas, su opción es no utilizar nuestra aplicación.
+Esta Política de Privacidad explica cómo VERDICT, desarrollado por Görkem Ali Cömert, gestiona la información relacionada con su uso de nuestra aplicación móvil. Al acceder o utilizar la aplicación, acepta esta Política de privacidad. Si no está de acuerdo con nuestras políticas y prácticas, su opción es no utilizar nuestra aplicación.
 
-1. Descargo de responsabilidad sobre la afiliación
+1. Transparencia sobre nuestra relación con la plataforma
 VERDICT es una aplicación de terceros independiente y no está afiliada, respaldada, patrocinada ni administrada por Instagram, Facebook o Meta Platforms, Inc.. "Instagram" es una marca comercial de Meta Platforms, Inc. Utilizamos la plataforma Instagram estrictamente para proporcionar servicios de análisis basados en los datos disponibles para usted como usuario.
 
 2. La información que recopilamos
-Operamos según un estricto principio de "procesamiento en el dispositivo". Esto significa que la funcionalidad principal de la aplicación se basa en datos almacenados localmente en su dispositivo. No operamos un servidor backend para recopilar o almacenar sus credenciales personales de redes sociales.
+Diseñamos la App con enfoque en privacidad y procesamiento en el propio dispositivo. La mayor parte del análisis se ejecuta localmente en tu teléfono. No operamos un servidor backend para recopilar tus contraseñas de redes sociales.
 A. Datos personales (Autenticación): Para realizar un análisis de seguidores, debe iniciar sesión en su cuenta Instagram.
 Cómo funciona: la aplicación utiliza un WebView seguro (un componente del navegador dentro de la aplicación) para dirigirlo a la página de inicio de sesión oficial de Instagram.
 Nuestro acceso: NO vemos, almacenamos ni transmitimos su contraseña. Las cookies de sesión y los tokens de autenticación se almacenan estrictamente dentro del almacenamiento seguro local de su dispositivo (por ejemplo, Android SharedPreferences, iOS Keychain) para mantener su sesión.
@@ -805,7 +806,7 @@ Borrar el "Almacenamiento/Caché" de la aplicación en la configuración de su t
 Desinstalar la aplicación. Una vez desinstalado, no queda ningún rastro de sus datos con nosotros.
 
 6. Seguridad
-Nos esforzamos por utilizar medios comercialmente aceptables para proteger su información personal. Al procesar datos localmente y utilizar cifrado estándar para el almacenamiento local, minimizamos el riesgo de violaciones de datos. Sin embargo, ningún método de transmisión por Internet es 100% seguro.
+Tu seguridad es importante para nosotros. Protegemos los datos en tu dispositivo con cifrado estándar y prácticas de almacenamiento seguro, y mejoramos estas protecciones de forma continua.
 
 7. Privacidad de los niños
 Nuestros Servicios no se dirigen a ninguna persona menor de 13 años. No recopilamos intencionadamente información de identificación personal de niños menores de 13 años.
@@ -817,13 +818,13 @@ Podemos actualizar nuestra Política de Privacidad de vez en cuando. Le notifica
 Si tienes alguna duda o sugerencia, no dudes en contactar con nosotros.''',
   'hi': '''VERDICT के लिए गोपनीयता नीति
 
-यह गोपनीयता नीति बताती है कि गोरकेम अली कोमर्ट द्वारा विकसित VERDICT ("हम," "हमें," या "हमारा"), जब आप हमारे मोबाइल एप्लिकेशन ("ऐप") का उपयोग करते हैं तो आपके बारे में जानकारी कैसे एकत्र, उपयोग और खुलासा करता है। ऐप तक पहुंच या उपयोग करके, आप इस गोपनीयता नीति से सहमत हैं। यदि आप हमारी नीतियों और प्रथाओं से सहमत नहीं हैं, तो आपकी पसंद हमारे ऐप का उपयोग नहीं करना है।
+यह गोपनीयता नीति बताती है कि गोरकेम अली कोमर्ट द्वारा विकसित VERDICT हमारे मोबाइल एप्लिकेशन के आपके उपयोग से संबंधित जानकारी का प्रबंधन कैसे करता है। ऐप तक पहुंच या उपयोग करके, आप इस गोपनीयता नीति से सहमत हैं। यदि आप हमारी नीतियों और प्रथाओं से सहमत नहीं हैं, तो आपकी पसंद हमारे ऐप का उपयोग नहीं करना है।
 
-1. संबद्धता के संबंध में अस्वीकरण
+1. प्लेटफ़ॉर्म संबंध में पारदर्शिता
 VERDICT एक स्वतंत्र तृतीय-पक्ष एप्लिकेशन है और यह Instagram, Facebook, या Meta Platforms, Inc. से संबद्ध, समर्थित, प्रायोजित या प्रशासित नहीं है।
 
 2. जो जानकारी हम एकत्र करते हैं
-हम सख्त "ऑन-डिवाइस प्रोसेसिंग" सिद्धांत पर काम करते हैं। इसका मतलब है कि ऐप की मुख्य कार्यक्षमता आपके डिवाइस पर स्थानीय रूप से संग्रहीत डेटा पर निर्भर करती है। हम आपके व्यक्तिगत सोशल मीडिया क्रेडेंशियल्स को इकट्ठा करने या संग्रहीत करने के लिए बैकएंड सर्वर संचालित नहीं करते हैं।
+हमने ऐप को प्राइवेसी-फर्स्ट और ऑन-डिवाइस प्रोसेसिंग को प्राथमिकता देकर बनाया है। अधिकतर विश्लेषण आपके फोन पर लोकली चलता है। आपके सोशल मीडिया पासवर्ड इकट्ठा करने के लिए हम कोई बैकएंड सर्वर नहीं चलाते हैं।
 ए. व्यक्तिगत डेटा (प्रमाणीकरण): अनुयायी विश्लेषण करने के लिए, आपको अपने Instagram खाते में लॉग इन करना होगा।
 यह कैसे काम करता है: ऐप आपको Instagram के आधिकारिक लॉगिन पेज पर निर्देशित करने के लिए एक सुरक्षित WebView (ऐप के भीतर एक ब्राउज़र घटक) का उपयोग करता है।
 हमारी पहुंच: हम आपका पासवर्ड नहीं देखते, संग्रहीत या संचारित नहीं करते। आपके सत्र को बनाए रखने के लिए आपके सत्र कुकीज़ और प्रमाणीकरण टोकन आपके डिवाइस के स्थानीय सुरक्षित भंडारण (उदाहरण के लिए, Android SharedPreferences, iOS Keychain) के भीतर सख्ती से संग्रहीत किए जाते हैं।
@@ -854,7 +855,7 @@ Google Firebase: गोपनीयता नीति
 ऐप को अनइंस्टॉल कर रहा हूं. एक बार अनइंस्टॉल करने के बाद, आपके डेटा का कोई भी निशान हमारे पास नहीं रहता है।
 
 6. सुरक्षा
-हम आपकी व्यक्तिगत जानकारी की सुरक्षा के लिए व्यावसायिक रूप से स्वीकार्य साधनों का उपयोग करने का प्रयास करते हैं। डेटा को स्थानीय रूप से संसाधित करके और स्थानीय भंडारण के लिए मानक एन्क्रिप्शन का उपयोग करके, हम डेटा उल्लंघनों के जोखिम को कम करते हैं। हालाँकि, इंटरनेट पर प्रसारण का कोई भी तरीका 100% सुरक्षित नहीं है।
+आपकी सुरक्षा हमारे लिए महत्वपूर्ण है। हम आपके डिवाइस पर डेटा को मानक एन्क्रिप्शन और सुरक्षित स्टोरेज तरीकों से सुरक्षित रखते हैं, और इन सुरक्षा उपायों को लगातार बेहतर बनाते हैं।
 
 7. बच्चों की गोपनीयता
 हमारी सेवाएँ 13 वर्ष से कम उम्र के किसी भी व्यक्ति को संबोधित नहीं करती हैं। हम जानबूझकर 13 वर्ष से कम उम्र के बच्चों से व्यक्तिगत रूप से पहचान योग्य जानकारी एकत्र नहीं करते हैं।
@@ -866,13 +867,13 @@ Google Firebase: गोपनीयता नीति
 यदि आपके कोई प्रश्न या सुझाव हैं, तो हमसे संपर्क करने में संकोच न करें।''',
   'hu': '''AZ VERDICT ADATVÉDELMI IRÁNYELVE
 
-Ez az adatvédelmi szabályzat elmagyarázza, hogy a Görkem Ali Cömert által kifejlesztett VERDICT ("mi", "minket" vagy "miénk") hogyan gyűjti, használja fel és hozza nyilvánosságra Önre vonatkozó információkat, amikor Ön mobilalkalmazásunkat (a továbbiakban: "Alkalmazás") használja. Az Alkalmazás elérésével vagy használatával Ön elfogadja a jelen Adatvédelmi szabályzatot. Ha nem ért egyet irányelveinkkel és gyakorlatainkkal, úgy dönt, hogy nem használja az alkalmazásunkat.
+Ez az adatvédelmi szabályzat elmagyarázza, hogy a Görkem Ali Cömert által kifejlesztett VERDICT hogyan kezeli az Ön mobilalkalmazás-használatához kapcsolódó információkat. Az Alkalmazás elérésével vagy használatával Ön elfogadja a jelen Adatvédelmi szabályzatot. Ha nem ért egyet irányelveinkkel és gyakorlatainkkal, úgy dönt, hogy nem használja az alkalmazásunkat.
 
-1. A társulással kapcsolatos felelősség kizárása
+1. Átláthatóság a platformkapcsolatról
 Az VERDICT egy független, harmadik féltől származó alkalmazás, amely nem áll kapcsolatban, nem támogatja, nem szponzorálja vagy nem adminisztrálja az Instagram, Facebook vagy Meta Platforms, Inc.. Az Instagram az Meta Platforms, Inc. védjegye. felhasználó.
 
 2. Az általunk gyűjtött információk
-Szigorú „eszközön történő feldolgozás” elve alapján működünk. Ez azt jelenti, hogy az alkalmazás alapvető funkciói az eszközön helyileg tárolt adatokon alapulnak. Nem üzemeltetünk háttérkiszolgálót az Ön személyes közösségi média hitelesítő adatainak begyűjtésére vagy tárolására.
+Az alkalmazást adatvédelmi szemlélettel, eszközön történő feldolgozásra optimalizálva készítettük. Az elemzés nagy része helyben, a telefonján fut. Nem üzemeltetünk háttérszervert a közösségi média jelszavak gyűjtésére.
 A. Személyes adatok (hitelesítés): A követőelemzés elvégzéséhez be kell jelentkeznie Instagram fiókjába.
 Hogyan működik: Az alkalmazás egy biztonságos WebView (az alkalmazáson belüli böngészőkomponens) segítségével irányítja Önt az Instagram hivatalos bejelentkezési oldalára.
 Hozzáférésünk: NEM látjuk, nem tároljuk vagy továbbítjuk jelszavát. A munkamenet cookie-jait és hitelesítési tokenjeit szigorúan az eszköz helyi biztonságos tárhelyén (pl. Android SharedPreferences, iOS Keychain) tároljuk a munkamenet fenntartása érdekében.
@@ -903,7 +904,7 @@ Törölje az alkalmazás „Tárhely/Gyorsítótár” elemét a telefon beáll�
 Az alkalmazás eltávolítása. Az eltávolítás után adatainak nyoma sem marad nálunk.
 
 6. Biztonság
-Arra törekszünk, hogy kereskedelmileg elfogadható eszközöket alkalmazzunk személyes adatainak védelme érdekében. Az adatok helyi feldolgozásával és szabványos titkosítással a helyi tároláshoz minimálisra csökkentjük az adatszivárgás kockázatát. Azonban az interneten keresztüli átvitel egyik módja sem 100%-ban biztonságos.
+Az Ön biztonsága fontos számunkra. Az eszközén tárolt adatokat szabványos titkosítással és biztonságos tárolási megoldásokkal védjük, és ezeket a védelmeket folyamatosan fejlesztjük.
 
 7. Gyermekek adatainak védelme
 Szolgáltatásaink nem szólnak 13 év alatti személyeknek. Tudatosan nem gyűjtünk személyazonosításra alkalmas adatokat 13 éven aluli gyermekektől.
@@ -917,11 +918,11 @@ Ha bármilyen kérdése vagy javaslata van, ne habozzon kapcsolatba lépni velü
 
 本隐私政策解释了由 Görkem Ali Cömert 开发的 VERDICT（“我们”或“我们的”）如何在您使用我们的移动应用程序（“应用程序”）时收集、使用和披露有关您的信息。通过访问或使用该应用程序，您同意本隐私政策。如果您不同意我们的政策和做法，您的选择是不使用我们的应用程序。
 
-1. 隶属关系免责声明
+1. 关于平台关系的透明说明
 VERDICT 是一个独立的第三方应用程序，不隶属于 Instagram、Facebook 或 Meta Platforms, Inc.，也不受其认可、赞助或管理。“Instagram”是 Meta Platforms, Inc. 的商标。我们严格使用 Instagram 平台，根据您作为用户可用的数据提供分析服务。
 
 2. 我们收集的信息
-我们遵循严格的“设备上处理”原则。这意味着该应用程序的核心功能依赖于您设备上本地存储的数据。我们不会运营后端服务器来收集或存储您的个人社交媒体凭据。
+我们以隐私优先和设备本地处理为核心设计了本应用。大部分分析会在您的手机本地完成。我们不会运营后端服务器来收集您的社交媒体密码。
 A. 个人数据（身份验证）：要进行关注者分析，您必须登录您的 Instagram 帐户。
 工作原理：该应用程序使用安全的 WebView（应用程序内的浏览器组件）将您引导至 Instagram 的官方登录页面。
 我们的访问：我们不会查看、存储或传输您的密码。您的会话 cookie 和身份验证令牌严格存储在设备的本地安全存储中（例如 Android SharedPreferences, iOS Keychain），以维护您的会话。
@@ -952,7 +953,7 @@ Google Firebase：隐私政策
 卸载应用程序。卸载后，我们将不会留下任何数据痕迹。
 
 6. 安全
-我们努力使用商业上可接受的方式来保护您的个人信息。通过在本地处理数据并使用标准加密进行本地存储，我们可以最大限度地降低数据泄露的风险。然而，没有一种互联网传输方法是 100% 安全的。
+您的安全对我们非常重要。我们通过标准加密和安全存储方式保护您设备中的数据，并持续改进这些保护措施。
 
 7. 儿童隐私
 我们的服务不针对 13 岁以下的任何人。我们不会故意收集 13 岁以下儿童的个人身份信息。
@@ -964,13 +965,13 @@ Google Firebase：隐私政策
 如果您有任何疑问或建议，请随时与我们联系。''',
   'id': '''KEBIJAKAN PRIVASI UNTUK VERDICT
 
-Kebijakan Privasi ini menjelaskan bagaimana VERDICT ("kami", "kita", atau "milik kami"), yang dikembangkan oleh Görkem Ali Cömert, mengumpulkan, menggunakan, dan mengungkapkan informasi tentang Anda saat Anda menggunakan aplikasi seluler kami ("Aplikasi"). Dengan mengakses atau menggunakan Aplikasi, Anda menyetujui Kebijakan Privasi ini. Jika Anda tidak setuju dengan kebijakan dan praktik kami, pilihan Anda adalah tidak menggunakan Aplikasi kami.
+Kebijakan Privasi ini menjelaskan bagaimana VERDICT yang dikembangkan oleh Görkem Ali Cömert mengelola informasi yang terkait dengan penggunaan aplikasi seluler kami. Dengan mengakses atau menggunakan Aplikasi, Anda menyetujui Kebijakan Privasi ini. Jika Anda tidak setuju dengan kebijakan dan praktik kami, pilihan Anda adalah tidak menggunakan Aplikasi kami.
 
-1. Penafian mengenai Afiliasi
+1. Transparansi tentang hubungan dengan platform
 VERDICT adalah aplikasi pihak ketiga yang independen dan tidak berafiliasi dengan, didukung, disponsori, atau dikelola oleh, Instagram, Facebook, atau Meta Platforms, Inc. "Instagram" adalah merek dagang dari Meta Platforms, Inc. Kami menggunakan platform Instagram secara ketat untuk menyediakan layanan analisis berdasarkan data yang tersedia bagi Anda sebagai pengguna.
 
 2. Informasi yang Kami Kumpulkan
-Kami beroperasi dengan prinsip "Pemrosesan Pada Perangkat" yang ketat. Ini berarti fungsi inti Aplikasi bergantung pada data yang disimpan secara lokal di perangkat Anda. Kami tidak mengoperasikan server backend untuk mengambil atau menyimpan kredensial media sosial pribadi Anda.
+Aplikasi dirancang dengan prioritas privasi dan pemrosesan di perangkat. Sebagian besar analisis berjalan secara lokal di ponsel Anda. Kami tidak menjalankan server backend untuk mengumpulkan kata sandi media sosial Anda.
 A. Data Pribadi (Otentikasi): Untuk melakukan analisis pengikut, Anda harus login ke akun Instagram Anda.
 Cara kerjanya: Aplikasi ini menggunakan WebView yang aman (komponen browser dalam aplikasi) untuk mengarahkan Anda ke halaman login resmi Instagram.
 Akses Kami: Kami TIDAK melihat, menyimpan, atau mengirimkan kata sandi Anda. Cookie sesi dan token autentikasi Anda disimpan secara ketat di dalam penyimpanan aman lokal perangkat Anda (misalnya, Android SharedPreferences, iOS Keychain) untuk mempertahankan sesi Anda.
@@ -1001,7 +1002,7 @@ Menghapus "Penyimpanan/Cache" Aplikasi di pengaturan ponsel Anda.
 Menghapus Instalasi Aplikasi. Setelah dihapus instalasinya, tidak ada jejak data Anda yang tersisa bersama kami.
 
 6. Keamanan
-Kami berusaha untuk menggunakan cara yang dapat diterima secara komersial untuk melindungi Informasi Pribadi Anda. Dengan memproses data secara lokal dan menggunakan enkripsi standar untuk penyimpanan lokal, kami meminimalkan risiko pelanggaran data. Namun, tidak ada metode penularan melalui internet yang 100% aman.
+Keamanan Anda penting bagi kami. Kami melindungi data di perangkat Anda dengan enkripsi standar dan praktik penyimpanan yang aman, serta terus meningkatkan perlindungan ini.
 
 7. Privasi Anak
 Layanan kami tidak ditujukan kepada siapa pun yang berusia di bawah 13 tahun. Kami tidak dengan sengaja mengumpulkan informasi identitas pribadi dari anak-anak di bawah 13 tahun.
@@ -1013,13 +1014,13 @@ Kami dapat memperbarui Kebijakan Privasi kami dari waktu ke waktu. Kami akan mem
 Jika Anda memiliki pertanyaan atau saran, jangan ragu untuk menghubungi kami.''',
   'nl': '''PRIVACYBELEID VOOR VERDICT
 
-In dit privacybeleid wordt uitgelegd hoe VERDICT ("wij", "ons" of "onze"), ontwikkeld door Görkem Ali Cömert, informatie over u verzamelt, gebruikt en openbaar maakt wanneer u onze mobiele applicatie (de "App") gebruikt. Door de App te openen of te gebruiken, gaat u akkoord met dit Privacybeleid. Als u het niet eens bent met ons beleid en onze praktijken, is het uw keuze om onze app niet te gebruiken.
+In dit privacybeleid wordt uitgelegd hoe VERDICT, ontwikkeld door Görkem Ali Cömert, informatie verwerkt die verband houdt met uw gebruik van onze mobiele applicatie. Door de App te openen of te gebruiken, gaat u akkoord met dit Privacybeleid. Als u het niet eens bent met ons beleid en onze praktijken, is het uw keuze om onze app niet te gebruiken.
 
-1. Disclaimer met betrekking tot aansluiting
+1. Transparantie over platformrelatie
 VERDICT is een onafhankelijke applicatie van derden en is niet aangesloten bij, onderschreven, gesponsord of beheerd door Instagram, Facebook of Meta Platforms, Inc.. "Instagram" is een handelsmerk van Meta Platforms, Inc.. We gebruiken het Instagram-platform uitsluitend om analysediensten te leveren op basis van de gegevens die voor u als gebruiker beschikbaar zijn.
 
 2. De informatie die we verzamelen
-Wij werken volgens een strikt principe van ‘On-Device Processing’. Dit betekent dat de kernfunctionaliteit van de app afhankelijk is van gegevens die lokaal op uw apparaat zijn opgeslagen. We gebruiken geen backend-server om uw persoonlijke inloggegevens voor sociale media te verzamelen of op te slaan.
+We hebben de app ontworpen met privacy als uitgangspunt en verwerking op het apparaat. Het grootste deel van de analyse draait lokaal op je telefoon. We gebruiken geen backendserver om je socialmediawachtwoorden te verzamelen.
 A. Persoonlijke gegevens (authenticatie): Om volgersanalyse uit te voeren, moet u inloggen op uw Instagram-account.
 Hoe het werkt: De app gebruikt een beveiligde WebView (een browsercomponent binnen de app) om u naar de officiële inlogpagina van Instagram te leiden.
 Onze toegang: Wij zien, bewaren of verzenden uw wachtwoord NIET. Uw sessiecookies en authenticatietokens worden strikt opgeslagen in de lokale beveiligde opslag van uw apparaat (bijvoorbeeld Android SharedPreferences, iOS Keychain) om uw sessie te behouden.
@@ -1050,7 +1051,7 @@ Het wissen van de "Opslag/Cache" van de app in uw telefooninstellingen.
 De app verwijderen. Eenmaal verwijderd, blijft er geen spoor van uw gegevens bij ons achter.
 
 6. Beveiliging
-Wij streven ernaar commercieel aanvaardbare middelen te gebruiken om uw persoonlijke gegevens te beschermen. Door gegevens lokaal te verwerken en standaard encryptie te gebruiken voor lokale opslag minimaliseren we het risico op datalekken. Geen enkele transmissiemethode via internet is echter 100% veilig.
+Jouw veiligheid is belangrijk voor ons. We beschermen gegevens op je apparaat met standaard encryptie en veilige opslagpraktijken, en verbeteren deze bescherming voortdurend.
 
 7. Privacy van kinderen
 Onze Services richten zich niet tot personen jonger dan 13 jaar. We verzamelen niet bewust persoonlijk identificeerbare informatie van kinderen jonger dan 13 jaar.
@@ -1062,13 +1063,13 @@ We kunnen ons privacybeleid van tijd tot tijd bijwerken. Wij zullen u op de hoog
 Als u vragen of suggesties heeft, aarzel dan niet om contact met ons op te nemen.''',
   'fr': '''POLITIQUE DE CONFIDENTIALITÉ POUR VERDICT
 
-Cette politique de confidentialité explique comment VERDICT (« nous », « notre » ou « notre »), développé par Görkem Ali Cörmert, collecte, utilise et divulgue des informations vous concernant lorsque vous utilisez notre application mobile (l'« Application »). En accédant ou en utilisant l'application, vous acceptez cette politique de confidentialité. Si vous n'êtes pas d'accord avec nos politiques et pratiques, votre choix est de ne pas utiliser notre application.
+Cette politique de confidentialité explique comment VERDICT, développé par Görkem Ali Cörmert, traite les informations liées à votre utilisation de notre application mobile. En accédant ou en utilisant l’application, vous acceptez cette politique de confidentialité. Si vous n’êtes pas d’accord avec nos politiques et pratiques, votre choix est de ne pas utiliser notre application.
 
-1. Avis de non-responsabilité concernant l'affiliation
+1. Transparence sur notre relation avec la plateforme
 VERDICT est une application tierce indépendante et n'est pas affiliée, approuvée, sponsorisée ou administrée par Instagram, Facebook ou Meta Platforms, Inc. "Instagram" est une marque commerciale de Meta Platforms, Inc.. Nous utilisons la plateforme Instagram uniquement pour fournir des services d'analyse basés sur les données dont vous disposez en tant qu'utilisateur.
 
 2. Les informations que nous collectons
-Nous fonctionnons selon le principe strict du « traitement sur appareil ». Cela signifie que la fonctionnalité principale de l'application repose sur les données stockées localement sur votre appareil. Nous n'exploitons pas de serveur principal pour récolter ou stocker vos informations d'identification personnelles sur les réseaux sociaux.
+Nous avons conçu l'application avec une approche "privacy first" et un traitement sur l'appareil. La majorité de l'analyse s'exécute localement sur votre téléphone. Nous n'exploitons pas de serveur backend pour collecter vos mots de passe de réseaux sociaux.
 A. Données personnelles (authentification) : Pour effectuer une analyse des abonnés, vous devez vous connecter à votre compte Instagram.
 Comment ça marche : L'application utilise un WebView sécurisé (un composant de navigateur au sein de l'application) pour vous diriger vers la page de connexion officielle de Instagram.
 Notre accès : Nous ne voyons, ne stockons ni ne transmettons votre mot de passe. Vos cookies de session et jetons d'authentification sont stockés strictement dans le stockage local sécurisé de votre appareil (par exemple, Android SharedPreferences, iOS Keychain) pour maintenir votre session.
@@ -1099,7 +1100,7 @@ Effacement du « Stockage/Cache » de l'application dans les paramètres de vo
 Désinstallation de l'application. Une fois désinstallé, aucune trace de vos données ne reste chez nous.
 
 6. Sécurité
-Nous nous efforçons d'utiliser des moyens commercialement acceptables pour protéger vos informations personnelles. En traitant les données localement et en utilisant un cryptage standard pour le stockage local, nous minimisons le risque de violation de données. Cependant, aucune méthode de transmission sur Internet n’est sécurisée à 100 %.
+Votre sécurité compte pour nous. Nous protégeons les données sur votre appareil avec un chiffrement standard et des pratiques de stockage sécurisées, et nous améliorons ces protections en continu.
 
 7. Confidentialité des enfants
 Nos services ne s'adressent pas aux personnes de moins de 13 ans. Nous ne collectons pas sciemment d'informations personnellement identifiables auprès d'enfants de moins de 13 ans.
@@ -1111,13 +1112,13 @@ Nous pouvons mettre à jour notre politique de confidentialité de temps à autr
 Si vous avez des questions ou des suggestions, n'hésitez pas à nous contacter.''',
   'it': '''INFORMATIVA SULLA PRIVACY PER VERDICT
 
-La presente Informativa sulla privacy spiega come VERDICT ("noi", "ci" o "nostro"), sviluppato da Görkem Ali Cömert, raccoglie, utilizza e divulga informazioni su di te quando utilizzi la nostra applicazione mobile (l'"App"). Accedendo o utilizzando l'App, accetti la presente Informativa sulla privacy. Se non sei d'accordo con le nostre politiche e pratiche, la tua scelta è di non utilizzare la nostra App.
+La presente Informativa sulla privacy spiega come VERDICT, sviluppato da Görkem Ali Cömert, gestisce le informazioni relative al tuo utilizzo della nostra applicazione mobile. Accedendo o utilizzando l’app, accetti la presente Informativa sulla privacy. Se non sei d’accordo con le nostre politiche e pratiche, la tua scelta è di non utilizzare la nostra App.
 
-1. Dichiarazione di non responsabilità relativa all'affiliazione
+1. Trasparenza sul rapporto con la piattaforma
 VERDICT è un'applicazione di terze parti indipendente e non è affiliata, approvata, sponsorizzata o amministrata da Instagram, Facebook o Meta Platforms, Inc. "Instagram" è un marchio di Meta Platforms, Inc. Utilizziamo la piattaforma Instagram esclusivamente per fornire servizi di analisi basati sui dati a tua disposizione come utente.
 
 2. Le informazioni che raccogliamo
-Operiamo secondo un rigoroso principio di "elaborazione sul dispositivo". Ciò significa che la funzionalità principale dell'app si basa sui dati archiviati localmente sul tuo dispositivo. Non gestiamo un server backend per raccogliere o archiviare le tue credenziali personali sui social media.
+Abbiamo progettato l'app con un approccio orientato alla privacy e all'elaborazione sul dispositivo. La maggior parte delle analisi viene eseguita localmente sul tuo telefono. Non gestiamo un server backend per raccogliere le password dei tuoi social media.
 A. Dati personali (autenticazione): per eseguire l'analisi dei follower, è necessario accedere al proprio account Instagram.
 Come funziona: l'app utilizza un WebView sicuro (un componente browser all'interno dell'app) per indirizzarti alla pagina di accesso ufficiale di Instagram.
 Il nostro accesso: NON vediamo, memorizziamo o trasmettiamo la tua password. I cookie di sessione e i token di autenticazione vengono archiviati rigorosamente all'interno dell'archivio locale sicuro del tuo dispositivo (ad esempio, Android SharedPreferences, iOS Keychain) per mantenere la tua sessione.
@@ -1148,7 +1149,7 @@ Cancellare la "Memoria/Cache" dell'app nelle impostazioni del telefono.
 Disinstallazione dell'app. Una volta disinstallato, nessuna traccia dei tuoi dati rimane con noi.
 
 6. Sicurezza
-Ci impegniamo a utilizzare mezzi commercialmente accettabili per proteggere le tue informazioni personali. Elaborando i dati localmente e utilizzando la crittografia standard per l'archiviazione locale, riduciamo al minimo il rischio di violazione dei dati. Tuttavia, nessun metodo di trasmissione su Internet è sicuro al 100%.
+La tua sicurezza è importante per noi. Proteggiamo i dati sul tuo dispositivo con crittografia standard e pratiche di archiviazione sicure, migliorando continuamente queste misure.
 
 7. Privacy dei bambini
 I nostri Servizi non si rivolgono a minori di 13 anni. Non raccogliamo consapevolmente informazioni di identificazione personale da bambini di età inferiore a 13 anni.
@@ -1160,13 +1161,13 @@ Potremmo aggiornare la nostra Informativa sulla privacy di tanto in tanto. Ti in
 Se avete domande o suggerimenti, non esitate a contattarci.''',
   'vi': '''CHÍNH SÁCH RIÊNG TƯ DÀNH CHO VERDICT
 
-Chính sách quyền riêng tư này giải thích cách VERDICT ("chúng tôi" hoặc "của chúng tôi") do Görkem Ali Cömert phát triển, thu thập, sử dụng và tiết lộ thông tin về bạn khi bạn sử dụng ứng dụng di động của chúng tôi ("Ứng dụng"). Bằng cách truy cập hoặc sử dụng Ứng dụng, bạn đồng ý với Chính sách quyền riêng tư này. Nếu bạn không đồng ý với các chính sách và thông lệ của chúng tôi, lựa chọn của bạn là không sử dụng Ứng dụng của chúng tôi.
+Chính sách quyền riêng tư này giải thích cách VERDICT do Görkem Ali Cömert phát triển quản lý thông tin liên quan đến việc bạn sử dụng ứng dụng di động của chúng tôi. Bằng cách truy cập hoặc sử dụng Ứng dụng, bạn đồng ý với Chính sách quyền riêng tư này. Nếu bạn không đồng ý với các chính sách và thông lệ của chúng tôi, lựa chọn của bạn là không sử dụng Ứng dụng của chúng tôi.
 
-1. Tuyên bố miễn trừ trách nhiệm liên quan đến việc liên kết
+1. Minh bạch về mối quan hệ với nền tảng
 VERDICT là ứng dụng độc lập của bên thứ ba và không được liên kết, xác nhận, tài trợ hoặc quản lý bởi Instagram, Facebook hoặc Meta Platforms, Inc. "Instagram" là nhãn hiệu của Meta Platforms, Inc.. Chúng tôi sử dụng nghiêm ngặt nền tảng Instagram để cung cấp các dịch vụ phân tích dựa trên dữ liệu có sẵn cho bạn với tư cách là người dùng.
 
 2. Thông tin chúng tôi thu thập
-Chúng tôi hoạt động theo nguyên tắc "Xử lý trên thiết bị" nghiêm ngặt. Điều này có nghĩa là chức năng cốt lõi của Ứng dụng dựa vào dữ liệu được lưu trữ cục bộ trên thiết bị của bạn. Chúng tôi không vận hành máy chủ phụ trợ để thu thập hoặc lưu trữ thông tin đăng nhập mạng xã hội cá nhân của bạn.
+Chúng tôi thiết kế ứng dụng theo hướng ưu tiên quyền riêng tư và xử lý trên thiết bị. Phần lớn phân tích được chạy cục bộ trên điện thoại của bạn. Chúng tôi không vận hành máy chủ backend để thu thập mật khẩu mạng xã hội của bạn.
 A. Dữ liệu cá nhân (Xác thực): Để thực hiện phân tích người theo dõi, bạn phải đăng nhập vào tài khoản Instagram của mình.
 Cách hoạt động: Ứng dụng sử dụng WebView an toàn (một thành phần trình duyệt trong ứng dụng) để hướng bạn đến trang đăng nhập chính thức của Instagram.
 Quyền truy cập của chúng tôi: Chúng tôi KHÔNG xem, lưu trữ hoặc truyền mật khẩu của bạn. Cookie phiên và mã thông báo xác thực của bạn được lưu trữ nghiêm ngặt trong bộ lưu trữ an toàn cục bộ trên thiết bị của bạn (ví dụ: Android SharedPreferences, iOS Keychain) để duy trì phiên của bạn.
@@ -1197,7 +1198,7 @@ Xóa "Bộ nhớ/bộ nhớ đệm" của ứng dụng trong cài đặt điện
 Gỡ cài đặt ứng dụng. Sau khi gỡ cài đặt, chúng tôi sẽ không còn dấu vết nào về dữ liệu của bạn.
 
 6. Bảo mật
-Chúng tôi cố gắng sử dụng các phương tiện được chấp nhận về mặt thương mại để bảo vệ Thông tin cá nhân của bạn. Bằng cách xử lý dữ liệu cục bộ và sử dụng mã hóa tiêu chuẩn để lưu trữ cục bộ, chúng tôi giảm thiểu nguy cơ vi phạm dữ liệu. Tuy nhiên, không có phương thức truyền qua internet nào an toàn 100%.
+An toàn của bạn rất quan trọng với chúng tôi. Chúng tôi bảo vệ dữ liệu trên thiết bị của bạn bằng mã hóa tiêu chuẩn và phương thức lưu trữ an toàn, đồng thời liên tục cải thiện các biện pháp này.
 
 7. Quyền riêng tư của trẻ em
 Dịch vụ của chúng tôi không đề cập đến bất kỳ ai dưới 13 tuổi. Chúng tôi không cố ý thu thập thông tin nhận dạng cá nhân từ trẻ em dưới 13 tuổi.
@@ -1209,13 +1210,13 @@ Thỉnh thoảng chúng tôi có thể cập nhật Chính sách quyền riêng 
 Nếu bạn có bất kỳ câu hỏi hoặc gợi ý nào, đừng ngần ngại liên hệ với chúng tôi.''',
   'th': '''นโยบายความเป็นส่วนตัวสำหรับ VERDICT
 
-????????????????????????????????? VERDICT ("???" "??????" ???? "??????") ???????? Görkem Ali Cömert ?????? ??? ???????????????????????????????????????????????????????????????? ("???") ??????? ??????????????????????????????????????????????????????????????? ????????????????????????????????????????????? ????????????????????????????
+นโยบายความเป็นส่วนตัวนี้อธิบายว่า VERDICT ที่พัฒนาโดย Görkem Ali Cömert จัดการข้อมูลที่เกี่ยวข้องกับการใช้งานแอปมือถือของคุณอย่างไร การเข้าถึงหรือใช้งานแอปถือว่าคุณยอมรับนโยบายความเป็นส่วนตัวนี้ หากคุณไม่เห็นด้วยกับนโยบายและแนวปฏิบัติของเรา คุณสามารถเลือกไม่ใช้แอปของเราได้
 
-1. ข้อจำกัดความรับผิดชอบเกี่ยวกับการเป็นพันธมิตร
+1. ความชัดเจนเรื่องความสัมพันธ์กับแพลตฟอร์ม
 VERDICT เป็นแอปพลิเคชันบุคคลที่สามที่เป็นอิสระ และไม่มีส่วนเกี่ยวข้องกับ รับรอง สนับสนุน หรือบริหารจัดการโดย Instagram, Facebook หรือ Meta Platforms, Inc. "Instagram" เป็นเครื่องหมายการค้าของ Meta Platforms, Inc. เราใช้แพลตฟอร์ม Instagram อย่างเคร่งครัดเพื่อให้บริการการวิเคราะห์ตามข้อมูลที่คุณสามารถใช้ได้ในฐานะผู้ใช้
 
 2. ข้อมูลที่เรารวบรวม
-เราดำเนินการตามหลักการ "การประมวลผลบนอุปกรณ์" ที่เข้มงวด ซึ่งหมายความว่าฟังก์ชันการทำงานหลักของแอปจะขึ้นอยู่กับข้อมูลที่จัดเก็บไว้ในอุปกรณ์ของคุณ เราไม่ได้ดำเนินการเซิร์ฟเวอร์แบ็กเอนด์เพื่อเก็บเกี่ยวหรือจัดเก็บข้อมูลรับรองโซเชียลมีเดียส่วนตัวของคุณ
+เราออกแบบแอปโดยให้ความสำคัญกับความเป็นส่วนตัวและการประมวลผลบนอุปกรณ์เป็นหลัก การวิเคราะห์ส่วนใหญ่ทำงานภายในโทรศัพท์ของคุณแบบภายในเครื่อง เราไม่ใช้เซิร์ฟเวอร์แบ็กเอนด์เพื่อเก็บรหัสผ่านโซเชียลมีเดียของคุณ
 A. ข้อมูลส่วนบุคคล (การรับรองความถูกต้อง): เพื่อทำการวิเคราะห์ผู้ติดตาม คุณต้องเข้าสู่ระบบบัญชี Instagram ของคุณ
 วิธีการทำงาน: แอปใช้ WebView ที่ปลอดภัย (ส่วนประกอบของเบราว์เซอร์ภายในแอป) เพื่อนำคุณไปยังหน้าเข้าสู่ระบบอย่างเป็นทางการของ Instagram
 การเข้าถึงของเรา: เราไม่เห็น จัดเก็บ หรือส่งรหัสผ่านของคุณ คุกกี้เซสชันและโทเค็นการรับรองความถูกต้องของคุณจะถูกเก็บไว้อย่างเคร่งครัดภายในที่จัดเก็บข้อมูลที่ปลอดภัยในอุปกรณ์ของคุณ (เช่น Android SharedPreferences, iOS Keychain) เพื่อรักษาเซสชันของคุณ
@@ -1246,7 +1247,7 @@ Google Firebase: นโยบายความเป็นส่วนตัว
 การถอนการติดตั้งแอพ เมื่อถอนการติดตั้งแล้ว จะไม่เหลือร่องรอยข้อมูลของคุณอยู่กับเรา
 
 6. ความปลอดภัย
-เรามุ่งมั่นที่จะใช้วิธีการที่เป็นที่ยอมรับในเชิงพาณิชย์เพื่อปกป้องข้อมูลส่วนบุคคลของคุณ ด้วยการประมวลผลข้อมูลภายในเครื่องและใช้การเข้ารหัสมาตรฐานสำหรับการจัดเก็บในตัวเครื่อง เราจะลดความเสี่ยงของการละเมิดข้อมูลให้เหลือน้อยที่สุด อย่างไรก็ตาม ไม่มีวิธีการส่งข้อมูลทางอินเทอร์เน็ตใดที่ปลอดภัย 100%
+ความปลอดภัยของคุณสำคัญสำหรับเรา เราปกป้องข้อมูลบนอุปกรณ์ของคุณด้วยการเข้ารหัสมาตรฐานและแนวทางจัดเก็บที่ปลอดภัย พร้อมพัฒนามาตรการป้องกันอย่างต่อเนื่อง
 
 7. ความเป็นส่วนตัวของเด็ก
 บริการของเราไม่ได้กล่าวถึงผู้ที่มีอายุต่ำกว่า 13 ปี เราไม่รวบรวมข้อมูลที่สามารถระบุตัวบุคคลได้จากเด็กอายุต่ำกว่า 13 ปีโดยเจตนา
@@ -1258,13 +1259,13 @@ Google Firebase: นโยบายความเป็นส่วนตัว
 หากคุณมีคำถามหรือข้อเสนอแนะ อย่าลังเลที่จะติดต่อเรา''',
   'pl': '''POLITYKA PRYWATNOŚCI DLA VERDICT
 
-Niniejsza Polityka prywatności wyjaśnia, w jaki sposób VERDICT („my”, „nas” lub „nasz”), opracowana przez Görkem Ali Cömert, zbiera, wykorzystuje i ujawnia informacje o Tobie, gdy korzystasz z naszej aplikacji mobilnej („Aplikacja”). Uzyskując dostęp do aplikacji lub korzystając z niej, wyrażasz zgodę na niniejszą Politykę prywatności. Jeśli nie zgadzasz się z naszymi zasadami i praktykami, możesz nie korzystać z naszej Aplikacji.
+Niniejsza Polityka prywatności wyjaśnia, w jaki sposób VERDICT, opracowana przez Görkem Ali Cömert, zarządza informacjami związanymi z korzystaniem z naszej aplikacji mobilnej. Uzyskując dostęp do aplikacji lub korzystając z niej, wyrażasz zgodę na niniejszą Politykę prywatności. Jeśli nie zgadzasz się z naszymi zasadami i praktykami, możesz nie korzystać z naszej Aplikacji.
 
-1. Zastrzeżenie dotyczące przynależności
+1. Przejrzystość relacji z platformą
 VERDICT to niezależna aplikacja strony trzeciej i nie jest powiązana, wspierana, sponsorowana ani administrowana przez Instagram, Facebook ani Meta Platforms, Inc.. „Instagram” jest znakiem towarowym Meta Platforms, Inc.. Wykorzystujemy platformę Instagram wyłącznie w celu świadczenia usług analitycznych w oparciu o dane dostępne dla Ciebie jako użytkownika.
 
 2. Informacje, które zbieramy
-Działamy według ścisłej zasady „przetwarzania na urządzeniu”. Oznacza to, że podstawowa funkcjonalność aplikacji opiera się na danych przechowywanych lokalnie na Twoim urządzeniu. Nie obsługujemy serwera zaplecza służącego do gromadzenia lub przechowywania Twoich osobistych danych uwierzytelniających w mediach społecznościowych.
+Aplikację zaprojektowaliśmy z podejściem privacy-first i przetwarzaniem na urządzeniu. Większość analiz działa lokalnie na Twoim telefonie. Nie prowadzimy serwera backend do zbierania haseł do Twoich kont społecznościowych.
 A. Dane osobowe (uwierzytelnienie): Aby przeprowadzić analizę obserwujących, musisz zalogować się na swoje konto Instagram.
 Jak to działa: Aplikacja korzysta z bezpiecznego WebView (komponent przeglądarki w aplikacji), aby przekierować Cię na oficjalną stronę logowania Instagram.
 Nasz dostęp: NIE widzimy, nie przechowujemy ani nie przekazujemy Twojego hasła. Twoje sesyjne pliki cookie i tokeny uwierzytelniające są przechowywane wyłącznie w lokalnym bezpiecznym magazynie Twojego urządzenia (np. Android SharedPreferences, iOS Keychain) w celu utrzymania sesji.
@@ -1295,7 +1296,7 @@ Czyszczenie „Pamięć/pamięć podręczna” aplikacji w ustawieniach telefonu
 Odinstalowanie aplikacji. Po odinstalowaniu nie pozostanie u nas żaden ślad po Twoich danych.
 
 6. Bezpieczeństwo
-Staramy się stosować komercyjnie akceptowalne środki w celu ochrony Twoich danych osobowych. Przetwarzając dane lokalnie i stosując standardowe szyfrowanie do lokalnego przechowywania, minimalizujemy ryzyko naruszenia bezpieczeństwa danych. Żadna metoda transmisji przez Internet nie jest jednak w 100% bezpieczna.
+Twoje bezpieczeństwo jest dla nas ważne. Chronimy dane na Twoim urządzeniu przy użyciu standardowego szyfrowania i bezpiecznych praktyk przechowywania oraz stale udoskonalamy te zabezpieczenia.
 
 7. Prywatność dzieci
 Nasze Usługi nie są skierowane do osób poniżej 13 roku życia. Nie zbieramy świadomie danych osobowych od dzieci poniżej 13 roku życia.
@@ -1305,5 +1306,748 @@ Od czasu do czasu możemy aktualizować naszą Politykę prywatności. O wszelki
 
 9. Skontaktuj się z nami
 Jeśli masz jakieś pytania lub sugestie, nie wahaj się z nami skontaktować.''',
+};
+
+const Map<String, String> _humanizedPrivacyPolicyBodies = {
+  'tr': '''VERDICT İÇİN GİZLİLİK POLİTİKASI
+
+VERDICT'i kullandığınız için teşekkür ederiz. Bu metin, uygulamayı kullanırken bilgilerinizin nasıl işlendiğini sade bir dille açıklar. Aklınıza takılan bir nokta olursa dilediğiniz zaman bize ulaşabilirsiniz.
+
+1. VERDICT ve Instagram ilişkisi
+VERDICT bağımsız bir üçüncü taraf uygulamasıdır. Instagram, Facebook veya Meta Platforms, Inc. ile resmi bir ortaklığı yoktur. "Instagram", Meta Platforms, Inc. şirketinin ticari markasıdır.
+
+2. Hizmeti sunmak için işlediğimiz bilgiler
+Uygulama, gizlilik önceliğiyle ve cihaz içi çalışma mantığıyla tasarlanmıştır. Analizlerin büyük bölümü telefonunuzda yerel olarak yapılır.
+A. Giriş oturumu (kimlik doğrulama): Takipçi analizini çalıştırabilmek için Instagram hesabınıza, Instagram'ın resmi giriş ekranı üzerinden giriş yaparsınız.
+Erişimimiz: Şifrenizi görmeyiz ve saklamayız. Oturum çerezleri ve kimlik doğrulama belirteçleri yalnızca cihazınızdaki güvenli yerel alanda tutulur (ör. Android SharedPreferences, iOS Keychain).
+Sunucu yaklaşımımız: Şifreniz veya takipçi listeleriniz bize ait harici bir sunucuya yüklenmez.
+B. Sınırlı cihaz/kullanım verileri: Google AdMob ve Firebase gibi hizmet ortaklarımız, uygulamanın stabil çalışması ve uygun reklamların gösterilmesi için sınırlı teknik verileri işleyebilir (cihaz modeli, işletim sistemi sürümü, ağ türü, reklam kimliği, çökme/performance kayıtları).
+
+3. Bu bilgileri neden kullanıyoruz
+Takipçi analiz özelliklerini sunmak, uygulamayı güncel tutmak (bakım, güncelleme, özellik geçişleri) ve uygulamanın ücretsiz kalabilmesi için reklam gösterebilmek.
+
+4. Üçüncü taraf hizmetleri
+Kişisel verilerinizi satmayız. Reklam ve analiz altyapısı için güvenilir üçüncü taraf hizmetleri kullanırız:
+Google AdMob: Gizlilik Politikası
+Google Firebase: Gizlilik Politikası
+
+5. Kontrol sizde ve silme seçenekleri
+Oturum ve analiz verileri cihazınızda tutulduğu için kontrol sizdedir.
+İsterseniz istediğiniz an çıkış yaparak, uygulama depolamasını/önbelleğini temizleyerek veya uygulamayı kaldırarak verileri silebilirsiniz.
+
+6. Güvenlik
+Cihazınızdaki verileri korumak için standart güvenlik yöntemleri kullanıyor ve korumaları düzenli olarak geliştiriyoruz.
+
+7. Çocukların gizliliği
+VERDICT, 13 yaş altı çocuklara yönelik değildir. 13 yaş altındaki çocuklardan bilerek kişisel veri toplamıyoruz.
+
+8. Politika güncellemeleri
+Bu politikayı zaman zaman güncelleyebiliriz. Güncel sürümü bu sayfada yayınlarız.
+
+9. İletişim
+Sorularınız veya önerileriniz için bizimle iletişime geçebilirsiniz.''',
+  'en': '''PRIVACY POLICY FOR VERDICT
+
+Thank you for using VERDICT. This policy explains, in plain language, how data is handled when you use the app. If anything is unclear, you can contact us anytime.
+
+1. VERDICT and Instagram relationship
+VERDICT is an independent third-party app. It is not affiliated with, sponsored by, or managed by Instagram, Facebook, or Meta Platforms, Inc. "Instagram" is a trademark of Meta Platforms, Inc.
+
+2. Data we process to provide the service
+VERDICT is designed with privacy-first, on-device processing in mind. Most analysis runs locally on your phone.
+A. Login session (authentication): To run follower analysis, you log in through Instagram's official login page inside a secure WebView.
+Our access: We do not see or store your password. Session cookies and auth tokens stay in secure local storage on your device (e.g., Android SharedPreferences, iOS Keychain).
+Server approach: We do not upload your password or follower lists to servers we own.
+B. Limited device and usage data: Our service partners (Google AdMob and Firebase) may process limited technical identifiers (device model, OS version, network type, ad ID, crash/performance logs) to keep the app stable and show relevant ads.
+
+3. Why this data is used
+To provide follower analysis features, maintain the app (updates, maintenance mode, feature flags), and support free usage through ads.
+
+4. Third-party services
+We do not sell personal data. We use trusted third-party services for ads and analytics:
+Google AdMob: Privacy Policy
+Google Firebase: Privacy Policy
+
+5. Your control and deletion options
+Because session and analysis data are stored locally, you remain in control.
+You can delete data anytime by logging out, clearing app storage/cache, or uninstalling the app.
+
+6. Security
+We apply standard security practices to protect local data on your device and continue improving these safeguards.
+
+7. Children
+VERDICT is not intended for children under 13. We do not knowingly collect personal data from children under 13.
+
+8. Policy updates
+We may update this policy from time to time. The latest version will be published on this page.
+
+9. Contact
+If you have questions or suggestions, please contact us.''',
+  'de': '''DATENSCHUTZHINWEIS FUR VERDICT
+
+Danke, dass Sie VERDICT nutzen. Dieser Hinweis erklart in klarer Sprache, wie Daten bei der Nutzung der App verarbeitet werden. Wenn etwas unklar ist, konnen Sie uns jederzeit kontaktieren.
+
+1. Beziehung zwischen VERDICT und Instagram
+VERDICT ist eine unabhangige Drittanbieter-App. Es besteht keine offizielle Verbindung, Partnerschaft oder Verwaltung durch Instagram, Facebook oder Meta Platforms, Inc. "Instagram" ist eine Marke von Meta Platforms, Inc.
+
+2. Datenverarbeitung fur den Service
+VERDICT ist privacy-first aufgebaut; die meisten Analysen laufen lokal auf Ihrem Gerat.
+A. Login-Sitzung (Authentifizierung): Fur die Follower-Analyse melden Sie sich uber die offizielle Instagram-Loginseite in einer sicheren WebView an.
+Unser Zugriff: Wir sehen oder speichern Ihr Passwort nicht. Sitzungs-Cookies und Tokens bleiben in der lokalen sicheren Speicherung Ihres Gerats (z. B. Android SharedPreferences, iOS Keychain).
+Serveransatz: Passworter und Follower-Listen werden nicht auf eigene externe Server hochgeladen.
+B. Begrenzte Gerate- und Nutzungsdaten: Google AdMob und Firebase konnen begrenzte technische Daten verarbeiten (Geratemodell, Betriebssystem, Netzwerktyp, Werbe-ID, Absturz-/Leistungsprotokolle), um Stabilitat und relevante Werbung zu ermoglichen.
+
+3. Zweck der Nutzung
+Zur Bereitstellung der Analysefunktionen, zur App-Wartung (Updates, Wartungsmodus, Feature-Schalter) und zur Finanzierung der kostenlosen Nutzung uber Werbung.
+
+4. Drittanbieter-Dienste
+Wir verkaufen keine personenbezogenen Daten. Fur Werbung und Analysen nutzen wir vertrauenswurdige Drittanbieter:
+Google AdMob: Datenschutzerklarung
+Google Firebase: Datenschutzerklarung
+
+5. Ihre Kontrolle und Loschung
+Da Sitzungs- und Analysedaten lokal gespeichert werden, behalten Sie die Kontrolle.
+Sie konnen Daten jederzeit loschen: abmelden, App-Speicher/Cache leeren oder App deinstallieren.
+
+6. Sicherheit
+Wir verwenden etablierte Sicherheitsverfahren zum Schutz lokaler Daten und verbessern diese SchutzmaBnahmen fortlaufend.
+
+7. Kinder
+VERDICT richtet sich nicht an Kinder unter 13 Jahren. Wir erfassen wissentlich keine personenbezogenen Daten von Kindern unter 13.
+
+8. Aktualisierungen
+Diese Richtlinie kann gelegentlich aktualisiert werden. Die aktuelle Version finden Sie auf dieser Seite.
+
+9. Kontakt
+Bei Fragen oder Vorschlagen konnen Sie uns gerne kontaktieren.''',
+  'ko': '''VERDICT 개인정보 처리방침
+
+VERDICT를 이용해 주셔서 감사합니다. 이 문서는 앱 이용 중 데이터가 어떻게 처리되는지 이해하기 쉽게 안내합니다. 궁금한 점이 있으면 언제든지 문의해 주세요.
+
+1. VERDICT와 Instagram의 관계
+VERDICT는 독립적인 제3자 앱입니다. Instagram, Facebook, Meta Platforms, Inc.와 공식 제휴 또는 운영 관계가 없습니다. "Instagram"은 Meta Platforms, Inc.의 상표입니다.
+
+2. 서비스 제공을 위해 처리되는 정보
+VERDICT는 개인정보 보호를 우선으로 하며, 대부분의 분석은 기기 내에서 로컬로 처리됩니다.
+A. 로그인 세션(인증): 팔로워 분석을 위해 보안 WebView 내 Instagram 공식 로그인 페이지에서 로그인합니다.
+접근 범위: 비밀번호는 확인하거나 저장하지 않습니다. 세션 쿠키와 인증 토큰은 기기의 안전한 로컬 저장소(Android SharedPreferences, iOS Keychain 등)에 보관됩니다.
+서버 정책: 비밀번호나 팔로워 목록을 당사 소유 외부 서버로 업로드하지 않습니다.
+B. 제한된 기기/사용 정보: Google AdMob, Firebase는 앱 안정화와 관련 광고 제공을 위해 제한된 기술 정보를 처리할 수 있습니다(기기 모델, OS 버전, 네트워크 유형, 광고 ID, 충돌/성능 로그).
+
+3. 정보 사용 목적
+팔로워 분석 기능 제공, 앱 유지관리(업데이트/점검/기능 토글), 무료 서비스 유지를 위한 광고 운영.
+
+4. 제3자 서비스
+개인정보를 판매하지 않습니다. 광고와 분석을 위해 신뢰할 수 있는 제3자 서비스를 사용합니다.
+Google AdMob: 개인정보처리방침
+Google Firebase: 개인정보처리방침
+
+5. 사용자 제어 및 삭제
+세션/분석 데이터는 로컬에 저장되므로 사용자가 직접 제어할 수 있습니다.
+로그아웃, 앱 저장공간/캐시 삭제, 앱 삭제를 통해 언제든 데이터 삭제가 가능합니다.
+
+6. 보안
+기기 내 데이터 보호를 위해 표준 보안 방식을 적용하며, 보호 수준을 지속적으로 개선합니다.
+
+7. 아동 개인정보
+VERDICT는 만 13세 미만 아동을 대상으로 하지 않으며, 해당 연령 아동의 개인정보를 고의로 수집하지 않습니다.
+
+8. 정책 변경
+본 정책은 필요 시 업데이트될 수 있으며, 최신 버전은 이 페이지에 게시됩니다.
+
+9. 문의
+질문이나 제안이 있으면 언제든지 연락해 주세요.''',
+  'ja': '''VERDICT プライバシーポリシー
+
+VERDICTをご利用いただきありがとうございます。このポリシーは、アプリ利用時のデータの扱いを分かりやすく説明するものです。ご不明点があれば、いつでもお問い合わせください。
+
+1. VERDICTとInstagramの関係
+VERDICTは独立した第三者アプリです。Instagram、Facebook、Meta Platforms, Inc.とは公式な提携・後援・運営関係はありません。"Instagram"はMeta Platforms, Inc.の商標です。
+
+2. サービス提供のために扱う情報
+VERDICTはプライバシーを重視し、分析の大半は端末内でローカル処理されます。
+A. ログインセッション（認証）: フォロワー分析のため、アプリ内の安全なWebViewでInstagram公式ログインページにログインします。
+当社のアクセス範囲: パスワードを閲覧・保存しません。セッションクッキーと認証トークンは端末内の安全なローカル保存領域（Android SharedPreferences、iOS Keychainなど）に保存されます。
+サーバー方針: パスワードやフォロワー一覧を当社所有の外部サーバーへアップロードしません。
+B. 限定的な端末・利用情報: Google AdMobとFirebaseは、安定動作と適切な広告表示のために限定的な技術情報（端末モデル、OSバージョン、ネットワーク種別、広告ID、クラッシュ/性能ログ）を処理する場合があります。
+
+3. 情報の利用目的
+フォロワー分析機能の提供、アプリ運用（更新・メンテナンス・機能切替）、無料提供を支える広告表示のために利用します。
+
+4. 外部サービス
+個人データを販売することはありません。広告・分析のため信頼できる第三者サービスを利用します。
+Google AdMob: プライバシーポリシー
+Google Firebase: プライバシーポリシー
+
+5. ユーザーによる管理と削除
+セッション・分析データは端末ローカルに保存されるため、管理権限はユーザーにあります。
+ログアウト、アプリの保存領域/キャッシュ削除、アンインストールでいつでも削除できます。
+
+6. セキュリティ
+端末内データを守るため標準的なセキュリティ対策を実施し、継続的に改善します。
+
+7. 子どものプライバシー
+VERDICTは13歳未満を対象としていません。13歳未満の個人データを故意に収集しません。
+
+8. ポリシーの更新
+本ポリシーは随時更新される場合があります。最新版はこのページに掲載します。
+
+9. お問い合わせ
+ご質問・ご提案があれば、お気軽にご連絡ください。''',
+  'ru': '''ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ VERDICT
+
+Спасибо, что используете VERDICT. В этом тексте простым языком объясняется, как обрабатываются данные при работе с приложением. Если что-то непонятно, вы всегда можете связаться с нами.
+
+1. Отношения VERDICT и Instagram
+VERDICT - независимое стороннее приложение. Оно не связано официально с Instagram, Facebook или Meta Platforms, Inc. и не управляется ими. "Instagram" является товарным знаком Meta Platforms, Inc.
+
+2. Какие данные обрабатываются для работы сервиса
+VERDICT спроектирован с приоритетом приватности: большая часть анализа выполняется локально на вашем устройстве.
+A. Сеанс входа (аутентификация): для анализа подписчиков вы входите через официальную страницу входа Instagram во встроенном защищенном WebView.
+Наш доступ: мы не видим и не храним ваш пароль. Сессионные cookie и токены сохраняются только в защищенном локальном хранилище устройства (например, Android SharedPreferences, iOS Keychain).
+Серверный подход: ваш пароль и списки подписчиков не загружаются на внешние серверы, принадлежащие нам.
+B. Ограниченные данные устройства/использования: Google AdMob и Firebase могут обрабатывать ограниченные технические данные (модель устройства, версия ОС, тип сети, рекламный ID, логи сбоев/производительности) для стабильной работы приложения и релевантной рекламы.
+
+3. Для чего используются данные
+Для работы функций анализа, поддержки приложения (обновления, режим обслуживания, переключатели функций) и показа рекламы, чтобы приложение оставалось бесплатным.
+
+4. Сторонние сервисы
+Мы не продаем персональные данные. Для рекламы и аналитики используем надежные сторонние сервисы:
+Google AdMob: Политика конфиденциальности
+Google Firebase: Политика конфиденциальности
+
+5. Контроль и удаление
+Поскольку данные сеанса и анализа хранятся локально, контроль остается у вас.
+Вы можете удалить данные в любой момент: выйти из аккаунта, очистить хранилище/кэш приложения или удалить приложение.
+
+6. Безопасность
+Мы применяем стандартные меры безопасности для защиты локальных данных на устройстве и регулярно усиливаем защиту.
+
+7. Дети
+VERDICT не предназначен для детей младше 13 лет. Мы не собираем персональные данные детей младше 13 лет намеренно.
+
+8. Обновления политики
+Мы можем периодически обновлять политику. Актуальная версия публикуется на этой странице.
+
+9. Контакты
+Если у вас есть вопросы или предложения, свяжитесь с нами.''',
+  'pt': '''POLITICA DE PRIVACIDADE DO VERDICT
+
+Obrigado por usar o VERDICT. Este texto explica, de forma clara, como os dados sao tratados durante o uso do app. Se algo nao estiver claro, voce pode falar com a gente a qualquer momento.
+
+1. Relacao entre VERDICT e Instagram
+O VERDICT e um app independente de terceiro. Nao possui afiliacao oficial, patrocinio ou administracao por Instagram, Facebook ou Meta Platforms, Inc. "Instagram" e marca registrada da Meta Platforms, Inc.
+
+2. Dados tratados para prestar o servico
+O VERDICT foi pensado com foco em privacidade e processamento no proprio dispositivo. A maior parte das analises roda localmente no seu telefone.
+A. Sessao de login (autenticacao): para executar a analise de seguidores, voce entra pela pagina oficial de login do Instagram em um WebView seguro.
+Nosso acesso: nao vemos nem armazenamos sua senha. Cookies de sessao e tokens de autenticacao ficam apenas no armazenamento local seguro do aparelho (ex.: Android SharedPreferences, iOS Keychain).
+Abordagem de servidor: sua senha e suas listas de seguidores nao sao enviadas para servidores externos nossos.
+B. Dados limitados de dispositivo/uso: Google AdMob e Firebase podem processar dados tecnicos limitados (modelo do aparelho, versao do sistema, tipo de rede, ID de publicidade, logs de falha/desempenho) para manter estabilidade e exibir anuncios relevantes.
+
+3. Por que usamos esses dados
+Para oferecer os recursos de analise, manter o app (atualizacoes, manutencao, ativacao de recursos) e sustentar a versao gratuita por meio de anuncios.
+
+4. Servicos de terceiros
+Nao vendemos dados pessoais. Utilizamos servicos confiaveis de terceiros para anuncios e analise:
+Google AdMob: Politica de Privacidade
+Google Firebase: Politica de Privacidade
+
+5. Seu controle e exclusao
+Como os dados de sessao e analise ficam no dispositivo, o controle permanece com voce.
+Voce pode apagar os dados quando quiser: sair da conta, limpar armazenamento/cache do app ou desinstalar o app.
+
+6. Seguranca
+Aplicamos praticas padrao de seguranca para proteger dados locais no dispositivo e melhoramos continuamente essas medidas.
+
+7. Criancas
+O VERDICT nao e destinado a menores de 13 anos. Nao coletamos intencionalmente dados pessoais de criancas menores de 13 anos.
+
+8. Atualizacoes desta politica
+Podemos atualizar esta politica ocasionalmente. A versao mais recente sera publicada nesta pagina.
+
+9. Contato
+Se tiver duvidas ou sugestoes, entre em contato conosco.''',
+  'ar': '''سياسة الخصوصية لتطبيق VERDICT
+
+شكرًا لاستخدامك VERDICT. يوضح هذا النص بطريقة بسيطة كيف يتم التعامل مع البيانات عند استخدام التطبيق. إذا كان هناك أي جزء غير واضح، يمكنك التواصل معنا في أي وقت.
+
+1. العلاقة بين VERDICT وInstagram
+VERDICT تطبيق مستقل من طرف ثالث. لا توجد شراكة رسمية أو إدارة من Instagram أو Facebook أو Meta Platforms, Inc. علامة "Instagram" هي علامة تجارية لشركة Meta Platforms, Inc.
+
+2. البيانات التي نعالجها لتقديم الخدمة
+تم تصميم VERDICT مع أولوية للخصوصية ومعالجة على الجهاز. معظم التحليل يتم محليًا على هاتفك.
+A. جلسة تسجيل الدخول (المصادقة): لتشغيل تحليل المتابعين، تقوم بتسجيل الدخول عبر صفحة Instagram الرسمية داخل WebView آمن.
+نطاق وصولنا: نحن لا نرى كلمة المرور ولا نخزنها. ملفات تعريف الارتباط الخاصة بالجلسة ورموز المصادقة تبقى في التخزين المحلي الآمن على جهازك (مثل Android SharedPreferences وiOS Keychain).
+نهج الخادم: لا يتم رفع كلمة المرور أو قوائم المتابعين إلى خوادم خارجية نملكها.
+B. بيانات تقنية محدودة: قد يعالج Google AdMob وFirebase بيانات تقنية محدودة (طراز الجهاز، إصدار النظام، نوع الشبكة، معرف الإعلانات، سجلات الأعطال/الأداء) لتحسين الاستقرار وعرض إعلانات مناسبة.
+
+3. لماذا نستخدم هذه البيانات
+لتقديم ميزات التحليل، وصيانة التطبيق (التحديثات، وضع الصيانة، تفعيل الميزات)، ودعم النسخة المجانية عبر الإعلانات.
+
+4. خدمات الطرف الثالث
+نحن لا نبيع البيانات الشخصية. نستخدم خدمات موثوقة من طرف ثالث للإعلانات والتحليلات:
+Google AdMob: سياسة الخصوصية
+Google Firebase: سياسة الخصوصية
+
+5. التحكم والحذف
+لأن بيانات الجلسة والتحليل مخزنة محليًا، يبقى التحكم بيدك.
+يمكنك حذف البيانات في أي وقت عبر تسجيل الخروج أو مسح تخزين/ذاكرة التخزين المؤقت للتطبيق أو إزالة التطبيق.
+
+6. الأمان
+نطبق ممارسات أمان قياسية لحماية البيانات المحلية على جهازك، ونواصل تحسين إجراءات الحماية.
+
+7. خصوصية الأطفال
+VERDICT غير مخصص للأطفال دون 13 عامًا. لا نجمع عمدًا بيانات شخصية من الأطفال دون 13 عامًا.
+
+8. تحديثات السياسة
+قد نقوم بتحديث هذه السياسة من وقت لآخر، وسيتم نشر النسخة الأحدث على هذه الصفحة.
+
+9. التواصل
+إذا كان لديك أي سؤال أو اقتراح، يسعدنا تواصلك معنا.''',
+  'es': '''POLITICA DE PRIVACIDAD DE VERDICT
+
+Gracias por usar VERDICT. Este texto explica, de forma clara, como se tratan los datos cuando usas la app. Si algo no queda claro, puedes contactarnos en cualquier momento.
+
+1. Relacion entre VERDICT e Instagram
+VERDICT es una app independiente de terceros. No tiene afiliacion oficial, patrocinio ni gestion por parte de Instagram, Facebook o Meta Platforms, Inc. "Instagram" es una marca registrada de Meta Platforms, Inc.
+
+2. Datos que tratamos para prestar el servicio
+VERDICT esta disenada con enfoque de privacidad y procesamiento en el dispositivo. La mayor parte del analisis se realiza localmente en tu telefono.
+A. Sesion de inicio (autenticacion): para ejecutar el analisis de seguidores, inicias sesion en la pagina oficial de Instagram dentro de un WebView seguro.
+Nuestro acceso: no vemos ni almacenamos tu contrasena. Las cookies de sesion y los tokens de autenticacion se guardan solo en el almacenamiento local seguro del dispositivo (p. ej., Android SharedPreferences, iOS Keychain).
+Enfoque de servidor: tu contrasena y tus listas de seguidores no se suben a servidores externos de nuestra propiedad.
+B. Datos limitados de dispositivo/uso: Google AdMob y Firebase pueden tratar datos tecnicos limitados (modelo del dispositivo, version del sistema, tipo de red, ID de publicidad, registros de fallos/rendimiento) para mantener la app estable y mostrar anuncios relevantes.
+
+3. Para que usamos estos datos
+Para ofrecer las funciones de analisis, mantener la app (actualizaciones, modo mantenimiento, activacion de funciones) y sostener el uso gratuito mediante anuncios.
+
+4. Servicios de terceros
+No vendemos datos personales. Usamos servicios de terceros confiables para anuncios y analitica:
+Google AdMob: Politica de privacidad
+Google Firebase: Politica de privacidad
+
+5. Tu control y eliminacion
+Como los datos de sesion y analisis se almacenan localmente, el control sigue siendo tuyo.
+Puedes eliminar los datos en cualquier momento cerrando sesion, limpiando almacenamiento/cache o desinstalando la app.
+
+6. Seguridad
+Aplicamos practicas de seguridad estandar para proteger los datos locales en tu dispositivo y mejoramos estas medidas de forma continua.
+
+7. Menores
+VERDICT no esta dirigida a menores de 13 anos. No recopilamos intencionalmente datos personales de menores de 13 anos.
+
+8. Cambios en esta politica
+Podemos actualizar esta politica ocasionalmente. La version vigente se publicara en esta pagina.
+
+9. Contacto
+Si tienes preguntas o sugerencias, puedes escribirnos.''',
+  'es-mx': '''POLITICA DE PRIVACIDAD DE VERDICT
+
+Gracias por usar VERDICT. Este texto explica, de manera clara, como tratamos los datos cuando usas la app. Si algo no queda claro, puedes contactarnos en cualquier momento.
+
+1. Relacion entre VERDICT e Instagram
+VERDICT es una app independiente de terceros. No tiene afiliacion oficial, patrocinio ni administracion por parte de Instagram, Facebook o Meta Platforms, Inc. "Instagram" es una marca registrada de Meta Platforms, Inc.
+
+2. Datos que tratamos para brindar el servicio
+VERDICT esta disenada con enfoque de privacidad y procesamiento en el dispositivo. La mayor parte del analisis se realiza localmente en tu telefono.
+A. Sesion de inicio (autenticacion): para ejecutar el analisis de seguidores, inicias sesion en la pagina oficial de Instagram dentro de un WebView seguro.
+Nuestro acceso: no vemos ni almacenamos tu contrasena. Las cookies de sesion y los tokens de autenticacion se guardan solo en el almacenamiento local seguro del dispositivo (por ejemplo, Android SharedPreferences, iOS Keychain).
+Enfoque de servidor: tu contrasena y tus listas de seguidores no se suben a servidores externos de nuestra propiedad.
+B. Datos limitados de dispositivo/uso: Google AdMob y Firebase pueden tratar datos tecnicos limitados (modelo del dispositivo, version del sistema, tipo de red, ID de publicidad, registros de fallas/rendimiento) para mantener la app estable y mostrar anuncios relevantes.
+
+3. Para que usamos estos datos
+Para ofrecer funciones de analisis, mantener la app (actualizaciones, modo mantenimiento, activacion de funciones) y sostener el uso gratuito mediante anuncios.
+
+4. Servicios de terceros
+No vendemos datos personales. Usamos servicios confiables de terceros para anuncios y analitica:
+Google AdMob: Politica de privacidad
+Google Firebase: Politica de privacidad
+
+5. Tu control y eliminacion
+Como los datos de sesion y analisis se almacenan localmente, el control sigue siendo tuyo.
+Puedes eliminar datos en cualquier momento cerrando sesion, limpiando almacenamiento/cache o desinstalando la app.
+
+6. Seguridad
+Aplicamos practicas de seguridad estandar para proteger los datos locales en tu dispositivo y mejoramos estas medidas de forma continua.
+
+7. Menores
+VERDICT no esta dirigida a menores de 13 anos. No recopilamos intencionalmente datos personales de menores de 13 anos.
+
+8. Cambios en esta politica
+Podemos actualizar esta politica ocasionalmente. La version vigente se publicara en esta pagina.
+
+9. Contacto
+Si tienes dudas o sugerencias, puedes escribirnos.''',
+  'hi': '''VERDICT की गोपनीयता नीति
+
+VERDICT का उपयोग करने के लिए धन्यवाद। यह नीति सरल भाषा में बताती है कि ऐप इस्तेमाल करते समय जानकारी कैसे संभाली जाती है। अगर कोई बात स्पष्ट न हो, तो आप कभी भी हमसे संपर्क कर सकते हैं।
+
+1. VERDICT और Instagram का संबंध
+VERDICT एक स्वतंत्र थर्ड-पार्टी ऐप है। इसका Instagram, Facebook या Meta Platforms, Inc. के साथ कोई आधिकारिक साझेदारी या प्रबंधन संबंध नहीं है। "Instagram" Meta Platforms, Inc. का ट्रेडमार्क है।
+
+2. सेवा देने के लिए हम कौन-सी जानकारी प्रोसेस करते हैं
+VERDICT को प्राइवेसी-फर्स्ट और ऑन-डिवाइस प्रोसेसिंग के साथ डिजाइन किया गया है। ज्यादातर विश्लेषण आपके फोन पर लोकली होता है।
+A. लॉगिन सेशन (प्रमाणीकरण): फॉलोअर विश्लेषण के लिए आप सुरक्षित WebView में Instagram के आधिकारिक लॉगिन पेज से साइन इन करते हैं।
+हमारी पहुंच: हम आपका पासवर्ड न देखते हैं, न स्टोर करते हैं। सेशन कुकी और ऑथ टोकन केवल आपके डिवाइस के सुरक्षित लोकल स्टोरेज (जैसे Android SharedPreferences, iOS Keychain) में रहते हैं।
+सर्वर नीति: आपका पासवर्ड या फॉलोअर सूची हमारे किसी बाहरी सर्वर पर अपलोड नहीं की जाती।
+B. सीमित डिवाइस/उपयोग डेटा: Google AdMob और Firebase ऐप स्थिर रखने और प्रासंगिक विज्ञापन दिखाने के लिए सीमित तकनीकी डेटा प्रोसेस कर सकते हैं (डिवाइस मॉडल, OS वर्जन, नेटवर्क प्रकार, विज्ञापन ID, क्रैश/परफॉर्मेंस लॉग)।
+
+3. यह डेटा क्यों उपयोग होता है
+विश्लेषण सुविधाएं उपलब्ध कराने, ऐप रखरखाव (अपडेट, मेंटेनेंस मोड, फीचर टॉगल) और ऐप को मुफ्त रखने के लिए विज्ञापन दिखाने हेतु।
+
+4. तृतीय-पक्ष सेवाएं
+हम व्यक्तिगत डेटा नहीं बेचते। विज्ञापन और एनालिटिक्स के लिए भरोसेमंद तृतीय-पक्ष सेवाओं का उपयोग करते हैं:
+Google AdMob: Privacy Policy
+Google Firebase: Privacy Policy
+
+5. आपका नियंत्रण और डेटा हटाना
+सेशन और विश्लेषण डेटा लोकली स्टोर होने के कारण नियंत्रण आपके पास रहता है।
+आप कभी भी लॉगआउट करके, ऐप स्टोरेज/कैश साफ करके या ऐप अनइंस्टॉल करके डेटा हटा सकते हैं।
+
+6. सुरक्षा
+हम आपके डिवाइस पर लोकल डेटा की सुरक्षा के लिए मानक सुरक्षा उपाय अपनाते हैं और इन्हें लगातार बेहतर बनाते रहते हैं।
+
+7. बच्चों की गोपनीयता
+VERDICT 13 वर्ष से कम आयु के बच्चों के लिए नहीं है। हम 13 वर्ष से कम आयु के बच्चों का व्यक्तिगत डेटा जानबूझकर एकत्र नहीं करते।
+
+8. नीति में बदलाव
+हम समय-समय पर इस नीति को अपडेट कर सकते हैं। नवीनतम संस्करण इसी पेज पर प्रकाशित किया जाएगा।
+
+9. संपर्क
+यदि आपके पास कोई प्रश्न या सुझाव है, तो कृपया हमसे संपर्क करें।''',
+  'hu': '''VERDICT ADATVEDELMI TAJEKOZTATO
+
+Koszonjuk, hogy a VERDICT-et hasznalod. Ez a tajekoztato kozerhetoen leirja, hogyan kezeljuk az adatokat az alkalmazas hasznalata kozben. Ha barmi nem egyertelmu, barmikor kapcsolatba lephetsz velunk.
+
+1. VERDICT es Instagram kapcsolata
+A VERDICT egy fuggetlen, harmadik feltol szarmazo alkalmazas. Nem all hivatalos kapcsolatban az Instagrammal, a Facebookkal vagy a Meta Platforms, Inc.-szel, es nem is ezek kezelik. Az "Instagram" a Meta Platforms, Inc. vedjegye.
+
+2. A szolgaltatashoz kezelt adatok
+A VERDICT privacy-first szemlelettel keszult, az elemzesek nagy resze helyben, a keszulekeden fut.
+A. Bejelentkezesi munkamenet (hitelesites): a kovetoelemzeshez az Instagram hivatalos bejelentkezesi oldalan jelentkezel be egy biztonsagos WebView-n keresztul.
+Hozzaferesunk: a jelszavadat nem latjuk es nem taroljuk. A munkamenet-cookie-k es hitelesitesi tokenek kizarolag a keszulek biztonsagos helyi tarhelyen maradnak (pl. Android SharedPreferences, iOS Keychain).
+Szerverelv: a jelszo es a kovetolistak nem kerulnek altalunk uzemeltetett kulso szerverre.
+B. Korlatozott eszkoz- es hasznalati adatok: a Google AdMob es a Firebase korlatozott technikai adatokat dolgozhat fel (eszkozmodell, operacios rendszer verzio, halozattipus, hirdetesi azonosito, osszeomlasi/teljesitmeny naplok) a stabil mukodes es relevans hirdetesek erdekeben.
+
+3. Miert hasznaljuk ezeket az adatokat
+Az elemzesi funkciok biztositasahoz, az alkalmazas fenntartasahoz (frissitesek, karbantartas, funkciokapcsolok), valamint a reklamokkal tamogatott ingyenes hasznalathoz.
+
+4. Harmadik fel szolgaltatasai
+Szemelyes adatot nem ertekesitunk. Hirdeteshez es analitikahoz megbizhato harmadik feleket hasznalunk:
+Google AdMob: Adatvedelmi tajekoztato
+Google Firebase: Adatvedelmi tajekoztato
+
+5. Te iranyitasz, es torolhetsz
+Mivel a munkamenet- es elemzesi adatok helyben maradnak, az iranyitas nalad van.
+Az adatok barmikor torolhetok kijelentkezessel, az alkalmazas tarhelyenek/gyorsitotaranak torlesevel vagy az app eltavolitasaval.
+
+6. Biztonsag
+Szabvanyos biztonsagi gyakorlatokat alkalmazunk a helyi adatok vedelmere, es folyamatosan fejlesztjuk a vedelmet.
+
+7. Gyermekek adatvedelme
+A VERDICT nem 13 ev alatti gyermekeknek keszult. 13 ev alattiaktol nem gyujtunk tudatosan szemelyes adatot.
+
+8. Frissitesek
+Ezt a tajekoztatot idorol idore frissithetjuk. Az aktualis verzio ezen az oldalon lesz elerheto.
+
+9. Kapcsolat
+Kerdes vagy javaslat eseten lepj kapcsolatba velunk.''',
+  'zh-hans': '''VERDICT 隐私政策
+
+感谢你使用 VERDICT。本政策会用简明语言说明在使用应用时我们如何处理数据。如有任何不清楚的地方，欢迎随时联系我们。
+
+1. VERDICT 与 Instagram 的关系
+VERDICT 是独立的第三方应用，不隶属于、也不由 Instagram、Facebook 或 Meta Platforms, Inc. 赞助或管理。"Instagram" 是 Meta Platforms, Inc. 的商标。
+
+2. 为提供服务而处理的数据
+VERDICT 以隐私优先和本地处理为设计原则，大部分分析都在你的设备上完成。
+A. 登录会话（认证）：进行粉丝分析时，你会在安全 WebView 中通过 Instagram 官方登录页面登录。
+我们的访问范围：我们不会查看或保存你的密码。会话 Cookie 和认证令牌仅保存在你设备的安全本地存储中（例如 Android SharedPreferences、iOS Keychain）。
+服务器策略：你的密码和粉丝列表不会上传到我们拥有的外部服务器。
+B. 限定的设备/使用数据：Google AdMob 和 Firebase 可能会处理少量技术信息（设备型号、系统版本、网络类型、广告 ID、崩溃/性能日志），用于保持应用稳定并展示更相关的广告。
+
+3. 数据用途
+用于提供分析功能、维护应用（更新、维护模式、功能开关），以及通过广告支持应用免费使用。
+
+4. 第三方服务
+我们不会出售个人数据。我们会使用可信的第三方服务进行广告和分析：
+Google AdMob: 隐私政策
+Google Firebase: 隐私政策
+
+5. 你的控制权与删除方式
+由于会话和分析数据保存在本地设备上，控制权始终在你手中。
+你可以随时通过退出登录、清理应用存储/缓存或卸载应用来删除数据。
+
+6. 安全
+我们采用标准安全措施保护你设备上的本地数据，并持续改进这些防护。
+
+7. 儿童隐私
+VERDICT 不面向 13 岁以下儿童。我们不会故意收集 13 岁以下儿童的个人数据。
+
+8. 政策更新
+我们可能会不定期更新本政策，最新版本会发布在本页面。
+
+9. 联系我们
+如果你有任何问题或建议，欢迎联系我们。''',
+  'id': '''KEBIJAKAN PRIVASI VERDICT
+
+Terima kasih telah menggunakan VERDICT. Kebijakan ini menjelaskan dengan bahasa sederhana bagaimana data diproses saat kamu menggunakan aplikasi. Jika ada hal yang belum jelas, kamu bisa menghubungi kami kapan saja.
+
+1. Hubungan VERDICT dengan Instagram
+VERDICT adalah aplikasi pihak ketiga yang independen. Aplikasi ini tidak berafiliasi resmi, tidak disponsori, dan tidak dikelola oleh Instagram, Facebook, atau Meta Platforms, Inc. "Instagram" adalah merek dagang Meta Platforms, Inc.
+
+2. Data yang diproses untuk menyediakan layanan
+VERDICT dirancang dengan prinsip privacy-first dan pemrosesan di perangkat. Sebagian besar analisis berjalan secara lokal di ponselmu.
+A. Sesi login (autentikasi): untuk analisis pengikut, kamu login melalui halaman resmi Instagram di dalam WebView yang aman.
+Akses kami: kami tidak melihat atau menyimpan kata sandimu. Cookie sesi dan token autentikasi hanya disimpan di penyimpanan lokal aman pada perangkatmu (misalnya Android SharedPreferences, iOS Keychain).
+Kebijakan server: kata sandi dan daftar pengikutmu tidak diunggah ke server eksternal milik kami.
+B. Data perangkat/penggunaan terbatas: Google AdMob dan Firebase dapat memproses data teknis terbatas (model perangkat, versi OS, jenis jaringan, ID iklan, log crash/kinerja) untuk menjaga stabilitas aplikasi dan menampilkan iklan yang relevan.
+
+3. Tujuan penggunaan data
+Untuk menyediakan fitur analisis, memelihara aplikasi (pembaruan, mode pemeliharaan, pengaturan fitur), serta mendukung penggunaan gratis melalui iklan.
+
+4. Layanan pihak ketiga
+Kami tidak menjual data pribadi. Kami menggunakan layanan pihak ketiga tepercaya untuk iklan dan analitik:
+Google AdMob: Kebijakan Privasi
+Google Firebase: Kebijakan Privasi
+
+5. Kendali pengguna dan penghapusan
+Karena data sesi dan analisis disimpan lokal, kendali tetap di tangan kamu.
+Kamu bisa menghapus data kapan saja dengan logout, membersihkan penyimpanan/cache aplikasi, atau uninstall aplikasi.
+
+6. Keamanan
+Kami menerapkan praktik keamanan standar untuk melindungi data lokal di perangkatmu dan terus meningkatkan perlindungan ini.
+
+7. Privasi anak
+VERDICT tidak ditujukan untuk anak di bawah 13 tahun. Kami tidak dengan sengaja mengumpulkan data pribadi anak di bawah 13 tahun.
+
+8. Perubahan kebijakan
+Kebijakan ini dapat diperbarui sewaktu-waktu. Versi terbaru akan dipublikasikan di halaman ini.
+
+9. Kontak
+Jika kamu punya pertanyaan atau saran, silakan hubungi kami.''',
+  'nl': '''PRIVACYBELEID VAN VERDICT
+
+Bedankt dat je VERDICT gebruikt. Dit beleid legt in duidelijke taal uit hoe gegevens worden verwerkt tijdens het gebruik van de app. Als iets niet duidelijk is, kun je altijd contact met ons opnemen.
+
+1. Relatie tussen VERDICT en Instagram
+VERDICT is een onafhankelijke app van een derde partij. Er is geen officiele samenwerking met Instagram, Facebook of Meta Platforms, Inc. en de app wordt niet door hen beheerd. "Instagram" is een handelsmerk van Meta Platforms, Inc.
+
+2. Gegevens die we verwerken om de dienst te leveren
+VERDICT is ontworpen met privacy-first en verwerking op het apparaat. Het grootste deel van de analyse gebeurt lokaal op je telefoon.
+A. Login-sessie (authenticatie): voor volgersanalyse log je in via de officiele Instagram-inlogpagina in een beveiligde WebView.
+Onze toegang: we zien of bewaren je wachtwoord niet. Sessiecookies en authenticatietokens blijven in de veilige lokale opslag van je apparaat (bijv. Android SharedPreferences, iOS Keychain).
+Serverbeleid: je wachtwoord en volgerslijsten worden niet geupload naar externe servers die van ons zijn.
+B. Beperkte apparaat-/gebruiksgegevens: Google AdMob en Firebase kunnen beperkte technische gegevens verwerken (apparaatmodel, OS-versie, netwerktype, advertentie-ID, crash-/prestatie-logs) om de app stabiel te houden en relevante advertenties te tonen.
+
+3. Waarom we deze gegevens gebruiken
+Om analysefuncties te bieden, de app te onderhouden (updates, onderhoudsmodus, feature toggles) en gratis gebruik mogelijk te houden via advertenties.
+
+4. Diensten van derden
+We verkopen geen persoonsgegevens. We gebruiken vertrouwde diensten van derden voor advertenties en analytics:
+Google AdMob: Privacybeleid
+Google Firebase: Privacybeleid
+
+5. Jouw controle en verwijdering
+Omdat sessie- en analysedata lokaal worden opgeslagen, houd jij de controle.
+Je kunt data altijd verwijderen door uit te loggen, appopslag/cache te wissen of de app te verwijderen.
+
+6. Beveiliging
+We passen standaard beveiligingsmaatregelen toe om lokale data op je apparaat te beschermen en verbeteren deze maatregelen voortdurend.
+
+7. Kinderen
+VERDICT is niet bedoeld voor kinderen jonger dan 13 jaar. We verzamelen niet bewust persoonsgegevens van kinderen onder 13.
+
+8. Updates van dit beleid
+We kunnen dit beleid af en toe bijwerken. De meest recente versie publiceren we op deze pagina.
+
+9. Contact
+Heb je vragen of suggesties, neem dan gerust contact met ons op.''',
+  'fr': '''POLITIQUE DE CONFIDENTIALITE VERDICT
+
+Merci d'utiliser VERDICT. Ce document explique simplement comment les donnees sont traitees pendant l'utilisation de l'application. Si un point n'est pas clair, vous pouvez nous contacter a tout moment.
+
+1. Relation entre VERDICT et Instagram
+VERDICT est une application tierce independante. Elle n'est ni affiliee, ni sponsorisee, ni geree par Instagram, Facebook ou Meta Platforms, Inc. "Instagram" est une marque de Meta Platforms, Inc.
+
+2. Donnees traitees pour fournir le service
+VERDICT est concu avec une approche privacy-first et un traitement sur l'appareil. La majeure partie de l'analyse est effectuee localement sur votre telephone.
+A. Session de connexion (authentification): pour l'analyse des abonnes, vous vous connectez via la page officielle de connexion Instagram dans un WebView securise.
+Notre acces: nous ne voyons pas et ne stockons pas votre mot de passe. Les cookies de session et jetons d'authentification restent dans le stockage local securise de votre appareil (ex.: Android SharedPreferences, iOS Keychain).
+Approche serveur: votre mot de passe et vos listes d'abonnes ne sont pas televerses vers des serveurs externes que nous possedons.
+B. Donnees techniques limitees: Google AdMob et Firebase peuvent traiter des donnees techniques limitees (modele d'appareil, version OS, type de reseau, identifiant publicitaire, journaux de crash/performance) pour maintenir la stabilite et afficher des publicites pertinentes.
+
+3. Pourquoi ces donnees sont utilisees
+Pour fournir les fonctions d'analyse, maintenir l'application (mises a jour, mode maintenance, activation de fonctionnalites) et financer l'usage gratuit via la publicite.
+
+4. Services tiers
+Nous ne vendons pas de donnees personnelles. Nous utilisons des services tiers fiables pour la publicite et l'analyse:
+Google AdMob: Politique de confidentialite
+Google Firebase: Politique de confidentialite
+
+5. Votre controle et la suppression
+Comme les donnees de session et d'analyse sont stockees localement, vous gardez le controle.
+Vous pouvez supprimer vos donnees a tout moment en vous deconnectant, en vidant le stockage/cache de l'app ou en desinstallant l'application.
+
+6. Securite
+Nous appliquons des pratiques de securite standard pour proteger les donnees locales sur votre appareil et nous ameliorons ces protections en continu.
+
+7. Donnees des enfants
+VERDICT n'est pas destine aux enfants de moins de 13 ans. Nous ne collectons pas volontairement de donnees personnelles concernant des enfants de moins de 13 ans.
+
+8. Mise a jour de la politique
+Cette politique peut etre mise a jour ponctuellement. La version la plus recente sera publiee sur cette page.
+
+9. Contact
+Pour toute question ou suggestion, contactez-nous.''',
+  'it': '''INFORMATIVA SULLA PRIVACY DI VERDICT
+
+Grazie per usare VERDICT. Questo testo spiega in modo semplice come vengono trattati i dati durante l'uso dell'app. Se qualcosa non e chiaro, puoi contattarci in qualsiasi momento.
+
+1. Rapporto tra VERDICT e Instagram
+VERDICT e un'app indipendente di terze parti. Non e affiliata, sponsorizzata o gestita da Instagram, Facebook o Meta Platforms, Inc. "Instagram" e un marchio di Meta Platforms, Inc.
+
+2. Dati trattati per fornire il servizio
+VERDICT e progettata con approccio privacy-first e elaborazione sul dispositivo. La maggior parte delle analisi avviene localmente sul tuo telefono.
+A. Sessione di accesso (autenticazione): per l'analisi follower effettui l'accesso tramite la pagina ufficiale di login Instagram in una WebView sicura.
+Il nostro accesso: non vediamo e non memorizziamo la tua password. Cookie di sessione e token di autenticazione restano solo nello spazio locale sicuro del dispositivo (es. Android SharedPreferences, iOS Keychain).
+Approccio server: la tua password e le liste follower non vengono caricate su server esterni di nostra proprieta.
+B. Dati limitati di dispositivo/uso: Google AdMob e Firebase possono trattare dati tecnici limitati (modello dispositivo, versione OS, tipo rete, ID pubblicitario, log crash/prestazioni) per mantenere stabilita e mostrare annunci pertinenti.
+
+3. Perche usiamo questi dati
+Per offrire le funzioni di analisi, mantenere l'app (aggiornamenti, modalita manutenzione, attivazione funzioni) e sostenere la versione gratuita tramite annunci.
+
+4. Servizi di terze parti
+Non vendiamo dati personali. Usiamo servizi affidabili di terze parti per pubblicita e analisi:
+Google AdMob: Informativa sulla privacy
+Google Firebase: Informativa sulla privacy
+
+5. Il tuo controllo e cancellazione
+Poiche i dati di sessione e analisi sono salvati localmente, il controllo resta a te.
+Puoi eliminare i dati in qualsiasi momento effettuando logout, pulendo storage/cache dell'app o disinstallando l'app.
+
+6. Sicurezza
+Applichiamo pratiche standard di sicurezza per proteggere i dati locali sul dispositivo e miglioriamo continuamente queste misure.
+
+7. Privacy dei minori
+VERDICT non e destinata a minori di 13 anni. Non raccogliamo consapevolmente dati personali di minori di 13 anni.
+
+8. Aggiornamenti della politica
+Possiamo aggiornare questa informativa periodicamente. La versione piu recente verra pubblicata in questa pagina.
+
+9. Contatti
+Per domande o suggerimenti, contattaci.''',
+  'vi': '''CHINH SACH QUYEN RIENG TU CUA VERDICT
+
+Cam on ban da su dung VERDICT. Tai lieu nay giai thich ro rang cach du lieu duoc xu ly khi ban su dung ung dung. Neu co diem nao chua ro, ban co the lien he voi chung toi bat cu luc nao.
+
+1. Moi quan he giua VERDICT va Instagram
+VERDICT la ung dung ben thu ba doc lap. Ung dung khong lien ket chinh thuc, khong duoc tai tro va khong duoc van hanh boi Instagram, Facebook hoac Meta Platforms, Inc. "Instagram" la thuong hieu cua Meta Platforms, Inc.
+
+2. Du lieu duoc xu ly de cung cap dich vu
+VERDICT duoc thiet ke theo huong privacy-first va xu ly tren thiet bi. Phan lon phan tich duoc thuc hien cuc bo tren dien thoai cua ban.
+A. Phien dang nhap (xac thuc): de chay phan tich nguoi theo doi, ban dang nhap qua trang dang nhap chinh thuc cua Instagram trong WebView an toan.
+Pham vi truy cap cua chung toi: chung toi khong xem va khong luu mat khau cua ban. Cookie phien va token xac thuc chi duoc luu trong bo nho cuc bo an toan tren thiet bi (vi du Android SharedPreferences, iOS Keychain).
+Chinh sach may chu: mat khau va danh sach nguoi theo doi cua ban khong duoc tai len may chu ben ngoai do chung toi so huu.
+B. Du lieu thiet bi/su dung gioi han: Google AdMob va Firebase co the xu ly du lieu ky thuat gioi han (mau thiet bi, phien ban he dieu hanh, loai mang, ID quang cao, nhat ky loi/hieu nang) de giu ung dung on dinh va hien thi quang cao phu hop.
+
+3. Muc dich su dung du lieu
+De cung cap tinh nang phan tich, duy tri ung dung (cap nhat, che do bao tri, bat/tat tinh nang) va ho tro su dung mien phi thong qua quang cao.
+
+4. Dich vu ben thu ba
+Chung toi khong ban du lieu ca nhan. Chung toi su dung cac dich vu ben thu ba dang tin cay cho quang cao va phan tich:
+Google AdMob: Chinh sach quyen rieng tu
+Google Firebase: Chinh sach quyen rieng tu
+
+5. Quyen kiem soat va xoa du lieu
+Vi du lieu phien va phan tich duoc luu cuc bo, ban van la nguoi kiem soat.
+Ban co the xoa du lieu bat cu luc nao bang cach dang xuat, xoa bo nho luu tru/cache cua ung dung hoac go cai dat ung dung.
+
+6. Bao mat
+Chung toi ap dung cac bien phap bao mat tieu chuan de bao ve du lieu cuc bo tren thiet bi va lien tuc cai tien cac bien phap nay.
+
+7. Tre em
+VERDICT khong danh cho tre duoi 13 tuoi. Chung toi khong co y thu thap du lieu ca nhan cua tre duoi 13 tuoi.
+
+8. Cap nhat chinh sach
+Chung toi co the cap nhat chinh sach nay theo tung thoi diem. Ban moi nhat se duoc dang tai tren trang nay.
+
+9. Lien he
+Neu ban co cau hoi hoac goi y, vui long lien he voi chung toi.''',
+  'th': '''นโยบายความเป็นส่วนตัวของ VERDICT
+
+ขอบคุณที่ใช้งาน VERDICT เอกสารนี้อธิบายด้วยภาษาที่เข้าใจง่ายว่าเราดูแลข้อมูลอย่างไรระหว่างการใช้งานแอป หากมีจุดใดที่ไม่ชัดเจน คุณสามารถติดต่อเราได้ทุกเมื่อ
+
+1. ความสัมพันธ์ระหว่าง VERDICT กับ Instagram
+VERDICT เป็นแอปของบุคคลที่สามที่พัฒนาอย่างอิสระ ไม่มีความร่วมมืออย่างเป็นทางการ และไม่ได้อยู่ภายใต้การสนับสนุนหรือการบริหารของ Instagram, Facebook หรือ Meta Platforms, Inc. คำว่า "Instagram" เป็นเครื่องหมายการค้าของ Meta Platforms, Inc.
+
+2. ข้อมูลที่เราประมวลผลเพื่อให้บริการ
+VERDICT ออกแบบโดยให้ความสำคัญกับความเป็นส่วนตัว และประมวลผลบนอุปกรณ์เป็นหลัก การวิเคราะห์ส่วนใหญ่ทำงานภายในโทรศัพท์ของคุณ
+A. เซสชันการเข้าสู่ระบบ (การยืนยันตัวตน): เพื่อใช้งานการวิเคราะห์ผู้ติดตาม คุณจะเข้าสู่ระบบผ่านหน้าเข้าสู่ระบบทางการของ Instagram ภายใน WebView ที่ปลอดภัย
+ขอบเขตการเข้าถึงของเรา: เราไม่เห็นและไม่เก็บรหัสผ่านของคุณ คุกกี้เซสชันและโทเคนยืนยันตัวตนจะถูกเก็บไว้เฉพาะในพื้นที่จัดเก็บภายในที่ปลอดภัยของอุปกรณ์ (เช่น Android SharedPreferences, iOS Keychain)
+แนวทางด้านเซิร์ฟเวอร์: รหัสผ่านและรายการผู้ติดตามของคุณจะไม่ถูกอัปโหลดไปยังเซิร์ฟเวอร์ภายนอกที่เราเป็นเจ้าของ
+B. ข้อมูลอุปกรณ์/การใช้งานแบบจำกัด: Google AdMob และ Firebase อาจประมวลผลข้อมูลทางเทคนิคบางส่วน (รุ่นอุปกรณ์ เวอร์ชันระบบ ประเภทเครือข่าย รหัสโฆษณา บันทึกข้อขัดข้อง/ประสิทธิภาพ) เพื่อให้แอปทำงานเสถียรและแสดงโฆษณาที่เหมาะสม
+
+3. วัตถุประสงค์ในการใช้ข้อมูล
+เพื่อให้บริการฟีเจอร์วิเคราะห์ ดูแลระบบแอป (อัปเดต โหมดบำรุงรักษา การสลับฟีเจอร์) และสนับสนุนการใช้งานฟรีผ่านโฆษณา
+
+4. บริการของบุคคลที่สาม
+เราไม่ขายข้อมูลส่วนบุคคล เราใช้บริการบุคคลที่สามที่เชื่อถือได้สำหรับโฆษณาและการวิเคราะห์
+Google AdMob: นโยบายความเป็นส่วนตัว
+Google Firebase: นโยบายความเป็นส่วนตัว
+
+5. การควบคุมและการลบข้อมูล
+เนื่องจากข้อมูลเซสชันและข้อมูลวิเคราะห์ถูกเก็บไว้ในอุปกรณ์ของคุณ คุณจึงควบคุมได้ด้วยตนเอง
+คุณสามารถลบข้อมูลได้ทุกเมื่อโดยออกจากระบบ ล้างที่เก็บข้อมูล/แคชของแอป หรือถอนการติดตั้งแอป
+
+6. ความปลอดภัย
+เราใช้มาตรการความปลอดภัยตามมาตรฐานเพื่อปกป้องข้อมูลในอุปกรณ์ และปรับปรุงมาตรการเหล่านี้อย่างต่อเนื่อง
+
+7. ความเป็นส่วนตัวของเด็ก
+VERDICT ไม่ได้ออกแบบมาสำหรับผู้ที่อายุต่ำกว่า 13 ปี และเราไม่ตั้งใจเก็บข้อมูลส่วนบุคคลของเด็กอายุต่ำกว่า 13 ปี
+
+8. การอัปเดตนโยบาย
+เราอาจปรับปรุงนโยบายนี้เป็นระยะ โดยจะแสดงฉบับล่าสุดไว้บนหน้านี้
+
+9. ติดต่อเรา
+หากคุณมีคำถามหรือข้อเสนอแนะ กรุณาติดต่อเราได้เสมอ''',
+  'pl': '''POLITYKA PRYWATNOŚCI VERDICT
+
+Dziękujemy za korzystanie z VERDICT. Ten dokument prostym językiem wyjaśnia, jak przetwarzamy dane podczas korzystania z aplikacji. Jeśli coś jest niejasne, możesz skontaktować się z nami w każdej chwili.
+
+1. Relacja VERDICT z Instagramem
+VERDICT to niezależna aplikacja strony trzeciej. Nie jest oficjalnie powiązana z Instagramem, Facebookiem ani Meta Platforms, Inc., ani przez te podmioty zarządzana. "Instagram" jest znakiem towarowym Meta Platforms, Inc.
+
+2. Dane przetwarzane w celu świadczenia usługi
+VERDICT została zaprojektowana zgodnie z podejściem privacy-first, a większość analiz odbywa się lokalnie na Twoim urządzeniu.
+A. Sesja logowania (uwierzytelnianie): aby uruchomić analizę obserwujących, logujesz się przez oficjalną stronę logowania Instagram w bezpiecznym WebView.
+Nasz dostęp: nie widzimy i nie przechowujemy Twojego hasła. Cookies sesyjne i tokeny uwierzytelniające pozostają wyłącznie w bezpiecznym, lokalnym magazynie urządzenia (np. Android SharedPreferences, iOS Keychain).
+Podejście serwerowe: hasło i listy obserwujących nie są przesyłane na zewnętrzne serwery będące naszą własnością.
+B. Ograniczone dane urządzenia/użycia: Google AdMob i Firebase mogą przetwarzać ograniczone dane techniczne (model urządzenia, wersja systemu, typ sieci, identyfikator reklamowy, logi awarii/wydajności), aby utrzymać stabilność aplikacji i wyświetlać trafniejsze reklamy.
+
+3. Dlaczego używamy tych danych
+Aby udostępniać funkcje analizy, utrzymywać aplikację (aktualizacje, tryb konserwacji, przełączniki funkcji) oraz finansować darmowe korzystanie z aplikacji poprzez reklamy.
+
+4. Usługi stron trzecich
+Nie sprzedajemy danych osobowych. Korzystamy z zaufanych usług stron trzecich do reklam i analityki:
+Google AdMob: Polityka prywatności
+Google Firebase: Polityka prywatności
+
+5. Twoja kontrola i usuwanie danych
+Ponieważ dane sesji i analizy są przechowywane lokalnie, kontrola pozostaje po Twojej stronie.
+Możesz usunąć dane w dowolnym momencie: wylogować się, wyczyścić pamięć/cache aplikacji albo odinstalować aplikację.
+
+6. Bezpieczeństwo
+Stosujemy standardowe praktyki bezpieczeństwa do ochrony danych lokalnych i stale udoskonalamy te zabezpieczenia.
+
+7. Prywatność dzieci
+VERDICT nie jest przeznaczony dla dzieci poniżej 13 roku życia. Nie zbieramy świadomie danych osobowych dzieci poniżej 13 lat.
+
+8. Aktualizacje polityki
+Możemy okresowo aktualizować tę politykę. Najnowsza wersja będzie publikowana na tej stronie.
+
+9. Kontakt
+Jeśli masz pytania lub sugestie, skontaktuj się z nami.''',
 };
 
