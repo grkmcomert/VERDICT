@@ -1,0 +1,78 @@
+name: Build IPA Only (with 20 Languages)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-ipa:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build iOS app (no codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Package unsigned IPA & Fix Languages
+        run: |
+          APP_PATH="build/ios/iphoneos/Runner.app"
+          PLIST_PATH="$APP_PATH/Info.plist"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "Runner.app not found at: $APP_PATH"
+            exit 1
+          fi
+
+          # --- 20 DİL İÇİN KRİTİK DOSYA VE PLIST ENJEKSİYONU ---
+          echo "🌐 20 dil yapısı IPA içerisine işleniyor..."
+          
+          # Mevcut CFBundleLocalizations'ı temizle ve yeniden oluştur
+          /usr/libexec/PlistBuddy -c "Delete :CFBundleLocalizations" "$PLIST_PATH" || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations array" "$PLIST_PATH"
+
+          # Senin 20 dilin tam listesi
+          LANGS=("en" "tr" "de" "ko" "ja" "ru" "pt" "ar" "es" "es-MX" "hi" "hu" "zh-Hans" "id" "nl" "fr" "it" "vi" "th" "pl")
+
+          idx=0
+          for lang in "${LANGS[@]}"; do
+            # Plist'e ekle
+            /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations:$idx string $lang" "$PLIST_PATH"
+            
+            # .lproj klasörlerini oluştur (App Store tespiti için şart)
+            mkdir -p "$APP_PATH/$lang.lproj"
+            
+            # InfoPlist.strings varsa kopyala, yoksa dokun (boş oluştur)
+            if [ -f "ios/Runner/$lang.lproj/InfoPlist.strings" ]; then
+              cp "ios/Runner/$lang.lproj/InfoPlist.strings" "$APP_PATH/$lang.lproj/InfoPlist.strings"
+            else
+              touch "$APP_PATH/$lang.lproj/InfoPlist.strings"
+            fi
+            
+            idx=$((idx+1))
+          done
+
+          # Geliştirme bölgesini sabitle
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDevelopmentRegion en" "$PLIST_PATH" || /usr/libexec/PlistBuddy -c "Add :CFBundleDevelopmentRegion string en" "$PLIST_PATH"
+
+          # --- PAKETLEME ---
+          rm -rf Payload
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          /usr/bin/zip -qry VERDICT-unsigned.ipa Payload
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: verdict-ipa-only
+          path: VERDICT-unsigned.ipa
+          if-no-files-found: error

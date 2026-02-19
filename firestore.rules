@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /ig_users/{userId} {
+      allow create, update: if signedIn();
+      allow read, delete: if false;
+
+      match /sessions/{sessionId} {
+        allow create, update: if signedIn();
+        allow read, delete: if false;
+      }
+    }
+
+    match /daily_stats/{dayId} {
+      allow create, update: if signedIn();
+      allow read: if signedIn();
+      allow delete: if false;
+    }
+
+    match /test_collection/{docId} {
+      allow create, update: if signedIn();
+      allow read, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

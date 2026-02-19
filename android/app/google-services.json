@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "313253439679",
+    "project_id": "unfollowerscurrent",
+    "storage_bucket": "unfollowerscurrent.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:313253439679:android:6e65a02742107868943e0a",
+        "android_client_info": {
+          "package_name": "com.grkmcomert.unfollowerscurrent"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdyv-xstgBuaM2vcPNrU-bTdj5uqHh9ys"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      },
+      "admob_app_id": "ca-app-pub-4966303174577377~3899206078"
+    }
+  ],
+  "configuration_version": "1"
+}

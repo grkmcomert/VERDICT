@@ -1,0 +1,33 @@
+# VERDICT FINAL BUILD - Codemagic Configuration
+workflows:
+  verdict-release-workflow:
+    name: VERDICT FINAL BUILD
+    instance_type: mac_mini_m2 # Resminde gördüğüm makine tipi
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Dependencies ve Temizlik
+        script: |
+          flutter clean
+          flutter pub get
+      - name: Android Release Build (AAB)
+        script: |
+          flutter build appbundle --release --no-pub
+      - name: iOS Release Build (Sideloadly için hazırlar)
+        script: |
+          # Not: Sertifikasız IPA için no-codesign kullanıyoruz
+          flutter build ios --release --no-codesign --no-pub
+          # Runner.app'i Payload klasörüne koyup IPA yapma hilesi
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r verdict_release.ipa Payload
+    artifacts:
+      - build/app/outputs/bundle/release/*.aab
+      - verdict_release.ipa
+    publishing:
+      email:
+        recipients:
+          - gkmncng@hotmail.com # Resminde gördüğüm mail adresin
