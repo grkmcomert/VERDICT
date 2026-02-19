@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
@@ -30,6 +30,7 @@ import 'purchases_service.dart';
 import 'telemetry_service.dart';
 import 'tr_en_phrase_localizations.dart';
 import 'did_you_know_phrase_localizations.dart';
+import 'privacy_policy_localizations.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -53,10 +54,99 @@ const int _firestoreTimeoutSeconds =
 const Duration _firestoreTimeout = Duration(seconds: _firestoreTimeoutSeconds);
 const String _firestoreSetupBaseUrl =
     'https://console.cloud.google.com/datastore/setup?project=';
+const String _privacyPolicySourceUrl =
+    'https://raw.githubusercontent.com/grkmcomert/verdict-web/refs/heads/main/privacy-policy.txt';
 const MethodChannel _cookieChannel =
     MethodChannel('com.grkmcomert.unfollowerscurrent/cookie');
 const MethodChannel _reviewChannel =
     MethodChannel('com.grkmcomert.unfollowerscurrent/review');
+
+const Map<String, String> _startupLoadingLabels = <String, String>{
+  'tr': 'VERDICT başlatılıyor...',
+  'en': 'Starting VERDICT...',
+  'de': 'VERDICT wird gestartet...',
+  'ko': 'VERDICT를 시작하는 중...',
+  'ja': 'VERDICTを起動しています...',
+  'ru': 'Запуск VERDICT...',
+  'pt': 'Iniciando VERDICT...',
+  'ar': 'جاري تشغيل VERDICT...',
+  'es': 'Iniciando VERDICT...',
+  'es-mx': 'Iniciando VERDICT...',
+  'hi': 'VERDICT शुरू हो रहा है...',
+  'hu': 'VERDICT indul...',
+  'zh-hans': '正在启动 VERDICT...',
+  'id': 'Memulai VERDICT...',
+  'nl': 'VERDICT wordt gestart...',
+  'fr': 'Démarrage de VERDICT...',
+  'it': 'Avvio di VERDICT...',
+  'vi': 'Đang khởi động VERDICT...',
+  'th': 'กำลังเริ่ม VERDICT...',
+  'pl': 'Uruchamianie VERDICT...',
+};
+
+const Map<String, String> _legalWarningSummaryLabels = <String, String>{
+  'tr':
+      'Yasal bilgilendirme: Bu bölüm kısa bir özet gösterir. Gizlilik Politikası düğmesine dokunarak tam metni dilinizde görüntüleyebilirsiniz.',
+  'en':
+      'Legal notice: This section shows a short summary. Tap Privacy Policy to view the full text in your language.',
+  'de':
+      'Rechtlicher Hinweis: Dieser Abschnitt zeigt eine kurze Zusammenfassung. Tippen Sie auf Datenschutzrichtlinie, um den vollständigen Text in Ihrer Sprache zu lesen.',
+  'ko':
+      '법적 고지: 이 섹션은 요약만 표시합니다. 개인정보 처리방침 버튼을 눌러 전체 내용을 사용자 언어로 확인하세요.',
+  'ja':
+      '法的通知: このセクションには要約のみ表示されます。プライバシーポリシーをタップすると、全文をお使いの言語で確認できます。',
+  'ru':
+      'Юридическое уведомление: В этом разделе показывается краткое содержание. Нажмите «Политика конфиденциальности», чтобы открыть полный текст на вашем языке.',
+  'pt':
+      'Aviso legal: esta seção mostra apenas um resumo. Toque em Política de Privacidade para ver o texto completo no seu idioma.',
+  'ar':
+      'إشعار قانوني: يعرض هذا القسم ملخصًا قصيرًا فقط. اضغط على سياسة الخصوصية لعرض النص الكامل بلغتك.',
+  'es':
+      'Aviso legal: esta sección muestra un resumen breve. Toca Política de privacidad para ver el texto completo en tu idioma.',
+  'es-mx':
+      'Aviso legal: esta sección muestra un resumen breve. Toca Política de privacidad para ver el texto completo en tu idioma.',
+  'hi':
+      'कानूनी सूचना: इस भाग में केवल संक्षिप्त सार दिखाया जाता है। अपनी भाषा में पूरा पाठ देखने के लिए गोपनीयता नीति पर टैप करें।',
+  'hu':
+      'Jogi tájékoztató: Ez a szakasz csak rövid összefoglalót mutat. A teljes szöveg nyelveden a „Adatvédelmi tájékoztató” gombbal érhető el.',
+  'zh-hans': '法律提示：此处仅显示简要说明。点击“隐私政策”可查看你所用语言的完整内容。',
+  'id':
+      'Pemberitahuan hukum: Bagian ini hanya menampilkan ringkasan singkat. Ketuk Kebijakan Privasi untuk melihat teks lengkap dalam bahasa Anda.',
+  'nl':
+      'Juridische melding: Dit onderdeel toont alleen een korte samenvatting. Tik op Privacybeleid om de volledige tekst in jouw taal te bekijken.',
+  'fr':
+      'Mentions légales : cette section affiche un court résumé. Appuyez sur Politique de confidentialité pour voir le texte complet dans votre langue.',
+  'it':
+      'Avviso legale: questa sezione mostra un breve riepilogo. Tocca Informativa sulla privacy per vedere il testo completo nella tua lingua.',
+  'vi':
+      'Thông báo pháp lý: Mục này chỉ hiển thị phần tóm tắt ngắn. Nhấn Chính sách bảo mật để xem toàn văn bằng ngôn ngữ của bạn.',
+  'th':
+      'ประกาศทางกฎหมาย: ส่วนนี้จะแสดงเพียงสรุปสั้นๆ เท่านั้น แตะนโยบายความเป็นส่วนตัวเพื่อดูข้อความเต็มตามภาษาของคุณ',
+  'pl':
+      'Informacja prawna: Ta sekcja pokazuje krótkie podsumowanie. Dotknij „Polityka prywatności”, aby wyświetlić pełny tekst w swoim języku.',
+};
+
+String _normalizeSupportedLangCodeFromLocale(String localeRaw) {
+  final String locale = localeRaw.trim().toLowerCase().replaceAll('-', '_');
+  if (locale.isEmpty) return 'en';
+  final String base = locale.split('_').first.trim();
+
+  if (base == 'es') {
+    if (locale.startsWith('es_mx') || locale.startsWith('es_419')) {
+      return 'es-mx';
+    }
+    return 'es';
+  }
+  if (base == 'zh') return 'zh-hans';
+  if (base == 'in') return 'id';
+
+  return _startupLoadingLabels.containsKey(base) ? base : 'en';
+}
+
+String _startupLoadingTextForLocale(String localeRaw) {
+  final String code = _normalizeSupportedLangCodeFromLocale(localeRaw);
+  return _startupLoadingLabels[code] ?? _startupLoadingLabels['en']!;
+}
 
 Future<void> _waitForUmpConsentFlow() async {
   if (_umpConsentFlowCompleter.isCompleted) return;
@@ -74,6 +164,16 @@ String _extractCookieValue(String cookieHeader, String name) {
     }
   }
   return value;
+}
+
+String? _resolveSessionDsUserId(String? savedUserId, String? savedCookie) {
+  final String direct = (savedUserId ?? '').trim();
+  if (direct.isNotEmpty && direct != 'null') return direct;
+  final String cookie = (savedCookie ?? '').trim();
+  if (cookie.isEmpty) return null;
+  final String fromCookie = _extractCookieValue(cookie, 'ds_user_id').trim();
+  if (fromCookie.isEmpty || fromCookie == 'null') return null;
+  return fromCookie;
 }
 
 bool _preferWebApi(String userAgent) {
@@ -111,69 +211,160 @@ Map<String, String> _buildAppHeaders(String cookie, String userAgent,
 }
 
 bool _looksLikeMojibakeText(String value) {
-  final bool hasC1Controls = _mojibakeC1Pattern.hasMatch(value);
-  final bool hasUtf8BytePattern = _mojibakeUtf8BytePattern.hasMatch(value);
-  return value.contains('\uFFFD') ||
-      value.contains('\u00C2') ||
-      value.contains('\u00C3') ||
-      value.contains('\u00C4') ||
-      value.contains('\u00C5') ||
-      value.contains('\u00D0') ||
-      value.contains('\u00D1') ||
-      value.contains('\u00E2\u20AC') ||
-      hasC1Controls ||
-      hasUtf8BytePattern;
+  if (value.isEmpty) return false;
+
+  // Replacement char is a strong indicator of a decoding problem.
+  if (value.contains('\uFFFD')) return true;
+
+  // C1 control characters often appear when bytes were mis-decoded as Latin-1.
+  if (_mojibakeC1Pattern.hasMatch(value)) return true;
+
+  // Common CP1252-decoded UTF-8 artifact prefix: "â€…"
+  if (value.contains('\u00E2\u20AC')) return true;
+
+  // Marker bytes (Â/Ã/Ä/Å/Ð/Ñ) followed by likely UTF-8 continuation bytes or
+  // CP1252 "extended" punctuation.
+  if (_mojibakeMarkerPattern.hasMatch(value)) return true;
+
+  // UTF-8 BOM decoded as Latin-1: ï»¿
+  if (value.contains('\u00EF\u00BB\u00BF')) return true;
+
+  return false;
 }
 
 final RegExp _mojibakeC1Pattern = RegExp(r'[\u0080-\u009F]');
-final RegExp _mojibakeUtf8BytePattern =
-    RegExp(r'[\u00D8-\u00DB][\u00A0-\u00BF]|[\u00E0-\u00EF][\u0080-\u00BF]');
+final RegExp _mojibakeMarkerPattern = RegExp(
+  '[\u00C2\u00C3\u00C4\u00C5\u00D0\u00D1]'
+  '(?:'
+  '[\u0080-\u00BF]'
+  '|'
+  '[\u0152\u0153\u0160\u0161\u017D\u017E\u0178\u0192\u02C6\u02DC'
+  '\u2013\u2014\u2018\u2019\u201A\u201C\u201D\u201E\u2020\u2021\u2022\u2026'
+  '\u2030\u2039\u203A\u20AC\u2122]'
+  ')',
+);
+
+const Map<int, int> _windows125xExtendedByteMap = <int, int>{
+  0x20AC: 0x80,
+  0x201A: 0x82,
+  0x0192: 0x83,
+  0x201E: 0x84,
+  0x2026: 0x85,
+  0x2020: 0x86,
+  0x2021: 0x87,
+  0x02C6: 0x88,
+  0x2030: 0x89,
+  0x0160: 0x8A,
+  0x2039: 0x8B,
+  0x0152: 0x8C,
+  0x017D: 0x8E,
+  0x2018: 0x91,
+  0x2019: 0x92,
+  0x201C: 0x93,
+  0x201D: 0x94,
+  0x2022: 0x95,
+  0x2013: 0x96,
+  0x2014: 0x97,
+  0x02DC: 0x98,
+  0x2122: 0x99,
+  0x0161: 0x9A,
+  0x203A: 0x9B,
+  0x0153: 0x9C,
+  0x017E: 0x9E,
+  0x0178: 0x9F,
+  // cp1254 characters that frequently appear in mixed mojibake text.
+  0x011E: 0xD0,
+  0x0130: 0xDD,
+  0x015E: 0xDE,
+  0x011F: 0xF0,
+  0x0131: 0xFD,
+  0x015F: 0xFE,
+};
+
+int? _byteForMojibakeCodeUnit(int unit) {
+  if (unit <= 0x00FF) return unit;
+  return _windows125xExtendedByteMap[unit];
+}
 
 List<int>? _encodeWindows1252Bytes(String value) {
-  const Map<int, int> cp1252Extended = <int, int>{
-    0x20AC: 0x80,
-    0x201A: 0x82,
-    0x0192: 0x83,
-    0x201E: 0x84,
-    0x2026: 0x85,
-    0x2020: 0x86,
-    0x2021: 0x87,
-    0x02C6: 0x88,
-    0x2030: 0x89,
-    0x0160: 0x8A,
-    0x2039: 0x8B,
-    0x0152: 0x8C,
-    0x017D: 0x8E,
-    0x2018: 0x91,
-    0x2019: 0x92,
-    0x201C: 0x93,
-    0x201D: 0x94,
-    0x2022: 0x95,
-    0x2013: 0x96,
-    0x2014: 0x97,
-    0x02DC: 0x98,
-    0x2122: 0x99,
-    0x0161: 0x9A,
-    0x203A: 0x9B,
-    0x0153: 0x9C,
-    0x017E: 0x9E,
-    0x0178: 0x9F,
-  };
-
   final List<int> bytes = <int>[];
   for (final int unit in value.codeUnits) {
-    if (unit <= 0x00FF) {
-      bytes.add(unit);
-      continue;
-    }
-    final int? mapped = cp1252Extended[unit];
+    final int? mapped = _byteForMojibakeCodeUnit(unit);
     if (mapped == null) return null;
     bytes.add(mapped);
   }
   return bytes;
 }
 
+int _utf8SequenceLength(int? firstByte) {
+  if (firstByte == null) return 0;
+  if (firstByte >= 0xC2 && firstByte <= 0xDF) return 2;
+  if (firstByte >= 0xE0 && firstByte <= 0xEF) return 3;
+  if (firstByte >= 0xF0 && firstByte <= 0xF4) return 4;
+  return 0;
+}
+
+bool _isValidUtf8Sequence(List<int> bytes) {
+  if (bytes.length == 3) {
+    if ((bytes[0] == 0xE0 && bytes[1] < 0xA0) ||
+        (bytes[0] == 0xED && bytes[1] > 0x9F)) {
+      return false;
+    }
+  }
+  if (bytes.length == 4) {
+    if ((bytes[0] == 0xF0 && bytes[1] < 0x90) ||
+        (bytes[0] == 0xF4 && bytes[1] > 0x8F)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+String _decodeUtf8Fragments(String value) {
+  final List<int> units = value.codeUnits;
+  final StringBuffer out = StringBuffer();
+  int i = 0;
+
+  while (i < units.length) {
+    final int? firstByte = _byteForMojibakeCodeUnit(units[i]);
+    final int length = _utf8SequenceLength(firstByte);
+    if (firstByte == null || length == 0 || i + length > units.length) {
+      out.writeCharCode(units[i]);
+      i++;
+      continue;
+    }
+
+    final List<int> bytes = <int>[firstByte];
+    bool valid = true;
+    for (int j = 1; j < length; j++) {
+      final int? nextByte = _byteForMojibakeCodeUnit(units[i + j]);
+      if (nextByte == null || nextByte < 0x80 || nextByte > 0xBF) {
+        valid = false;
+        break;
+      }
+      bytes.add(nextByte);
+    }
+    if (!valid || !_isValidUtf8Sequence(bytes)) {
+      out.writeCharCode(units[i]);
+      i++;
+      continue;
+    }
+
+    try {
+      out.write(utf8.decode(bytes, allowMalformed: false));
+      i += length;
+    } catch (_) {
+      out.writeCharCode(units[i]);
+      i++;
+    }
+  }
+  return out.toString();
+}
+
 String _repairDisplayText(String value) {
+  if (value.isEmpty) return value;
+  if (!_looksLikeMojibakeText(value)) return value;
+
   String fixed = value;
   const Map<String, String> replacements = <String, String>{
     '\u00E2\u20AC\u2122': '\u2019',
@@ -187,20 +378,34 @@ String _repairDisplayText(String value) {
     '\u00C2': '',
   };
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 8; i++) {
     if (!_looksLikeMojibakeText(fixed)) break;
+    bool changed = false;
+
+    final String fragmentDecoded = _decodeUtf8Fragments(fixed);
+    if (fragmentDecoded != fixed) {
+      fixed = fragmentDecoded;
+      changed = true;
+    }
+
     for (final MapEntry<String, String> entry in replacements.entries) {
-      fixed = fixed.replaceAll(entry.key, entry.value);
+      final String next = fixed.replaceAll(entry.key, entry.value);
+      if (next != fixed) changed = true;
+      fixed = next;
     }
+
     final List<int>? bytes = _encodeWindows1252Bytes(fixed);
-    if (bytes == null) break;
-    try {
-      final String decoded = utf8.decode(bytes, allowMalformed: false);
-      if (decoded == fixed) break;
-      fixed = decoded;
-    } catch (_) {
-      break;
+    if (bytes != null) {
+      try {
+        final String decoded = utf8.decode(bytes, allowMalformed: false);
+        if (decoded != fixed) {
+          fixed = decoded;
+          changed = true;
+        }
+      } catch (_) {}
     }
+
+    if (!changed) break;
   }
 
   for (final MapEntry<String, String> entry in replacements.entries) {
@@ -336,7 +541,9 @@ class _RootAppState extends State<RootApp> {
       iOS: initializationSettingsDarwin,
     );
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    await flutterLocalNotificationsPlugin.initialize(
+      settings: initializationSettings,
+    );
 
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'fcm_default_channel',
@@ -389,7 +596,9 @@ class _RootAppState extends State<RootApp> {
       );
       final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
       for (int i = 0; i < _dailyReminderDaysToSchedule; i++) {
-        await flutterLocalNotificationsPlugin.cancel(_dailyReminderBaseId + i);
+        await flutterLocalNotificationsPlugin.cancel(
+          id: _dailyReminderBaseId + i,
+        );
       }
       try {
         for (int i = 0; i < _dailyReminderDaysToSchedule; i++) {
@@ -402,11 +611,11 @@ class _RootAppState extends State<RootApp> {
           final tz.TZDateTime scheduleAt = _randomReminderTimeForDay(day);
           if (!scheduleAt.isAfter(now)) continue;
           await flutterLocalNotificationsPlugin.zonedSchedule(
-            _dailyReminderBaseId + i,
-            title,
-            body,
-            scheduleAt,
-            const NotificationDetails(
+            id: _dailyReminderBaseId + i,
+            title: title,
+            body: body,
+            scheduledDate: scheduleAt,
+            notificationDetails: const NotificationDetails(
               android: AndroidNotificationDetails(
                 'daily_analysis_channel',
                 'Daily Analysis',
@@ -416,8 +625,6 @@ class _RootAppState extends State<RootApp> {
               ),
               iOS: DarwinNotificationDetails(),
             ),
-            uiLocalNotificationDateInterpretation:
-                UILocalNotificationDateInterpretation.absoluteTime,
             androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
           );
         }
@@ -561,13 +768,8 @@ class _RootAppState extends State<RootApp> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      final String langCode =
-          Platform.localeName.toLowerCase().split(RegExp(r'[_-]')).first.trim();
-      final String startupText = localizeTrEn(
-        langCode,
-        'VERDICT Başlatılıyor...',
-        'Starting VERDICT...',
-      );
+      final String startupText =
+          _startupLoadingTextForLocale(Platform.localeName);
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         home: Scaffold(
@@ -753,6 +955,46 @@ class ModernLoader extends StatefulWidget {
   State<ModernLoader> createState() => _ModernLoaderState();
 }
 
+const Map<String, String> _didYouKnowLabels = <String, String>{
+  'tr': 'BUNLARI BİLİYOR MUYDUNUZ?',
+  'en': 'DID YOU KNOW?',
+  'de': 'WUSSTEN SIE?',
+  'ko': '알고 계셨나요?',
+  'ja': '知っていましたか？',
+  'ru': 'ЗНАЛИ ЛИ ВЫ?',
+  'pt': 'VOCÊ SABIA?',
+  'ar': 'هل تعلم؟',
+  'es': '¿SABÍAS QUE?',
+  'es-mx': '¿SABÍAS QUE?',
+  'hi': 'क्या आप जानते हैं?',
+  'hu': 'TUDTAD?',
+  'zh-hans': '你知道吗？',
+  'id': 'TAHUKAH ANDA?',
+  'nl': 'WIST JE DIT?',
+  'fr': 'LE SAVIEZ-VOUS ?',
+  'it': 'LO SAPEVI?',
+  'vi': 'BẠN CÓ BIẾT KHÔNG?',
+  'th': 'คุณรู้หรือไม่?',
+  'pl': 'CZY WIESZ?',
+};
+
+String _didYouKnowLabelForLang(String lang) {
+  final String normalized = lang.trim().toLowerCase().replaceAll('_', '-');
+  String label;
+  if (normalized.startsWith('es')) {
+    label = _didYouKnowLabels[normalized == 'es-mx' ? 'es-mx' : 'es']!;
+  } else if (normalized.startsWith('zh')) {
+    label = _didYouKnowLabels['zh-hans']!;
+  } else if (normalized == 'in') {
+    label = _didYouKnowLabels['id']!;
+  } else {
+    label = _didYouKnowLabels[normalized] ?? _didYouKnowLabels['en']!;
+  }
+  final String repaired = _repairDisplayText(label).trim();
+  if (_looksLikeMojibakeText(repaired)) return _didYouKnowLabels['en']!;
+  return repaired;
+}
+
 const List<Map<String, String>> _analysisDidYouKnowFacts = [
   {
     'tr':
@@ -798,7 +1040,7 @@ const List<Map<String, String>> _analysisDidYouKnowFacts = [
   },
   {
     'tr':
-        'Ineklerin "en yakin arkadaslari" vardir ve onlardan ayrildiklarinda ciddi sekilde strese girip aglayabilirler.',
+        'İneklerin "en yakın arkadaşları" vardır ve onlardan ayrıldıklarında ciddi şekilde strese girip ağlayabilirler.',
     'en':
         'Cows have “best friends,” and they can get seriously stressed—and even cry—when separated.',
   },
@@ -858,7 +1100,7 @@ const List<Map<String, String>> _analysisDidYouKnowFacts = [
   },
   {
     'tr':
-        'Bir karinca kendi agirliginin 50 katini kaldirabilir; eger sen bir karinca olsaydin, bir otomobili tek basina kaldirabilirdin.',
+        'Bir karınca kendi ağırlığının 50 katını kaldırabilir; eğer sen bir karınca olsaydın, bir otomobili tek başına kaldırabilirdin.',
     'en':
         'An ant can lift up to 50 times its own weight—if you were an ant, you could lift a car by yourself.',
   },
@@ -971,7 +1213,7 @@ const List<Map<String, String>> _analysisDidYouKnowFacts = [
   },
   {
     'tr':
-        'Flamingolar aslinda gri dogarlar; o meshur pembe renklerini yedikleri karides ve alglerdeki pigmentlerden alirlar.',
+        'Flamingolar aslında gri doğarlar; o meşhur pembe renklerini yedikleri karides ve alglerdeki pigmentlerden alırlar.',
     'en':
         'Flamingos are born gray; their famous pink comes from pigments in shrimp and algae they eat.',
   },
@@ -997,16 +1239,25 @@ const List<Map<String, String>> _analysisDidYouKnowFacts = [
 
 String _localizeDidYouKnowFact(String lang, Map<String, String> fact) {
   final String code = lang.trim().toLowerCase();
-  final String tr = (fact['tr'] ?? '').trim();
-  final String en = (fact['en'] ?? '').trim();
+  final String tr = _repairDisplayText((fact['tr'] ?? '').trim());
+  final String en = _repairDisplayText((fact['en'] ?? '').trim());
   if (tr.isEmpty && en.isEmpty) return '';
-  if (code == 'tr') return tr;
-  if (code == 'en') return en;
+  if (code == 'tr') return tr.isNotEmpty ? tr : en;
+  if (code == 'en') return en.isNotEmpty ? en : tr;
 
   final String? supplemental = localizeDidYouKnowPhrase(code, en);
-  if (supplemental != null && supplemental.isNotEmpty) return supplemental;
+  if (supplemental != null && supplemental.isNotEmpty) {
+    final String repaired = _repairDisplayText(supplemental).trim();
+    if (repaired.isNotEmpty && !_looksLikeMojibakeText(repaired)) {
+      return repaired;
+    }
+  }
 
-  return localizeTrEn(code, tr, en).trim();
+  final String repairedFallback = _repairDisplayText(localizeTrEn(code, tr, en)).trim();
+  if (repairedFallback.isNotEmpty && !_looksLikeMojibakeText(repairedFallback)) {
+    return repairedFallback;
+  }
+  return en;
 }
 
 class _ModernLoaderState extends State<ModernLoader> {
@@ -1054,11 +1305,7 @@ class _ModernLoaderState extends State<ModernLoader> {
     if (widget.progress == null) return const SizedBox.shrink();
     if (_analysisDidYouKnowFacts.isEmpty) return const SizedBox.shrink();
 
-    final String label = localizeTrEn(
-      widget.lang,
-      'BUNLARI BİLİYOR MUYDUNUZ?',
-      'DID YOU KNOW?',
-    );
+    final String label = _didYouKnowLabelForLang(widget.lang);
     final Map<String, String> fact =
         _analysisDidYouKnowFacts[_factIndex % _analysisDidYouKnowFacts.length];
     final String body = _localizeDidYouKnowFact(widget.lang, fact);
@@ -1922,6 +2169,54 @@ class _BioPlannerScreenState extends State<BioPlannerScreen> {
 final GlobalKey<ScaffoldMessengerState> _diagScaffoldKey =
     GlobalKey<ScaffoldMessengerState>();
 
+Color _appSnackColorForTone({
+  required bool isDark,
+  String tone = 'info',
+}) {
+  switch (tone) {
+    case 'error':
+      return isDark ? const Color(0xFF7C2D3C) : const Color(0xFFB34A61);
+    case 'success':
+      return isDark ? const Color(0xFF1F6A49) : const Color(0xFF2E7D32);
+    case 'warn':
+      return isDark ? const Color(0xFF7A5B24) : const Color(0xFFAF8235);
+    default:
+      return isDark ? const Color(0xFF2C4B63) : const Color(0xFF3F5F7A);
+  }
+}
+
+SnackBarThemeData _appSnackBarTheme({required bool isDark}) {
+  return SnackBarThemeData(
+    behavior: SnackBarBehavior.floating,
+    backgroundColor: _appSnackColorForTone(isDark: isDark),
+    elevation: isDark ? 10 : 7,
+    insetPadding: const EdgeInsets.fromLTRB(14, 0, 14, 18),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+      side: BorderSide(
+        color: isDark
+            ? Colors.white.withOpacity(0.14)
+            : Colors.white.withOpacity(0.22),
+        width: 1,
+      ),
+    ),
+    contentTextStyle: TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.w700,
+      fontSize: 13,
+      height: 1.28,
+      shadows: [
+        Shadow(
+          color: Colors.black.withOpacity(isDark ? 0.58 : 0.40),
+          blurRadius: 4,
+          offset: const Offset(0, 1),
+        ),
+      ],
+    ),
+    actionTextColor: isDark ? const Color(0xFFB7D9FF) : const Color(0xFFD6E8FF),
+  );
+}
+
 class UnfollowersApp extends StatelessWidget {
   const UnfollowersApp({super.key});
   @override
@@ -1932,15 +2227,7 @@ class UnfollowersApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: Colors.blueGrey,
-        snackBarTheme: const SnackBarThemeData(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Color(0xFF2F3B4A),
-          contentTextStyle: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-          actionTextColor: Color(0xFFB3D7FF),
-        ),
+        snackBarTheme: _appSnackBarTheme(isDark: false),
       ),
       home: const DashboardScreen(),
     );
@@ -2074,6 +2361,28 @@ class _DashboardScreenState extends State<DashboardScreen>
     'th': '\u0e44\u0e17\u0e22',
     'pl': 'Polski',
   };
+  static const Map<String, String> _languageFlags = <String, String>{
+    'tr': '\u{1F1F9}\u{1F1F7}',
+    'en': '\u{1F1FA}\u{1F1F8}',
+    'de': '\u{1F1E9}\u{1F1EA}',
+    'ko': '\u{1F1F0}\u{1F1F7}',
+    'ja': '\u{1F1EF}\u{1F1F5}',
+    'ru': '\u{1F1F7}\u{1F1FA}',
+    'pt': '\u{1F1F5}\u{1F1F9}',
+    'ar': '\u{1F1F8}\u{1F1E6}',
+    'es': '\u{1F1EA}\u{1F1F8}',
+    'es-mx': '\u{1F1F2}\u{1F1FD}',
+    'hi': '\u{1F1EE}\u{1F1F3}',
+    'hu': '\u{1F1ED}\u{1F1FA}',
+    'zh-hans': '\u{1F1E8}\u{1F1F3}',
+    'id': '\u{1F1EE}\u{1F1E9}',
+    'nl': '\u{1F1F3}\u{1F1F1}',
+    'fr': '\u{1F1EB}\u{1F1F7}',
+    'it': '\u{1F1EE}\u{1F1F9}',
+    'vi': '\u{1F1FB}\u{1F1F3}',
+    'th': '\u{1F1F9}\u{1F1ED}',
+    'pl': '\u{1F1F5}\u{1F1F1}',
+  };
 
   String _lang = 'tr';
 
@@ -2104,7 +2413,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   static const bool _forceTestAds = false;
   static const Duration _igRequestTimeout = Duration(seconds: 12);
-  static const Duration _igRetryBaseDelay = Duration(milliseconds: 700);
+  static const Duration _igRetryBaseDelay = Duration(milliseconds: 900);
   static const Duration _firestoreAuthTimeout = Duration(seconds: 12);
   static const Duration _firestoreRestTimeout = Duration(seconds: 12);
   static const String _networkTimeOffsetKey = 'network_time_offset_ms';
@@ -2123,13 +2432,19 @@ class _DashboardScreenState extends State<DashboardScreen>
   Map<String, String> _storyUserPics = {};
   Map<String, int> _storyActiveOrderIndex = {};
   bool _isStoryTrayLoading = false;
+  bool _storyTrayRefreshQueued = false;
   bool _watchStoriesEnabled = false;
   bool _isPremium = false;
 
   bool get _adsDisabled => _adsHidden || _removeAllAds || _isPremium;
 
   Future<void> _loadStoryTray() async {
+    if (isProcessing) {
+      _storyTrayRefreshQueued = true;
+      return;
+    }
     if (!isLoggedIn || savedCookie == null || _isStoryTrayLoading) return;
+    _storyTrayRefreshQueued = false;
     if (mounted) {
       setState(() => _isStoryTrayLoading = true);
     } else {
@@ -2141,19 +2456,22 @@ class _DashboardScreenState extends State<DashboardScreen>
       final bool preferWeb = _preferWebApi(ua);
       final String appUa =
           ua.toLowerCase().contains('instagram') ? ua : _defaultIgUserAgent;
+      final String? dsUserIdHeader =
+          _resolveSessionDsUserId(savedUserId, savedCookie);
 
       Future<http.Response> fetchWeb() => _igGet(
             Uri.parse("https://www.instagram.com/api/v1/feed/reels_tray/"),
-            headers: _buildWebHeaders(savedCookie!, ua, dsUserId: savedUserId),
-            minGap: const Duration(milliseconds: 240),
-            jitterMaxMs: 220,
+            headers: _buildWebHeaders(savedCookie!, ua,
+                dsUserId: dsUserIdHeader),
+            minGap: const Duration(milliseconds: 420),
+            jitterMaxMs: 360,
           );
       Future<http.Response> fetchApp() => _igGet(
             Uri.parse("https://i.instagram.com/api/v1/feed/reels_tray/"),
-            headers:
-                _buildAppHeaders(savedCookie!, appUa, dsUserId: savedUserId),
-            minGap: const Duration(milliseconds: 240),
-            jitterMaxMs: 220,
+            headers: _buildAppHeaders(savedCookie!, appUa,
+                dsUserId: dsUserIdHeader),
+            minGap: const Duration(milliseconds: 420),
+            jitterMaxMs: 360,
           );
 
       http.Response response;
@@ -2198,8 +2516,8 @@ class _DashboardScreenState extends State<DashboardScreen>
           final String pk = user['pk']?.toString().trim() ?? '';
           if (pk.isNotEmpty) pks[uname] = pk;
 
-          final String pic = user['profile_pic_url']?.toString().trim() ?? '';
-          if (pic.isNotEmpty) pics[uname] = _normalizeProfileImageUrl(pic);
+          final String pic = _extractBestProfilePhotoUrlFromUser(user) ?? '';
+          if (pic.isNotEmpty) pics[uname] = pic;
         }
         if (mounted) {
           setState(() {
@@ -2294,7 +2612,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Hikayeleri gizlice izle veya profil fotoğraflarını büyüt',
       'story_login_required':
-          'Hikayeleri gizlice izlemek için lütfen giriş yapın.',
+          'Hikayeleri gizlice izleyebilmemiz için geçerli bir Instagram oturumu gerekiyor. Giriş yaptıktan sonra da bu uyarıyı görüyorsanız Instagram hesabınızdan çıkış yapıp tekrar giriş yapın.',
       'story_ad_wait': 'Reklamdan sonra gösterilecek. Lütfen bekleyin.',
       'story_action_title': 'Ne yapmak istersiniz?',
       'story_view_photo': 'Profil fotoğrafını büyüt',
@@ -2322,20 +2640,20 @@ class _DashboardScreenState extends State<DashboardScreen>
           'Bu uygulamayı indiren ve kullanan her Kullanıcı, aşağıdaki "Kullanım Koşulları ve Feragatname" metnini okumuş, anlamış ve hükümlerini kabul etmiş sayılır:',
       'article1_title': 'Madde 1: Veri Gizliliği ve Yerel İşleme Mimarisi',
       'article1_text':
-          "VERDICT, 'istemci taraflı' (client-side) çalışan bir yazılımdır. Kullanıcının giriş bilgileri (kullanıcı adı, şifre, session cookies) hiçbir surette harici bir sunucuya iletilmez veya depolanmaz. Tüm veri işleme faaliyetleri, münhasıran kullanıcının cihazının geçici belleğinde (RAM) ve yerel depolama alanında gerçekleşir. Uygulama, Instagram arayüzü üzerinde çalışan bir 'tarayıcı katmanı' (browser-wrapper) olarak işlev görür.",
+          "VERDICT, istemci tarafında çalışan bir yazılımdır. Kullanıcının giriş bilgileri (kullanıcı adı, şifre, oturum çerezleri) hiçbir surette harici bir sunucuya iletilmez veya depolanmaz. Tüm veri işleme faaliyetleri yalnızca kullanıcının cihazının geçici belleğinde ve yerel depolama alanında gerçekleşir. Uygulama, Instagram arayüzü üzerinde çalışan bir tarayıcı katmanı olarak işlev görür.",
       'article2_title': 'Madde 2: Üçüncü Taraf Platform Riskleri',
       'article2_text':
-          "Instagram (Meta Platforms, Inc.), platform politikaları gereği üçüncü taraf yazılımların kullanımını kısıtlama hakkını saklı tutar. Uygulamanın kullanımına bağlı olarak gelişebilecek 'işlem engeli' (action block), 'hesap kısıtlaması', 'gölge yasaklama' (shadowban) veya 'hesap kapatılması' dahil ancak bunlarla sınırlı olmamak üzere tüm riskler münhasıran Kullanıcı'ya aittir. VERDICT geliştiricisi, bu tür idari yaptırımlardan dolayı doğabilecek doğrudan veya dolaylı zararlardan sorumlu tutulamaz.",
+          "Instagram (Meta Platforms, Inc.), platform politikaları gereği üçüncü taraf yazılımların kullanımını kısıtlama hakkını saklı tutar. Uygulamanın kullanımına bağlı olarak gelişebilecek işlem engeli, hesap kısıtlaması, gölge yasaklama veya hesap kapatılması dahil ancak bunlarla sınırlı olmamak üzere tüm riskler münhasıran Kullanıcıya aittir. VERDICT geliştiricisi, bu tür idari yaptırımlardan dolayı doğabilecek doğrudan veya dolaylı zararlardan sorumlu tutulamaz.",
       'article3_title': 'Madde 3: Garanti Feragatnamesi ve Sorumluluk Reddi',
       'article3_text':
-          "İşbu yazılım, 'OLDUĞU GİBİ' (AS-IS) ve 'MEVCUT HALİYLE' sunulmaktadır. Yazılımın sağladığı analiz sonuçlarının %100 kesinliği, sürekliliği veya ticari elverişliliği garanti edilmez. Kullanıcı, uygulama verilerine dayanarak gerçekleştireceği hukuki veya ticari işlemlerden doğabilecek sonuçların kendi sorumluluğunda olduğunu; geliştiriciyi her türlü talep, dava ve şikayetten ari tutacağını beyan ve taahhüt eder.",
+          "İşbu yazılım, olduğu gibi ve mevcut haliyle sunulmaktadır. Yazılımın sağladığı analiz sonuçlarının %100 kesinliği, sürekliliği veya ticari elverişliliği garanti edilmez. Kullanıcı, uygulama verilerine dayanarak gerçekleştireceği hukuki veya ticari işlemlerden doğabilecek sonuçların kendi sorumluluğunda olduğunu; geliştiriciyi her türlü talep, dava ve şikayetten ari tutacağını beyan ve taahhüt eder.",
       'article4_title': 'Madde 4: Fikri Mülkiyet ve Bağımsızlık Bildirimi',
       'article4_text':
           "VERDICT, bağımsız bir geliştirici projesidir. 'Instagram', 'Facebook' ve 'Meta' markaları Meta Platforms, Inc.'in tescilli ticari markalarıdır. Bu uygulamanın söz konusu şirketlerle herhangi bir ticari ortaklığı, sponsorluk anlaşması veya resmi bağlantısı bulunmamaktadır.",
       'article5_title':
           'Madde 5: Hizmet Sürekliliği ve Platform Değişiklikleri',
       'article5_text':
-          "Instagram API’sinde veya web altyapısında meydana gelebilecek köklü değişiklikler, uygulamanın işlevselliğini kısmen veya tamamen yitirmesine neden olabilir. Geliştirici, 'mücbir sebep' (force majeure) olarak kabul edilen bu tür altyapısal değişikliklere bağlı olarak uygulamayı güncelleme veya hizmeti sürdürme konusunda herhangi bir taahhütte bulunmamaktadır.",
+          "Instagram API’sinde veya web altyapısında meydana gelebilecek köklü değişiklikler, uygulamanın işlevselliğini kısmen veya tamamen yitirmesine neden olabilir. Geliştirici, mücbir sebep kapsamında değerlendirilen bu tür altyapısal değişikliklere bağlı olarak uygulamayı güncelleme veya hizmeti sürdürme konusunda herhangi bir taahhütte bulunmamaktadır.",
       'ad_wait_message':
           'Analiz tamamlandı, sonuçlar reklamdan sonra gösterilecek.',
       'analysis_failed_title': 'Analiz yapılamadı',
@@ -2398,7 +2716,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'Remove Ads & Wait Times',
       'rate_test_message': 'This box is currently under test.',
       'story_section_title': 'Watch Stories Secretly or Zoom Profile Photos',
-      'story_login_required': 'Please log in to watch stories secretly.',
+      'story_login_required': 'A valid Instagram login is required to view stories privately. If you are already logged in and still see this warning, log out of Instagram and log in again.',
       'story_ad_wait': 'Will be shown after the ad, please wait.',
       'story_action_title': 'What would you like to do?',
       'story_view_photo': 'Enlarge profile photo',
@@ -2490,6 +2808,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'premium_welcome_box':
           'Willkommen bei Premium! Werbung und Wartezeiten wurden entfernt.',
       'restore_purchases': 'Käufe wiederherstellen',
+      'restore_purchases_short': 'WIEDERHERSTELLEN',
       'restoring_purchases': 'Käufe werden wiederhergestellt...',
       'restore_purchases_success': 'Käufe wiederhergestellt ✅',
       'restore_purchases_none': 'Keine Käufe zum Wiederherstellen gefunden.',
@@ -2516,13 +2835,16 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Stories heimlich ansehen oder Profilfotos vergrößern',
       'story_login_required':
-          'Bitte melde dich an, um Stories heimlich anzusehen.',
+          'Zum anonymen Ansehen von Stories ist eine gültige Instagram-Anmeldung erforderlich. Wenn du bereits eingeloggt bist und diese Warnung weiter siehst, melde dich bei Instagram ab und wieder an.',
       'story_ad_wait': 'Wird nach der Werbung angezeigt, bitte warten.',
       'story_action_title': 'Was möchtest du tun?',
       'story_view_photo': 'Profilfoto vergrößern',
       'story_watch_secret': 'Story heimlich ansehen',
       'story_no_data': 'Keine Story-Daten gefunden.',
       'story_close': 'SCHLIESSEN',
+      'no_data': 'Keine Daten',
+      'new_badge': 'NEU',
+      'login_title': 'Anmelden',
       'read_and_agree': 'ICH HABE GELESEN UND STIMME ZU',
       'withdraw_consent': 'Einwilligung zurückziehen',
       'withdraw_consent_confirm_title': 'Bestätigen',
@@ -2536,167 +2858,184 @@ class _DashboardScreenState extends State<DashboardScreen>
       'pin_incorrect': 'Falsche PIN',
       'ok': 'OK',
       'legal_warning': 'Rechtlicher Hinweis',
+      'rate_us': 'Bewerte uns',
+      'contact_us': 'Kontakt',
+      'remove_ads_and_limits': 'Werbung und Wartezeiten entfernen',
       'left_followers': 'Entfolger',
       'legal_intro':
           'Durch das Herunterladen und die Nutzung dieser App gilt der Nutzer als informiert und einverstanden.',
       'user_label': 'Nutzer',
     },
     'ko': {
-      'tagline': 'ì „ë¬¸ ì†Œì…œ ë¯¸ë””ì–´ ì†”ë£¨ì…˜',
-      'admin_active_note': 'ê´€ë¦¬ì ëª¨ë“œ í™œì„±í™”',
+      'tagline': '전문 소셜 미디어 솔루션',
+      'admin_active_note': '관리자 모드 활성화',
       'free_app_note':
-          'ë” ë‚˜ì€ ê²½í—˜ì„ ìœ„í•´ ë§¤ì¼ ê°œì„ í•˜ê³  ìˆìŠµë‹ˆë‹¤. ì—¬ëŸ¬ë¶„ì˜ í”¼ë“œë°±ì€ ë§¤ìš° ì†Œì¤‘í•©ë‹ˆë‹¤.',
-      'login_prompt': 'ë¶„ì„ì„ ì‹œì‘í•˜ë ¤ë©´ ë¡œê·¸ì¸í•´ ì£¼ì„¸ìš”.',
-      'welcome': 'í™˜ì˜í•©ë‹ˆë‹¤, {username}',
-      'refresh_data': 'ë°ì´í„° ìƒˆë¡œê³ ì¹¨',
-      'login_with_instagram': 'ì¸ìŠ¤íƒ€ê·¸ë¨ìœ¼ë¡œ ë¡œê·¸ì¸',
+          '더 나은 경험을 위해 매일 개선하고 있습니다. 여러분의 피드백은 매우 소중합니다.',
+      'login_prompt': '분석을 시작하려면 로그인해 주세요.',
+      'welcome': '환영합니다, {username}',
+      'refresh_data': '데이터 새로고침',
+      'login_with_instagram': '인스타그램으로 로그인',
       'fetching_data':
-          'ë°ì´í„°ë¥¼ ë¶„ì„í•˜ëŠ” ì¤‘...\nì ì‹œë§Œ ê¸°ë‹¤ë ¤ ì£¼ì„¸ìš”.',
+          '데이터를 분석하는 중...\n잠시만 기다려 주세요.',
       'processing_data':
-          'ë°ì´í„° ì²˜ë¦¬ ì¤‘...\nê±°ì˜ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.',
-      'loading_ad': 'ê´‘ê³  ë¡œë”© ì¤‘...\nì ì‹œë§Œ ê¸°ë‹¤ë ¤ ì£¼ì„¸ìš”.',
-      'google_ad_warning': 'Google ê´‘ê³  ê²½ê³ : {reason}',
+          '데이터 처리 중...\n거의 완료되었습니다.',
+      'loading_ad': '광고 로딩 중...\n잠시만 기다려 주세요.',
+      'google_ad_warning': 'Google 광고 경고: {reason}',
       'analysis_secure':
-          'ëª¨ë“  ë¶„ì„ì€ ê¸°ê¸°ì—ì„œ ì•ˆì „í•˜ê²Œ ë¡œì»¬ ì²˜ë¦¬ë©ë‹ˆë‹¤.',
-      'today_total_analysis': 'ì˜¤ëŠ˜ ì´ ë¶„ì„ ìˆ˜: {count}',
+          '모든 분석은 기기에서 안전하게 로컬 처리됩니다.',
+      'today_total_analysis': '오늘 총 분석 수: {count}',
       'purchases_not_configured':
-          'í˜„ì¬ êµ¬ë§¤ ê¸°ëŠ¥ì„ ì‚¬ìš©í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ë‚˜ì¤‘ì— ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.',
+          '현재 구매 기능을 사용할 수 없습니다. 나중에 다시 시도해 주세요.',
       'premium_already_active':
-          'í”„ë¦¬ë¯¸ì—„ ë©¤ë²„ì‹­ì´ í™œì„±í™”ë˜ì–´ ìˆìŠµë‹ˆë‹¤.',
+          '프리미엄 멤버십이 활성화되어 있습니다.',
       'premium_welcome_box':
-          'í”„ë¦¬ë¯¸ì—„ì— ì˜¤ì‹  ê²ƒì„ í™˜ì˜í•©ë‹ˆë‹¤! ê´‘ê³ ì™€ ëŒ€ê¸° ì‹œê°„ì´ ì œê±°ë˜ì—ˆìŠµë‹ˆë‹¤.',
-      'restore_purchases': 'êµ¬ë§¤ ë³µì›',
-      'restoring_purchases': 'êµ¬ë§¤ ë³µì› ì¤‘...',
+          '프리미엄에 오신 것을 환영합니다! 광고와 대기 시간이 제거되었습니다.',
+      'restore_purchases': '구매 복원',
+      'restore_purchases_short': '\uBCF5\uC6D0',
+      'restoring_purchases': '구매 복원 중...',
       'restore_purchases_success': '구매가 복원되었습니다 ✅',
-      'restore_purchases_none': 'ë³µì›í•  êµ¬ë§¤ ë‚´ì—­ì´ ì—†ìŠµë‹ˆë‹¤.',
-      'restore_purchases_failed': 'ë³µì› ì‹¤íŒ¨: {err}',
-      'next_analysis': 'ë‹¤ìŒ ë¶„ì„',
-      'next_analysis_ready': 'ì§€ê¸ˆ ë¶„ì„í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.',
+      'restore_purchases_none': '복원할 구매 내역이 없습니다.',
+      'restore_purchases_failed': '복원 실패: {err}',
+      'next_analysis': '다음 분석',
+      'next_analysis_ready': '지금 분석할 수 있습니다.',
       'analysis_ready_risk':
-          'ì§€ê¸ˆ ë¶„ì„ì´ ê°€ëŠ¥í•˜ì§€ë§Œ, ì—°ì† ë¶„ì„ì€ ê³„ì •ì— ìœ„í—˜í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.',
-      'please_wait': 'ì ì‹œë§Œ ê¸°ë‹¤ë ¤ ì£¼ì„¸ìš”',
-      'remaining_time': 'ë‚¨ì€ ì‹œê°„: {time}',
-      'watch_ad': 'ê´‘ê³  ì‹œì²­ í›„ ë¶„ì„ ì‹œì‘',
-      'start_analysis': 'ë¶„ì„ ì‹œì‘',
-      'start_analysis_question': 'ë¶„ì„ì„ ì‹œì‘í• ê¹Œìš”?',
-      'clear_data_title': 'ì•± ë°ì´í„° ì´ˆê¸°í™”',
+          '지금 분석이 가능하지만, 연속 분석은 계정에 위험할 수 있습니다.',
+      'please_wait': '잠시만 기다려 주세요',
+      'remaining_time': '남은 시간: {time}',
+      'watch_ad': '광고 시청 후 분석 시작',
+      'start_analysis': '분석 시작',
+      'start_analysis_question': '분석을 시작할까요?',
+      'clear_data_title': '앱 데이터 초기화',
       'clear_data_content':
-          'ëª¨ë“  ë¡œì»¬ ë°ì´í„°ì™€ ì„¸ì…˜ ì •ë³´ê°€ ì‚­ì œë©ë‹ˆë‹¤. ê³„ì†í• ê¹Œìš”?',
-      'cancel': 'ì·¨ì†Œ',
-      'delete': 'ì‚­ì œ',
+          '모든 로컬 데이터와 세션 정보가 삭제됩니다. 계속할까요?',
+      'cancel': '취소',
+      'delete': '삭제',
       'ad_wait_message':
-          'ë¶„ì„ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤. ê´‘ê³  í›„ ê²°ê³¼ê°€ í‘œì‹œë©ë‹ˆë‹¤.',
-      'analysis_failed_title': 'ë¶„ì„ ì‹¤íŒ¨',
-      'analysis_failed_reason': 'ì›ì¸: {reason}',
+          '분석이 완료되었습니다. 광고 후 결과가 표시됩니다.',
+      'analysis_failed_title': '분석 실패',
+      'analysis_failed_reason': '원인: {reason}',
       'analysis_failed_hint':
-          'ë„ì›€ë§: ë¡œê·¸ì•„ì›ƒ í›„ ë‹¤ì‹œ ë¡œê·¸ì¸í•´ ë³´ì„¸ìš”.',
+          '도움말: 로그아웃 후 다시 로그인해 보세요.',
       'story_section_title':
-          'ìŠ¤í† ë¦¬ë¥¼ ëª°ë˜ ë³´ê±°ë‚˜ í”„ë¡œí•„ ì‚¬ì§„ í™•ëŒ€í•˜ê¸°',
+          '스토리를 몰래 보거나 프로필 사진 확대하기',
       'story_login_required':
-          'ìŠ¤í† ë¦¬ë¥¼ ëª°ë˜ ë³´ë ¤ë©´ ë¡œê·¸ì¸í•´ ì£¼ì„¸ìš”.',
+          '스토리를 익명으로 보려면 유효한 Instagram 로그인 세션이 필요합니다. 이미 로그인했는데도 이 안내가 계속 보이면 Instagram에서 로그아웃한 뒤 다시 로그인해 주세요.',
       'story_ad_wait':
-          'ê´‘ê³  í›„ í‘œì‹œë©ë‹ˆë‹¤. ì ì‹œë§Œ ê¸°ë‹¤ë ¤ ì£¼ì„¸ìš”.',
-      'story_action_title': 'ë¬´ì—‡ì„ í•˜ì‹œê² ì–´ìš”?',
-      'story_view_photo': 'í”„ë¡œí•„ ì‚¬ì§„ í™•ëŒ€',
-      'story_watch_secret': 'ìŠ¤í† ë¦¬ ëª°ë˜ ë³´ê¸°',
-      'story_no_data': 'ìŠ¤í† ë¦¬ ë°ì´í„°ê°€ ì—†ìŠµë‹ˆë‹¤.',
-      'story_close': 'ë‹«ê¸°',
-      'read_and_agree': 'ì½ì—ˆìœ¼ë©° ë™ì˜í•©ë‹ˆë‹¤',
-      'withdraw_consent': 'ë™ì˜ ì² íšŒ',
-      'withdraw_consent_confirm_title': 'í™•ì¸',
+          '광고 후 표시됩니다. 잠시만 기다려 주세요.',
+      'story_action_title': '무엇을 하시겠어요?',
+      'story_view_photo': '프로필 사진 확대',
+      'story_watch_secret': '스토리 몰래 보기',
+      'story_no_data': '스토리 데이터가 없습니다.',
+      'story_close': '닫기',
+      'no_data': '\uB370\uC774\uD130 \uC5C6\uC74C',
+      'new_badge': '\uC2E0\uADDC',
+      'login_title': '\uB85C\uADF8\uC778',
+      'read_and_agree': '읽었으며 동의합니다',
+      'withdraw_consent': '동의 철회',
+      'withdraw_consent_confirm_title': '확인',
       'withdraw_consent_confirm_body':
-          'ë™ì˜ ì„¤ì •ì´ ì´ˆê¸°í™”ë©ë‹ˆë‹¤. ê³„ì†í•˜ì‹œê² ìŠµë‹ˆê¹Œ?',
-      'withdraw_consent_confirm_yes': 'ì˜ˆ',
-      'withdraw_consent_confirm_no': 'ì·¨ì†Œ',
+          '동의 설정이 초기화됩니다. 계속하시겠습니까?',
+      'withdraw_consent_confirm_yes': '예',
+      'withdraw_consent_confirm_no': '취소',
       'data_updated': '분석 완료 ✅',
-      'enter_pin': 'PIN ì…ë ¥',
+      'enter_pin': 'PIN 입력',
       'pin_accepted':
           'PIN이 승인되어 시간이 초기화되었습니다 ✅',
-      'pin_incorrect': 'PINì´ ì˜¬ë°”ë¥´ì§€ ì•ŠìŠµë‹ˆë‹¤',
-      'ok': 'í™•ì¸',
-      'legal_warning': 'ë²•ì  ê³ ì§€',
+      'pin_incorrect': 'PIN이 올바르지 않습니다',
+      'ok': '확인',
+      'legal_warning': '법적 고지',
+      'rate_us': '\uBCC4\uC810 \uC8FC\uAE30',
+      'contact_us': '\uBB38\uC758\uD558\uAE30',
+      'remove_ads_and_limits': '\uAD11\uACE0 \uBC0F \uB300\uAE30 \uC2DC\uAC04 \uC81C\uAC70',
       'legal_intro':
-          'ì´ ì•±ì„ ë‹¤ìš´ë¡œë“œí•˜ê³  ì‚¬ìš©í•˜ëŠ” ëª¨ë“  ì‚¬ìš©ìëŠ” ì•„ë˜ ê³ ì§€ ë‚´ìš©ì„ ì½ê³  ë™ì˜í•œ ê²ƒìœ¼ë¡œ ê°„ì£¼ë©ë‹ˆë‹¤.',
+          '이 앱을 다운로드하고 사용하는 모든 사용자는 아래 고지 내용을 읽고 동의한 것으로 간주됩니다.',
       'user_label': '\uC0AC\uC6A9\uC790',
     },
     'ja': {
-      'tagline': 'ãƒ—ãƒ­ãƒ•ã‚§ãƒƒã‚·ãƒ§ãƒŠãƒ«SNSã‚½ãƒªãƒ¥ãƒ¼ã‚·ãƒ§ãƒ³',
-      'admin_active_note': 'ç®¡ç†è€…ãƒ¢ãƒ¼ãƒ‰æœ‰åŠ¹',
+      'tagline': 'プロフェッショナルSNSソリューション',
+      'admin_active_note': '管理者モード有効',
       'free_app_note':
-          'ã‚ˆã‚Šè‰¯ã„ä½“é¨“ã®ãŸã‚ã€æ¯æ—¥æ”¹å–„ã‚’ç¶šã‘ã¦ã„ã¾ã™ã€‚ã”æ„è¦‹ã‚’ãŠå¾…ã¡ã—ã¦ã„ã¾ã™ã€‚',
+          'より良い体験のため、毎日改善を続けています。ご意見をお待ちしています。',
       'login_prompt':
-          'åˆ†æã‚’é–‹å§‹ã™ã‚‹ã«ã¯ãƒ­ã‚°ã‚¤ãƒ³ã—ã¦ãã ã•ã„ã€‚',
-      'welcome': 'ã‚ˆã†ã“ãã€{username}',
-      'refresh_data': 'ãƒ‡ãƒ¼ã‚¿ã‚’æ›´æ–°',
-      'login_with_instagram': 'Instagramã§ãƒ­ã‚°ã‚¤ãƒ³',
+          '分析を開始するにはログインしてください。',
+      'welcome': 'ようこそ、{username}',
+      'refresh_data': 'データを更新',
+      'login_with_instagram': 'Instagramでログイン',
       'fetching_data':
-          'ãƒ‡ãƒ¼ã‚¿ã‚’åˆ†æä¸­...\nã—ã°ã‚‰ããŠå¾…ã¡ãã ã•ã„ã€‚',
+          'データを分析中...\nしばらくお待ちください。',
       'processing_data':
-          'ãƒ‡ãƒ¼ã‚¿ã‚’å‡¦ç†ä¸­...\nã¾ã‚‚ãªãå®Œäº†ã—ã¾ã™ã€‚',
+          'データを処理中...\nまもなく完了します。',
       'loading_ad':
-          'åºƒå‘Šã‚’èª­ã¿è¾¼ã¿ä¸­...\nã—ã°ã‚‰ããŠå¾…ã¡ãã ã•ã„ã€‚',
-      'google_ad_warning': 'Googleåºƒå‘Šã®è­¦å‘Š: {reason}',
+          '広告を読み込み中...\nしばらくお待ちください。',
+      'google_ad_warning': 'Google広告の警告: {reason}',
       'analysis_secure':
-          'ã™ã¹ã¦ã®åˆ†æã¯ç«¯æœ«å†…ã§å®‰å…¨ã«ãƒ­ãƒ¼ã‚«ãƒ«å‡¦ç†ã•ã‚Œã¾ã™ã€‚',
-      'today_total_analysis': 'æœ¬æ—¥ã®åˆ†æç·æ•°: {count}',
+          'すべての分析は端末内で安全にローカル処理されます。',
+      'today_total_analysis': '本日の分析総数: {count}',
       'purchases_not_configured':
-          'ç¾åœ¨ã€è³¼å…¥æ©Ÿèƒ½ã¯åˆ©ç”¨ã§ãã¾ã›ã‚“ã€‚å¾Œã§ã‚‚ã†ä¸€åº¦ãŠè©¦ã—ãã ã•ã„ã€‚',
+          '現在、購入機能は利用できません。後でもう一度お試しください。',
       'premium_already_active':
-          'Premiumãƒ¡ãƒ³ãƒãƒ¼ã‚·ãƒƒãƒ—ã¯æœ‰åŠ¹ã§ã™ã€‚',
+          'Premiumメンバーシップは有効です。',
       'premium_welcome_box':
           'Premiumへようこそ！広告と待機時間が解除されました。',
-      'restore_purchases': 'è³¼å…¥ã‚’å¾©å…ƒ',
-      'restoring_purchases': 'è³¼å…¥ã‚’å¾©å…ƒä¸­...',
+      'restore_purchases': '購入を復元',
+      'restore_purchases_short': '\u5FA9\u5143',
+      'restoring_purchases': '購入を復元中...',
       'restore_purchases_success': '購入を復元しました ✅',
-      'restore_purchases_none': 'å¾©å…ƒã§ãã‚‹è³¼å…¥ãŒã‚ã‚Šã¾ã›ã‚“ã€‚',
-      'restore_purchases_failed': 'å¾©å…ƒã«å¤±æ•—ã—ã¾ã—ãŸ: {err}',
-      'next_analysis': 'æ¬¡ã®åˆ†æ',
-      'next_analysis_ready': 'ä»Šã™ãåˆ†æã§ãã¾ã™ã€‚',
+      'restore_purchases_none': '復元できる購入がありません。',
+      'restore_purchases_failed': '復元に失敗しました: {err}',
+      'next_analysis': '次の分析',
+      'next_analysis_ready': '今すぐ分析できます。',
       'analysis_ready_risk':
-          'ä»Šã™ãåˆ†æã§ãã¾ã™ãŒã€é€£ç¶šå®Ÿè¡Œã¯ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã®ãƒªã‚¹ã‚¯ã«ãªã‚‹å¯èƒ½æ€§ãŒã‚ã‚Šã¾ã™ã€‚',
-      'please_wait': 'ãŠå¾…ã¡ãã ã•ã„',
-      'remaining_time': 'æ®‹ã‚Šæ™‚é–“: {time}',
-      'watch_ad': 'åºƒå‘Šã‚’è¦‹ã¦åˆ†æã‚’é–‹å§‹',
-      'start_analysis': 'åˆ†æã‚’é–‹å§‹',
+          '今すぐ分析できますが、連続実行はアカウントのリスクになる可能性があります。',
+      'please_wait': 'お待ちください',
+      'remaining_time': '残り時間: {time}',
+      'watch_ad': '広告を見て分析を開始',
+      'start_analysis': '分析を開始',
       'start_analysis_question': '分析を開始しますか？',
-      'clear_data_title': 'ã‚¢ãƒ—ãƒªãƒ‡ãƒ¼ã‚¿ã‚’ãƒªã‚»ãƒƒãƒˆ',
+      'clear_data_title': 'アプリデータをリセット',
       'clear_data_content':
           'ローカルデータとセッション情報がすべて削除されます。よろしいですか？',
-      'cancel': 'ã‚­ãƒ£ãƒ³ã‚»ãƒ«',
-      'delete': 'å‰Šé™¤',
+      'cancel': 'キャンセル',
+      'delete': '削除',
       'ad_wait_message':
-          'åˆ†æãŒå®Œäº†ã—ã¾ã—ãŸã€‚åºƒå‘Šã®å¾Œã«çµæœã‚’è¡¨ç¤ºã—ã¾ã™ã€‚',
-      'analysis_failed_title': 'åˆ†æã«å¤±æ•—ã—ã¾ã—ãŸ',
-      'analysis_failed_reason': 'ç†ç”±: {reason}',
+          '分析が完了しました。広告の後に結果を表示します。',
+      'analysis_failed_title': '分析に失敗しました',
+      'analysis_failed_reason': '理由: {reason}',
       'analysis_failed_hint':
-          'ãƒ’ãƒ³ãƒˆ: ãƒ­ã‚°ã‚¢ã‚¦ãƒˆã—ã¦å†ãƒ­ã‚°ã‚¤ãƒ³ã™ã‚‹ã¨æ”¹å–„ã™ã‚‹å ´åˆãŒã‚ã‚Šã¾ã™ã€‚',
+          'ヒント: ログアウトして再ログインすると改善する場合があります。',
       'story_section_title':
-          'ã‚¹ãƒˆãƒ¼ãƒªãƒ¼ã‚’ã“ã£ãã‚Šè¦‹ã‚‹ / ãƒ—ãƒ­ãƒ•ã‚£ãƒ¼ãƒ«å†™çœŸã‚’æ‹¡å¤§',
+          'ストーリーをこっそり見る / プロフィール写真を拡大',
       'story_login_required':
-          'ã‚¹ãƒˆãƒ¼ãƒªãƒ¼ã‚’ã“ã£ãã‚Šè¦‹ã‚‹ã«ã¯ãƒ­ã‚°ã‚¤ãƒ³ãŒå¿…è¦ã§ã™ã€‚',
+          'ストーリーを匿名で表示するには、有効なInstagramログインセッションが必要です。すでにログイン済みでもこの案内が出る場合は、Instagramで一度ログアウトしてから再ログインしてください。',
       'story_ad_wait':
-          'åºƒå‘Šã®å¾Œã«è¡¨ç¤ºã•ã‚Œã¾ã™ã€‚ã—ã°ã‚‰ããŠå¾…ã¡ãã ã•ã„ã€‚',
+          '広告の後に表示されます。しばらくお待ちください。',
       'story_action_title': '何をしますか？',
-      'story_view_photo': 'ãƒ—ãƒ­ãƒ•ã‚£ãƒ¼ãƒ«å†™çœŸã‚’æ‹¡å¤§',
+      'story_view_photo': 'プロフィール写真を拡大',
       'story_watch_secret': '\u8db3\u8de1\u306a\u3057\u3067\u95b2\u89a7',
-      'story_no_data': 'ã‚¹ãƒˆãƒ¼ãƒªãƒ¼ãƒ‡ãƒ¼ã‚¿ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚',
-      'story_close': 'é–‰ã˜ã‚‹',
-      'read_and_agree': 'å†…å®¹ã‚’èª­ã¿ã€åŒæ„ã—ã¾ã™',
-      'withdraw_consent': 'åŒæ„ã‚’å–ã‚Šæ¶ˆã™',
-      'withdraw_consent_confirm_title': 'ç¢ºèª',
+      'story_no_data': 'ストーリーデータが見つかりません。',
+      'story_close': '閉じる',
+      'no_data': '\u30C7\u30FC\u30BF\u306A\u3057',
+      'new_badge': '\u65B0\u7740',
+      'login_title': '\u30ED\u30B0\u30A4\u30F3',
+      'read_and_agree': '内容を読み、同意します',
+      'withdraw_consent': '同意を取り消す',
+      'withdraw_consent_confirm_title': '確認',
       'withdraw_consent_confirm_body':
           '同意設定がリセットされます。よろしいですか？',
-      'withdraw_consent_confirm_yes': 'ã¯ã„',
-      'withdraw_consent_confirm_no': 'æˆ»ã‚‹',
+      'withdraw_consent_confirm_yes': 'はい',
+      'withdraw_consent_confirm_no': '戻る',
       'data_updated': '分析完了 ✅',
-      'enter_pin': 'PINã‚’å…¥åŠ›',
+      'enter_pin': 'PINを入力',
       'pin_accepted':
           'PINを確認しました。タイマーをリセットしました ✅',
-      'pin_incorrect': 'PINãŒæ­£ã—ãã‚ã‚Šã¾ã›ã‚“',
+      'pin_incorrect': 'PINが正しくありません',
       'ok': 'OK',
-      'legal_warning': 'æ³•çš„æ³¨æ„äº‹é …',
+      'legal_warning': '法的注意事項',
+      'rate_us': '\u8A55\u4FA1\u3059\u308B',
+      'contact_us': '\u304A\u554F\u3044\u5408\u308F\u305B',
+      'remove_ads_and_limits': '\u5E83\u544A\u3068\u5F85\u6A5F\u6642\u9593\u3092\u524A\u9664',
       'legal_intro':
-          'æœ¬ã‚¢ãƒ—ãƒªã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ã¦åˆ©ç”¨ã—ãŸæ™‚ç‚¹ã§ã€ä»¥ä¸‹ã®è¦ç´„ã«åŒæ„ã—ãŸã‚‚ã®ã¨ã¿ãªã•ã‚Œã¾ã™ã€‚',
+          '本アプリをダウンロードして利用した時点で、以下の規約に同意したものとみなされます。',
       'user_label': '\u30E6\u30FC\u30B6\u30FC',
     },
     'ru': {
@@ -2730,6 +3069,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'premium_welcome_box':
           'Добро пожаловать в Premium! Реклама и ожидание отключены.',
       'restore_purchases': 'Восстановить покупки',
+      'restore_purchases_short': '\u0412\u041E\u0421\u0421\u0422\u0410\u041D\u041E\u0412\u0418\u0422\u042C',
       'restoring_purchases': 'Восстанавливаем покупки...',
       'restore_purchases_success':
           'Покупки восстановлены ✅',
@@ -2762,7 +3102,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Смотреть сторис анонимно или увеличивать фото профиля',
       'story_login_required':
-          'Пожалуйста, войдите, чтобы смотреть сторис анонимно.',
+          'Чтобы смотреть сторис анонимно, нужен действующий вход в Instagram. Если вы уже вошли, но это сообщение не исчезает, выйдите из Instagram и войдите снова.',
       'story_ad_wait':
           'Появится после рекламы, пожалуйста, подождите.',
       'story_action_title': 'Что вы хотите сделать?',
@@ -2770,6 +3110,9 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_watch_secret': 'Смотреть сторис анонимно',
       'story_no_data': 'Данные сторис не найдены.',
       'story_close': 'ЗАКРЫТЬ',
+      'no_data': '\u041D\u0435\u0442 \u0434\u0430\u043D\u043D\u044B\u0445',
+      'new_badge': '\u041D\u041E\u0412\u041E\u0415',
+      'login_title': '\u0412\u0445\u043E\u0434',
       'read_and_agree': 'Я ПРОЧИТАЛ И СОГЛАСЕН',
       'withdraw_consent': 'Отозвать согласие',
       'withdraw_consent_confirm_title': 'Подтверждение',
@@ -2783,6 +3126,9 @@ class _DashboardScreenState extends State<DashboardScreen>
       'pin_incorrect': 'Неверный PIN',
       'ok': 'OK',
       'legal_warning': 'Юридическое предупреждение',
+      'rate_us': '\u041E\u0446\u0435\u043D\u0438\u0442\u0435 \u043D\u0430\u0441',
+      'contact_us': '\u0421\u0432\u044F\u0437\u0430\u0442\u044C\u0441\u044F \u0441 \u043D\u0430\u043C\u0438',
+      'remove_ads_and_limits': '\u0423\u0431\u0440\u0430\u0442\u044C \u0440\u0435\u043A\u043B\u0430\u043C\u0443 \u0438 \u043E\u0436\u0438\u0434\u0430\u043D\u0438\u0435',
       'legal_intro':
           'Скачивая и используя это приложение, пользователь считается ознакомившимся и согласившимся с условиями ниже.',
       'user_label': '\u041F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C',
@@ -2809,6 +3155,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'premium_welcome_box':
           'Bem-vindo ao Premium! Anúncios e tempos de espera foram removidos.',
       'restore_purchases': 'Restaurar compras',
+      'restore_purchases_short': 'RESTAURAR',
       'restoring_purchases': 'Restaurando compras...',
       'restore_purchases_success': 'Compras restauradas ✅',
       'restore_purchases_none': 'Nenhuma compra para restaurar.',
@@ -2834,13 +3181,16 @@ class _DashboardScreenState extends State<DashboardScreen>
       'analysis_failed_hint': 'Dica: sair e entrar novamente pode ajudar.',
       'story_section_title':
           'Veja stories em segredo ou amplie fotos de perfil',
-      'story_login_required': 'Faça login para ver stories de forma discreta.',
+      'story_login_required': 'Para ver stories de forma anônima, é necessário um login válido no Instagram. Se você já entrou e este aviso continua, saia do Instagram e entre novamente.',
       'story_ad_wait': 'Será exibido após o anúncio. Aguarde.',
       'story_action_title': 'O que você deseja fazer?',
       'story_view_photo': 'Ampliar foto de perfil',
       'story_watch_secret': 'Ver story em segredo',
       'story_no_data': 'Nenhum dado de story encontrado.',
       'story_close': 'FECHAR',
+      'no_data': 'Sem dados',
+      'new_badge': 'NOVO',
+      'login_title': 'Entrar',
       'read_and_agree': 'LI E CONCORDO',
       'withdraw_consent': 'Retirar consentimento',
       'withdraw_consent_confirm_title': 'Confirmação',
@@ -2854,91 +3204,101 @@ class _DashboardScreenState extends State<DashboardScreen>
       'pin_incorrect': 'PIN inválido',
       'ok': 'OK',
       'legal_warning': 'Aviso legal',
+      'rate_us': 'Avalie-nos',
+      'contact_us': 'Fale conosco',
+      'remove_ads_and_limits': 'Remover an\u00FAncios e espera',
       'legal_intro':
           'Ao baixar e usar este aplicativo, o usuário declara que leu e aceitou os termos abaixo.',
       'user_label': 'Usu\u00E1rio',
     },
     'ar': {
       'tagline':
-          'Ø­Ù„ÙˆÙ„ Ø§Ø­ØªØ±Ø§ÙÙŠØ© Ù„ÙˆØ³Ø§Ø¦Ù„ Ø§Ù„ØªÙˆØ§ØµÙ„ Ø§Ù„Ø§Ø¬ØªÙ…Ø§Ø¹ÙŠ',
-      'admin_active_note': 'ÙˆØ¶Ø¹ Ø§Ù„Ù…Ø´Ø±Ù Ù…ÙØ¹Ù‘Ù„',
+          'حلول احترافية لوسائل التواصل الاجتماعي',
+      'admin_active_note': 'وضع المشرف مفعّل',
       'free_app_note':
-          'Ù†Ø­Ù† Ù†Ø·ÙˆÙ‘Ø± Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ ÙŠÙˆÙ…ÙŠØ§Ù‹ Ù„ØªÙ‚Ø¯ÙŠÙ… ØªØ¬Ø±Ø¨Ø© Ø£ÙØ¶Ù„. Ù…Ù„Ø§Ø­Ø¸Ø§ØªÙƒ Ù…Ù‡Ù…Ø© Ø¬Ø¯Ø§Ù‹ Ù„Ù†Ø§.',
+          'نحن نطوّر التطبيق يومياً لتقديم تجربة أفضل. ملاحظاتك مهمة جداً لنا.',
       'login_prompt':
-          'ÙŠØ±Ø¬Ù‰ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù„Ø¨Ø¯Ø¡ Ø§Ù„ØªØ­Ù„ÙŠÙ„.',
-      'welcome': 'Ù…Ø±Ø­Ø¨Ø§Ù‹ØŒ {username}',
-      'refresh_data': 'ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª',
-      'login_with_instagram': 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¹Ø¨Ø± Ø§Ù†Ø³ØªØºØ±Ø§Ù…',
+          'يرجى تسجيل الدخول لبدء التحليل.',
+      'welcome': 'مرحباً، {username}',
+      'refresh_data': 'تحديث البيانات',
+      'login_with_instagram': 'تسجيل الدخول عبر انستغرام',
       'fetching_data':
-          'Ø¬Ø§Ø±Ù ØªØ­Ù„ÙŠÙ„ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª...\nÙ‚Ø¯ ÙŠØ³ØªØºØ±Ù‚ Ø°Ù„Ùƒ Ø¨Ø¹Ø¶ Ø§Ù„ÙˆÙ‚Øª.',
+          'جارٍ تحليل البيانات...\nقد يستغرق ذلك بعض الوقت.',
       'processing_data':
-          'Ø¬Ø§Ø±Ù Ù…Ø¹Ø§Ù„Ø¬Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª...\nØ¹Ù„Ù‰ ÙˆØ´Ùƒ Ø§Ù„Ø§Ù†ØªÙ‡Ø§Ø¡.',
+          'جارٍ معالجة البيانات...\nعلى وشك الانتهاء.',
       'loading_ad':
-          'Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø¥Ø¹Ù„Ø§Ù†...\nÙŠØ±Ø¬Ù‰ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±.',
-      'google_ad_warning': 'ØªØ­Ø°ÙŠØ± Ø¥Ø¹Ù„Ø§Ù† Google: {reason}',
+          'جارٍ تحميل الإعلان...\nيرجى الانتظار.',
+      'google_ad_warning': 'تحذير إعلان Google: {reason}',
       'analysis_secure':
-          'ÙŠØªÙ… ØªÙ†ÙÙŠØ° Ø¬Ù…ÙŠØ¹ Ø§Ù„ØªØ­Ù„ÙŠÙ„Ø§Øª Ø¨Ø´ÙƒÙ„ Ø¢Ù…Ù† Ù…Ø­Ù„ÙŠØ§Ù‹ Ø¹Ù„Ù‰ Ø¬Ù‡Ø§Ø²Ùƒ.',
+          'يتم تنفيذ جميع التحليلات بشكل آمن محلياً على جهازك.',
       'today_total_analysis':
-          'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„ØªØ­Ù„ÙŠÙ„Ø§Øª Ø§Ù„ÙŠÙˆÙ…: {count}',
+          'إجمالي التحليلات اليوم: {count}',
       'purchases_not_configured':
-          'Ø§Ù„Ø´Ø±Ø§Ø¡ ØºÙŠØ± Ù…ØªØ§Ø­ Ø­Ø§Ù„ÙŠØ§Ù‹. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù„Ø§Ø­Ù‚Ø§Ù‹.',
-      'premium_already_active': 'Ø¹Ø¶ÙˆÙŠØ© Premium Ù…ÙØ¹Ù„Ø© Ù„Ø¯ÙŠÙƒ.',
+          'الشراء غير متاح حالياً. يرجى المحاولة لاحقاً.',
+      'premium_already_active': 'عضوية Premium مفعلة لديك.',
       'premium_welcome_box':
-          'Ù…Ø±Ø­Ø¨Ø§Ù‹ Ø¨Ùƒ ÙÙŠ Premium! ØªÙ…Øª Ø¥Ø²Ø§Ù„Ø© Ø§Ù„Ø¥Ø¹Ù„Ø§Ù†Ø§Øª ÙˆÙØªØ±Ø§Øª Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±.',
-      'restore_purchases': 'Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø´ØªØ±ÙŠØ§Øª',
-      'restoring_purchases': 'Ø¬Ø§Ø±Ù Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø´ØªØ±ÙŠØ§Øª...',
+          'مرحباً بك في Premium! تمت إزالة الإعلانات وفترات الانتظار.',
+      'restore_purchases': 'استعادة المشتريات',
+      'restore_purchases_short': '\u0627\u0633\u062A\u0639\u0627\u062F\u0629',
+      'restoring_purchases': 'جارٍ استعادة المشتريات...',
       'restore_purchases_success':
           'تمت استعادة المشتريات ✅',
       'restore_purchases_none':
-          'Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø´ØªØ±ÙŠØ§Øª Ù„Ù„Ø§Ø³ØªØ¹Ø§Ø¯Ø©.',
-      'restore_purchases_failed': 'ÙØ´Ù„Øª Ø§Ù„Ø§Ø³ØªØ¹Ø§Ø¯Ø©: {err}',
-      'next_analysis': 'Ø§Ù„ØªØ­Ù„ÙŠÙ„ Ø§Ù„ØªØ§Ù„ÙŠ',
-      'next_analysis_ready': 'ÙŠÙ…ÙƒÙ†Ùƒ Ø¥Ø¬Ø±Ø§Ø¡ Ø§Ù„ØªØ­Ù„ÙŠÙ„ Ø§Ù„Ø¢Ù†.',
+          'لا توجد مشتريات للاستعادة.',
+      'restore_purchases_failed': 'فشلت الاستعادة: {err}',
+      'next_analysis': 'التحليل التالي',
+      'next_analysis_ready': 'يمكنك إجراء التحليل الآن.',
       'analysis_ready_risk':
-          'Ø§Ù„ØªØ­Ù„ÙŠÙ„ Ù…ØªØ§Ø­ Ø§Ù„Ø¢Ù†ØŒ Ù„ÙƒÙ† Ø§Ù„ØªØ­Ù„ÙŠÙ„ Ø§Ù„Ù…ØªÙƒØ±Ø± Ù‚Ø¯ ÙŠØ¹Ø±Ù‘Ø¶ Ø­Ø³Ø§Ø¨Ùƒ Ù„Ù„Ø®Ø·Ø±.',
-      'please_wait': 'ÙŠØ±Ø¬Ù‰ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±',
-      'remaining_time': 'Ø§Ù„ÙˆÙ‚Øª Ø§Ù„Ù…ØªØ¨Ù‚ÙŠ: {time}',
-      'watch_ad': 'Ø´Ø§Ù‡Ø¯ Ø§Ù„Ø¥Ø¹Ù„Ø§Ù† ÙˆØ§Ø¨Ø¯Ø£ Ø§Ù„ØªØ­Ù„ÙŠÙ„',
-      'start_analysis': 'Ø§Ø¨Ø¯Ø£ Ø§Ù„ØªØ­Ù„ÙŠÙ„',
-      'start_analysis_question': 'Ù‡Ù„ ØªØ±ÙŠØ¯ Ø¨Ø¯Ø¡ Ø§Ù„ØªØ­Ù„ÙŠÙ„ØŸ',
-      'clear_data_title': 'Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„ØªØ·Ø¨ÙŠÙ‚',
+          'التحليل متاح الآن، لكن التحليل المتكرر قد يعرّض حسابك للخطر.',
+      'please_wait': 'يرجى الانتظار',
+      'remaining_time': 'الوقت المتبقي: {time}',
+      'watch_ad': 'شاهد الإعلان وابدأ التحليل',
+      'start_analysis': 'ابدأ التحليل',
+      'start_analysis_question': 'هل تريد بدء التحليل؟',
+      'clear_data_title': 'إعادة تعيين بيانات التطبيق',
       'clear_data_content':
-          'Ø³ÙŠØªÙ… Ø­Ø°Ù Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø­Ù„ÙŠØ© ÙˆÙ…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ø¬Ù„Ø³Ø©. Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ØŸ',
-      'cancel': 'Ø¥Ù„ØºØ§Ø¡',
-      'delete': 'Ø­Ø°Ù',
+          'سيتم حذف جميع البيانات المحلية ومعلومات الجلسة. هل أنت متأكد؟',
+      'cancel': 'إلغاء',
+      'delete': 'حذف',
       'ad_wait_message':
-          'Ø§ÙƒØªÙ…Ù„ Ø§Ù„ØªØ­Ù„ÙŠÙ„ØŒ ÙˆØ³ÙŠØªÙ… Ø¹Ø±Ø¶ Ø§Ù„Ù†ØªØ§Ø¦Ø¬ Ø¨Ø¹Ø¯ Ø§Ù„Ø¥Ø¹Ù„Ø§Ù†.',
-      'analysis_failed_title': 'ÙØ´Ù„ Ø§Ù„ØªØ­Ù„ÙŠÙ„',
-      'analysis_failed_reason': 'Ø§Ù„Ø³Ø¨Ø¨: {reason}',
+          'اكتمل التحليل، وسيتم عرض النتائج بعد الإعلان.',
+      'analysis_failed_title': 'فشل التحليل',
+      'analysis_failed_reason': 'السبب: {reason}',
       'analysis_failed_hint':
-          'Ù†ØµÙŠØ­Ø©: Ù‚Ø¯ ÙŠÙÙŠØ¯ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬ Ø«Ù… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.',
+          'نصيحة: قد يفيد تسجيل الخروج ثم تسجيل الدخول مرة أخرى.',
       'story_section_title':
-          'Ø´Ø§Ù‡Ø¯ Ø§Ù„Ù‚ØµØµ Ø¨Ø´ÙƒÙ„ Ù…Ø®ÙÙŠ Ø£Ùˆ ÙƒØ¨Ù‘Ø± ØµÙˆØ± Ø§Ù„Ù…Ù„Ù Ø§Ù„Ø´Ø®ØµÙŠ',
+          'شاهد القصص بشكل مخفي أو كبّر صور الملف الشخصي',
       'story_login_required':
-          'ÙŠØ±Ø¬Ù‰ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù„Ù…Ø´Ø§Ù‡Ø¯Ø© Ø§Ù„Ù‚ØµØµ Ø¨Ø´ÙƒÙ„ Ù…Ø®ÙÙŠ.',
+          'لمشاهدة القصص بشكل سري، يلزم تسجيل دخول صالح في Instagram. إذا كنت مسجلا بالفعل وما زال هذا التنبيه يظهر، سجل الخروج من Instagram ثم سجل الدخول مرة أخرى.',
       'story_ad_wait':
-          'Ø³ÙŠØªÙ… Ø§Ù„Ø¹Ø±Ø¶ Ø¨Ø¹Ø¯ Ø§Ù„Ø¥Ø¹Ù„Ø§Ù†ØŒ ÙŠØ±Ø¬Ù‰ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±.',
-      'story_action_title': 'Ù…Ø§Ø°Ø§ ØªØ±ÙŠØ¯ Ø£Ù† ØªÙØ¹Ù„ØŸ',
-      'story_view_photo': 'ØªÙƒØ¨ÙŠØ± ØµÙˆØ±Ø© Ø§Ù„Ù…Ù„Ù Ø§Ù„Ø´Ø®ØµÙŠ',
-      'story_watch_secret': 'Ù…Ø´Ø§Ù‡Ø¯Ø© Ø§Ù„Ù‚ØµØ© Ø¨Ø´ÙƒÙ„ Ù…Ø®ÙÙŠ',
-      'story_no_data': 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¨ÙŠØ§Ù†Ø§Øª Ù„Ù„Ù‚ØµØµ.',
-      'story_close': 'Ø¥ØºÙ„Ø§Ù‚',
-      'read_and_agree': 'Ù„Ù‚Ø¯ Ù‚Ø±Ø£Øª ÙˆØ£ÙˆØ§ÙÙ‚',
-      'withdraw_consent': 'Ø³Ø­Ø¨ Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø©',
-      'withdraw_consent_confirm_title': 'ØªØ£ÙƒÙŠØ¯',
+          'سيتم العرض بعد الإعلان، يرجى الانتظار.',
+      'story_action_title': 'ماذا تريد أن تفعل؟',
+      'story_view_photo': 'تكبير صورة الملف الشخصي',
+      'story_watch_secret': 'مشاهدة القصة بشكل مخفي',
+      'story_no_data': 'لا توجد بيانات للقصص.',
+      'story_close': 'إغلاق',
+      'no_data': '\u0644\u0627 \u062A\u0648\u062C\u062F \u0628\u064A\u0627\u0646\u0627\u062A',
+      'new_badge': '\u062C\u062F\u064A\u062F',
+      'login_title': '\u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u062F\u062E\u0648\u0644',
+      'read_and_agree': 'لقد قرأت وأوافق',
+      'withdraw_consent': 'سحب الموافقة',
+      'withdraw_consent_confirm_title': 'تأكيد',
       'withdraw_consent_confirm_body':
-          'Ø³ÙŠØªÙ… Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø©. Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ØŸ',
-      'withdraw_consent_confirm_yes': 'Ù†Ø¹Ù…',
-      'withdraw_consent_confirm_no': 'Ø¥Ù„ØºØ§Ø¡',
+          'سيتم إعادة تعيين إعدادات الموافقة. هل أنت متأكد؟',
+      'withdraw_consent_confirm_yes': 'نعم',
+      'withdraw_consent_confirm_no': 'إلغاء',
       'data_updated': 'اكتمل التحليل ✅',
-      'enter_pin': 'Ø£Ø¯Ø®Ù„ PIN',
+      'enter_pin': 'أدخل PIN',
       'pin_accepted':
           'تم قبول PIN وإعادة تعيين الوقت ✅',
-      'pin_incorrect': 'PIN ØºÙŠØ± ØµØ­ÙŠØ­',
-      'ok': 'Ù…ÙˆØ§ÙÙ‚',
-      'legal_warning': 'ØªÙ†Ø¨ÙŠÙ‡ Ù‚Ø§Ù†ÙˆÙ†ÙŠ',
+      'pin_incorrect': 'PIN غير صحيح',
+      'ok': 'موافق',
+      'legal_warning': 'تنبيه قانوني',
+      'rate_us': '\u0642\u064A\u0645\u0646\u0627',
+      'contact_us': '\u062A\u0648\u0627\u0635\u0644 \u0645\u0639\u0646\u0627',
+      'remove_ads_and_limits': '\u0625\u0632\u0627\u0644\u0629 \u0627\u0644\u0625\u0639\u0644\u0627\u0646\u0627\u062A \u0648\u0641\u062A\u0631\u0627\u062A \u0627\u0644\u0627\u0646\u062A\u0638\u0627\u0631',
       'legal_intro':
-          'Ø¨ØªÙ†Ø²ÙŠÙ„ Ù‡Ø°Ø§ Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ ÙˆØ§Ø³ØªØ®Ø¯Ø§Ù…Ù‡ØŒ ÙŠÙØ¹ØªØ¨Ø± Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ù‚Ø¯ Ù‚Ø±Ø£ ÙˆÙˆØ§ÙÙ‚ Ø¹Ù„Ù‰ Ø§Ù„Ø´Ø±ÙˆØ· Ø§Ù„ØªØ§Ù„ÙŠØ©.',
+          'بتنزيل هذا التطبيق واستخدامه، يُعتبر المستخدم قد قرأ ووافق على الشروط التالية.',
       'user_label': '\u0645\u0633\u062A\u062E\u062F\u0645',
     },
     'es': {
@@ -2946,8 +3306,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       "adsense_banner": "PUBLICIDAD",
       "admin_active_note": "Modo administrador activo",
       "free_app_note":
-          "Estamos evolucionando cada d\u00eda para brindarte una mejor experiencia. Sus comentarios son valiosos para nosotros: \u00a1nos encantar\u00eda saber de usted!",
-      "login_prompt": "Inicie sesi\u00f3n para iniciar el an\u00e1lisis.",
+          "Mejoramos cada d\u00eda para darte una mejor experiencia. Tu opini\u00f3n nos ayuda much\u00edsimo.",
+      "login_prompt": "Inicia sesi\u00f3n para comenzar el an\u00e1lisis.",
       "welcome": "Bienvenido, {username}",
       "refresh_data": "ACTUALIZAR DATOS",
       "login_with_instagram": "INICIA SESI\u00d3N CON INSTAGRAM",
@@ -2993,7 +3353,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Ver historias en secreto o hacer zoom en las fotos del perfil",
       "story_login_required":
-          "Inicie sesi\u00f3n para ver historias en secreto.",
+          "Para ver historias en modo anónimo necesitas una sesión válida de Instagram. Si ya iniciaste sesión y este aviso sigue apareciendo, cierra sesión en Instagram y vuelve a iniciar sesión.",
       "story_ad_wait": "Se mostrar\u00e1 despu\u00e9s del anuncio, espere.",
       "story_action_title": "\u00bfQu\u00e9 te gustar\u00eda hacer?",
       "story_view_photo": "Ampliar foto de perfil",
@@ -3063,8 +3423,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       "adsense_banner": "PUBLICIDAD",
       "admin_active_note": "Modo administrador activo",
       "free_app_note":
-          "Estamos evolucionando cada d\u00eda para brindarte una mejor experiencia. Sus comentarios son valiosos para nosotros: \u00a1nos encantar\u00eda saber de usted!",
-      "login_prompt": "Inicie sesi\u00f3n para iniciar el an\u00e1lisis.",
+          "Mejoramos cada d\u00eda para darte una mejor experiencia. Tu opini\u00f3n nos ayuda much\u00edsimo.",
+      "login_prompt": "Inicia sesi\u00f3n para comenzar el an\u00e1lisis.",
       "welcome": "Bienvenido, {username}",
       "refresh_data": "ACTUALIZAR DATOS",
       "login_with_instagram": "INICIA SESI\u00d3N CON INSTAGRAM",
@@ -3110,7 +3470,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Ver historias en secreto o hacer zoom en las fotos del perfil",
       "story_login_required":
-          "Inicie sesi\u00f3n para ver historias en secreto.",
+          "Para ver historias en modo anónimo necesitas una sesión válida de Instagram. Si ya iniciaste sesión y este aviso sigue apareciendo, cierra sesión en Instagram y vuelve a iniciar sesión.",
       "story_ad_wait": "Se mostrar\u00e1 despu\u00e9s del anuncio, espere.",
       "story_action_title": "\u00bfQu\u00e9 te gustar\u00eda hacer?",
       "story_view_photo": "Ampliar foto de perfil",
@@ -3254,7 +3614,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "\u0917\u0941\u092a\u094d\u0924 \u0930\u0942\u092a \u0938\u0947 \u0915\u0939\u093e\u0928\u093f\u092f\u093e\u0902 \u0926\u0947\u0916\u0947\u0902 \u092f\u093e \u092a\u094d\u0930\u094b\u092b\u093c\u093e\u0907\u0932 \u092b\u093c\u094b\u091f\u094b \u091c\u093c\u0942\u092e \u0915\u0930\u0947\u0902",
       "story_login_required":
-          "\u0915\u0943\u092a\u092f\u093e \u0917\u0941\u092a\u094d\u0924 \u0930\u0942\u092a \u0938\u0947 \u0915\u0939\u093e\u0928\u093f\u092f\u093e\u0901 \u0926\u0947\u0916\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0932\u0949\u0917 \u0907\u0928 \u0915\u0930\u0947\u0902\u0964",
+          "स्टोरी को गुप्त रूप से देखने के लिए Instagram में मान्य लॉगिन सत्र जरूरी है। यदि आपने पहले से लॉगिन किया है और यह संदेश फिर भी दिख रहा है, तो Instagram से लॉगआउट करके दोबारा लॉगिन करें।",
       "story_ad_wait":
           "\u0935\u093f\u091c\u094d\u091e\u093e\u092a\u0928 \u0915\u0947 \u092c\u093e\u0926 \u0926\u093f\u0916\u093e\u092f\u093e \u091c\u093e\u090f\u0917\u093e, \u0915\u0943\u092a\u092f\u093e \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e \u0915\u0930\u0947\u0902\u0964",
       "story_action_title":
@@ -3401,7 +3761,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "N\u00e9zze meg a t\u00f6rt\u00e9neteket titokban vagy nagy\u00edtsa ki a profilfot\u00f3kat",
       "story_login_required":
-          "K\u00e9rj\u00fck, jelentkezzen be, ha t\u00f6rt\u00e9neteket szeretne titokban n\u00e9zni.",
+          "A történetek névtelen megtekintéséhez érvényes Instagram-bejelentkezés szükséges. Ha már be vagy jelentkezve, de ez az üzenet továbbra is megjelenik, jelentkezz ki az Instagramból, majd jelentkezz be újra.",
       "story_ad_wait":
           "A hirdet\u00e9s ut\u00e1n jelenik meg, k\u00e9rj\u00fck, v\u00e1rjon.",
       "story_action_title": "Mit szeretn\u00e9l csin\u00e1lni?",
@@ -3529,7 +3889,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "\u79d8\u5bc6\u89c2\u770b\u6545\u4e8b\u6216\u7f29\u653e\u4e2a\u4eba\u8d44\u6599\u7167\u7247",
       "story_login_required":
-          "\u8bf7\u767b\u5f55\u79d8\u5bc6\u89c2\u770b\u6545\u4e8b\u3002",
+          "要匿名查看动态，需要有效的 Instagram 登录会话。如果你已经登录但仍看到此提示，请先退出 Instagram，再重新登录。",
       "story_ad_wait":
           "\u5c06\u5728\u5e7f\u544a\u540e\u663e\u793a\uff0c\u8bf7\u7a0d\u5019\u3002",
       "story_action_title": "\u4f60\u60f3\u505a\u4ec0\u4e48\uff1f",
@@ -3652,7 +4012,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Tonton Cerita Secara Diam-diam atau Zoom Foto Profil",
       "story_login_required":
-          "Silakan masuk untuk menonton cerita secara diam-diam.",
+          "Untuk melihat story secara anonim, diperlukan sesi login Instagram yang valid. Jika Anda sudah login tetapi peringatan ini masih muncul, keluar dari Instagram lalu masuk kembali.",
       "story_ad_wait": "Akan ditampilkan setelah iklan, harap tunggu.",
       "story_action_title": "Apa yang ingin Anda lakukan?",
       "story_view_photo": "Perbesar foto profil",
@@ -3765,7 +4125,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "rate_test_message": "Deze box wordt momenteel getest.",
       "story_section_title":
           "Bekijk verhalen in het geheim of zoom in op profielfoto's",
-      "story_login_required": "Log in om verhalen in het geheim te bekijken.",
+      "story_login_required": "Voor het anoniem bekijken van stories is een geldige Instagram-login nodig. Ben je al ingelogd maar zie je deze melding nog steeds, log dan uit bij Instagram en log opnieuw in.",
       "story_ad_wait":
           "Wordt weergegeven na de advertentie, even geduld a.u.b.",
       "story_action_title": "Wat zou je graag willen doen?",
@@ -3883,7 +4243,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Regardez des histoires en secret ou zoomez sur les photos de profil",
       "story_login_required":
-          "Veuillez vous connecter pour regarder les histoires en secret.",
+          "Pour voir les stories en mode anonyme, une session Instagram valide est nécessaire. Si vous êtes déjà connecté mais que ce message persiste, déconnectez-vous de Instagram puis reconnectez-vous.",
       "story_ad_wait":
           "Sera affich\u00e9 apr\u00e8s la publicit\u00e9, veuillez patienter.",
       "story_action_title": "Que souhaiteriez-vous faire\u00a0?",
@@ -4002,7 +4362,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "rate_test_message": "Questa scatola \u00e8 attualmente in fase di test.",
       "story_section_title":
           "Guarda le storie di nascosto o ingrandisci le foto del profilo",
-      "story_login_required": "Accedi per guardare le storie in segreto.",
+      "story_login_required": "Per vedere le storie in modo anonimo serve una sessione Instagram valida. Se hai già fatto login ma questo avviso continua a comparire, esci da Instagram e accedi di nuovo.",
       "story_ad_wait": "Verr\u00e0 mostrato dopo l'annuncio, attendere.",
       "story_action_title": "Cosa ti piacerebbe fare?",
       "story_view_photo": "Ingrandisci la foto del profilo",
@@ -4130,7 +4490,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Xem c\u00e2u chuy\u1ec7n m\u1ed9t c\u00e1ch b\u00ed m\u1eadt ho\u1eb7c thu ph\u00f3ng \u1ea3nh h\u1ed3 s\u01a1",
       "story_login_required":
-          "Vui l\u00f2ng \u0111\u0103ng nh\u1eadp \u0111\u1ec3 xem truy\u1ec7n b\u00ed m\u1eadt.",
+          "Để xem story ẩn danh, bạn cần phiên đăng nhập Instagram hợp lệ. Nếu bạn đã đăng nhập mà vẫn thấy thông báo này, hãy đăng xuất khỏi Instagram rồi đăng nhập lại.",
       "story_ad_wait":
           "S\u1ebd hi\u1ec3n th\u1ecb sau qu\u1ea3ng c\u00e1o, vui l\u00f2ng \u0111\u1ee3i.",
       "story_action_title": "B\u1ea1n mu\u1ed1n l\u00e0m g\u00ec?",
@@ -4289,7 +4649,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "\u0e14\u0e39\u0e40\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e25\u0e31\u0e1a\u0e2b\u0e23\u0e37\u0e2d\u0e0b\u0e39\u0e21\u0e23\u0e39\u0e1b\u0e42\u0e1b\u0e23\u0e44\u0e1f\u0e25\u0e4c",
       "story_login_required":
-          "\u0e01\u0e23\u0e38\u0e13\u0e32\u0e40\u0e02\u0e49\u0e32\u0e2a\u0e39\u0e48\u0e23\u0e30\u0e1a\u0e1a\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e14\u0e39\u0e40\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e23\u0e32\u0e27\u0e2d\u0e22\u0e48\u0e32\u0e07\u0e25\u0e31\u0e1a\u0e46",
+          "การดูสตอรีแบบไม่ระบุตัวตนต้องใช้เซสชันเข้าสู่ระบบ Instagram ที่ถูกต้อง หากคุณเข้าสู่ระบบแล้วแต่ยังเห็นข้อความนี้ ให้ลงชื่อออกจาก Instagram แล้วเข้าสู่ระบบอีกครั้ง",
       "story_ad_wait":
           "\u0e08\u0e30\u0e41\u0e2a\u0e14\u0e07\u0e2b\u0e25\u0e31\u0e07\u0e42\u0e06\u0e29\u0e13\u0e32 \u0e01\u0e23\u0e38\u0e13\u0e32\u0e23\u0e2d\u0e2a\u0e31\u0e01\u0e04\u0e23\u0e39\u0e48",
       "story_action_title":
@@ -4434,7 +4794,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Ogl\u0105daj historie w tajemnicy lub powi\u0119kszaj zdj\u0119cia profilowe",
       "story_login_required":
-          "Zaloguj si\u0119, aby ogl\u0105da\u0107 historie w tajemnicy.",
+          "Aby oglądać relacje anonimowo, wymagane jest poprawne logowanie do Instagrama. Jeśli jesteś już zalogowany, a komunikat nadal się pojawia, wyloguj się z Instagrama i zaloguj ponownie.",
       "story_ad_wait":
           "Zostanie wy\u015bwietlone po reklamie, prosz\u0119 czeka\u0107.",
       "story_action_title": "Co chcia\u0142by\u015b robi\u0107?",
@@ -4503,24 +4863,848 @@ class _DashboardScreenState extends State<DashboardScreen>
     },
   };
 
+  final Map<String, Map<String, String>> _flowLocalized = {
+    "tr": {
+      "followers_incomplete":
+          "Veri yükleme kesildi: takipçi verisi eksik ({fetched}/{total}).",
+      "following_incomplete":
+          "Veri yükleme kesildi: takip edilen verisi eksik ({fetched}/{total}).",
+      "empty_data": "Veri yükleme kesildi: Instagram boş veri döndürdü.",
+      "unexpected_error": "Veri yükleme kesildi: beklenmeyen bir hata oluştu.",
+      "automation_warning":
+          "Instagram otomatik davranış uyarısı verdi. Güvenlik için veri çekme durduruldu.",
+      "security_required":
+          "Instagram güvenlik doğrulaması istedi. Instagram uygulamasından doğrulayıp tekrar deneyin.",
+      "session_invalid":
+          "Oturum geçersiz veya doğrulama bekliyor. Lütfen tekrar giriş yapın.",
+      "rate_limited":
+          "Çok hızlı istek gönderildi. Veri yükleme güvenlik nedeniyle kesildi.",
+      "connection_error":
+          "Bağlantı sorunu nedeniyle veri yükleme tamamlanamadı.",
+      "server_error":
+          "Instagram sunucusu hata döndürdü (HTTP {code}). Veri yükleme kesildi.",
+      "story_security_required":
+          "Instagram güvenlik doğrulaması gerekiyor (hikaye verisi alınamadı).",
+      "story_detail":
+          "Hikaye verisi alınamadı. Genelde Instagram doğrulaması, geçici API kısıtı veya bağlantı kesintisinden kaynaklanır. 2-3 dakika sonra tekrar deneyin.",
+      "story_generic":
+          "Hikaye verisi alınamadı. Lütfen biraz sonra tekrar deneyin.",
+      "secret_mode_label": "GİZLİ MOD",
+    },
+    "en": {
+      "followers_incomplete":
+          "Data loading was interrupted: follower data incomplete ({fetched}/{total}).",
+      "following_incomplete":
+          "Data loading was interrupted: following data incomplete ({fetched}/{total}).",
+      "empty_data":
+          "Data loading was interrupted: Instagram returned empty data.",
+      "unexpected_error":
+          "Data loading stopped due to an unexpected error.",
+      "automation_warning":
+          "Instagram returned an automated-behavior warning. We stopped fetching data for safety.",
+      "security_required":
+          "Instagram requested security verification. Verify in Instagram app and try again.",
+      "session_invalid":
+          "Session is invalid or waiting for verification. Please log in again.",
+      "rate_limited":
+          "Too many requests were sent. Data loading was interrupted for safety.",
+      "connection_error":
+          "Data loading could not complete due to a connection issue.",
+      "server_error":
+          "Instagram returned an error (HTTP {code}). Data loading was interrupted.",
+      "story_security_required":
+          "Instagram security verification is required (story data could not be fetched).",
+      "story_detail":
+          "Story data could not be fetched. Usually this is caused by Instagram verification, temporary API restrictions, or a connection interruption. Please try again in 2-3 minutes.",
+      "story_generic":
+          "Could not fetch story data. Please try again shortly.",
+      "secret_mode_label": "Secret Mode",
+    },
+    "de": {
+      "followers_incomplete":
+          "Datenabruf unterbrochen: Follower-Daten unvollstandig ({fetched}/{total}).",
+      "following_incomplete":
+          "Datenabruf unterbrochen: Following-Daten unvollstandig ({fetched}/{total}).",
+      "empty_data":
+          "Datenabruf unterbrochen: Instagram lieferte leere Daten.",
+      "unexpected_error": "Datenabruf unterbrochen: Unerwarteter Fehler.",
+      "automation_warning":
+          "Instagram erkannte automatisches Verhalten. Abruf wurde zum Schutz gestoppt.",
+      "security_required":
+          "Instagram verlangt Sicherheitsprufung. Bitte im Instagram-App bestatigen und erneut versuchen.",
+      "session_invalid":
+          "Sitzung ungultig oder wartet auf Verifizierung. Bitte erneut anmelden.",
+      "rate_limited":
+          "Zu viele Anfragen. Abruf wurde aus Sicherheitsgrunden unterbrochen.",
+      "connection_error":
+          "Daten konnten wegen eines Verbindungsproblems nicht geladen werden.",
+      "server_error":
+          "Instagram-Serverfehler (HTTP {code}). Abruf unterbrochen.",
+      "story_security_required":
+          "Instagram-Sicherheitsprufung erforderlich (Story-Daten konnten nicht geladen werden).",
+      "story_detail":
+          "Story-Daten konnten nicht geladen werden. Ursache ist oft Verifizierung, temporare API-Limits oder Verbindungsausfall. Bitte in 2-3 Minuten erneut versuchen.",
+      "story_generic":
+          "Story-Daten konnten nicht geladen werden. Bitte kurz erneut versuchen.",
+      "secret_mode_label": "GEHEIMMODUS",
+    },
+    "ko": {
+      "followers_incomplete":
+          "Data rodeu jungdan: follower deiteoga bujokham ({fetched}/{total}).",
+      "following_incomplete":
+          "Data rodeu jungdan: following deiteoga bujokham ({fetched}/{total}).",
+      "empty_data": "Data rodeu jungdan: Instagram-i bin deiteoreul banhwam.",
+      "unexpected_error": "Data rodeu jungdan: yegisang mothan oryu.",
+      "automation_warning":
+          "Instagram-i jadong haengdong gyeonggoreul boim. anjeon sang rodeu jungji.",
+      "security_required":
+          "Instagram boan hwagin pilyo. app-eseo hwagin hu dasi si-do.",
+      "session_invalid":
+          "Sesyeon mueffyo ttoneun geomjeung daegi jung. dasi login haejuseyo.",
+      "rate_limited": "Yocheongi neomu manhaseo anjeon sang jungji.",
+      "connection_error": "Yeongyeol munjero data rodeu wanryo bulga.",
+      "server_error": "Instagram oryu (HTTP {code}). data rodeu jungdan.",
+      "story_security_required":
+          "Instagram boan hwagin pilyo (story data rodu bulga).",
+      "story_detail":
+          "Story data rodu bulga. boan hwagin, ilsi API jehan ttoneun network munje il su isseum. 2-3bun hu dasi si-do.",
+      "story_generic": "Story data rodu bulga. jamshi hu dasi si-do.",
+      "secret_mode_label": "BIMIL MODE",
+    },
+    "ja": {
+      "followers_incomplete":
+          "Data yomi-komi chudan: follower data fukanzen ({fetched}/{total}).",
+      "following_incomplete":
+          "Data yomi-komi chudan: following data fukanzen ({fetched}/{total}).",
+      "empty_data":
+          "Data yomi-komi chudan: Instagram ga ku no data o henkan.",
+      "unexpected_error": "Data yomi-komi chudan: yosoki shinai eraa.",
+      "automation_warning":
+          "Instagram ga jidoka koudo o kentchi. anzen no tame shutoku teishi.",
+      "security_required":
+          "Instagram no anzen kakunin ga hitsuyou. app de kakunin shite saishikou.",
+      "session_invalid":
+          "Session ga mukou ka kakunin machi. mou ichido login shite kudasai.",
+      "rate_limited":
+          "Request ga oosugimasu. anzen no tame yomi-komi o chudan shimashita.",
+      "connection_error": "Setsuzoku mondai de data yomi-komi ga kanryou dekinai.",
+      "server_error":
+          "Instagram eraa (HTTP {code}). data yomi-komi chudan.",
+      "story_security_required":
+          "Instagram anzen kakunin hitsuyou (story data shutoku dekinai).",
+      "story_detail":
+          "Story data o shutoku dekinai. verification, ichiji API seigen, setsuzoku mondai no kanousei. 2-3 fun ato ni saishikou.",
+      "story_generic": "Story data o shutoku dekinai. sukkoshi ato de saishikou.",
+      "secret_mode_label": "SECRET MODE",
+    },
+    "ru": {
+      "followers_incomplete":
+          "Zagruzka prervana: dannye podpischikov nepolnye ({fetched}/{total}).",
+      "following_incomplete":
+          "Zagruzka prervana: dannye podpisok nepolnye ({fetched}/{total}).",
+      "empty_data": "Zagruzka prervana: Instagram vernul pustye dannye.",
+      "unexpected_error": "Zagruzka prervana: neozhidannaya oshibka.",
+      "automation_warning":
+          "Instagram obnaruzhil avtomaticheskoe povedenie. Zagruzka ostanovlena radi bezopasnosti.",
+      "security_required":
+          "Instagram trebuet proverku bezopasnosti. Proydite proverku v prilozhenii i povtorite.",
+      "session_invalid":
+          "Sessiya nevalidna ili ozhidaet proverki. Voydite snova.",
+      "rate_limited":
+          "Slishkom mnogo zaprosov. Zagruzka ostanovlena radi bezopasnosti.",
+      "connection_error": "Ne udalos zavershit zagruzku iz-za problemi seti.",
+      "server_error": "Oshibka Instagram (HTTP {code}). Zagruzka prervana.",
+      "story_security_required":
+          "Trebuetsya proverka Instagram (dannye story nedostupny).",
+      "story_detail":
+          "Ne udalos poluchit story. Chasto iz-za proverki Instagram, vremennogo limita API ili setevoy oshibki. Povtorite cherez 2-3 minuty.",
+      "story_generic":
+          "Ne udalos poluchit dannye story. Poprobuite eshche raz pozhe.",
+      "secret_mode_label": "SECRET MODE",
+    },
+    "ar": {
+      "followers_incomplete":
+          "Tahmil mutawaqqif: bayanat almutabiin ghayr maktamilah ({fetched}/{total}).",
+      "following_incomplete":
+          "Tahmil mutawaqqif: bayanat almutabaein ghayr maktamilah ({fetched}/{total}).",
+      "empty_data": "Tahmil mutawaqqif: Instagram arja data farigha.",
+      "unexpected_error": "Tahmil mutawaqqif: khata ghayr mutawaqqa.",
+      "automation_warning":
+          "Instagram iktashafa suluk otomatiqi. tm iiqaf aljلب lil-aman.",
+      "security_required":
+          "Instagram yutalib bitahqiq amni. akmil altahqiq fi altaṭbiq wa hawil marra ukhra.",
+      "session_invalid":
+          "Aljalsa ghayr saliha aw tantazir tahqiq. urjuw tasjil aldukhul marra ukhra.",
+      "rate_limited":
+          "Tamm irsal talabāt kathira jiddan. tm iiqaf altahmil lil-aman.",
+      "connection_error": "Lam yaktamil altahmil bisabab mushkilat ittisal.",
+      "server_error": "Khata Instagram (HTTP {code}). altahmil mutawaqqif.",
+      "story_security_required":
+          "Yujad tahqiq amni matlub min Instagram (data story ghayr mutaha).",
+      "story_detail":
+          "Lam yumkin jلب story. ghaliban bisabab tahqiq Instagram aw hadd API mu'aqqat aw mushkila shabaka. hawil baed 2-3 daqayeq.",
+      "story_generic":
+          "Lam yumkin jلب data story. hawil marra ukhra baed qalil.",
+      "secret_mode_label": "SECRET MODE",
+    },
+    "hi": {
+      "followers_incomplete":
+          "Data load ruk gaya: follower data adhura ({fetched}/{total}).",
+      "following_incomplete":
+          "Data load ruk gaya: following data adhura ({fetched}/{total}).",
+      "empty_data": "Data load ruk gaya: Instagram ne khali data diya.",
+      "unexpected_error": "Data load ruk gaya: anapekshit truti.",
+      "automation_warning":
+          "Instagram ne automatic vyavahar pakda. suraksha ke liye load rok diya gaya.",
+      "security_required":
+          "Instagram security verification mang raha hai. app me verify karke phir koshish karein.",
+      "session_invalid":
+          "Session invalid hai ya verification ka intezar hai. dubara login karein.",
+      "rate_limited":
+          "Bahut zyada requests bheji gayi. suraksha ke liye load rok diya gaya.",
+      "connection_error": "Connection problem ki wajah se data load pura nahi hua.",
+      "server_error": "Instagram error (HTTP {code}). data load ruk gaya.",
+      "story_security_required":
+          "Instagram security verification zaruri hai (story data nahi mil saka).",
+      "story_detail":
+          "Story data nahi mila. aksar verification, temporary API limit ya network issue ki wajah se hota hai. 2-3 minute baad fir koshish karein.",
+      "story_generic":
+          "Story data nahi mila. thodi der baad phir koshish karein.",
+      "secret_mode_label": "SECRET MODE",
+    },
+    "es": {
+      "followers_incomplete":
+          "Carga interrumpida: datos de seguidores incompletos ({fetched}/{total}).",
+      "following_incomplete":
+          "Carga interrumpida: datos de seguidos incompletos ({fetched}/{total}).",
+      "empty_data":
+          "Carga interrumpida: Instagram devolvio datos vacios.",
+      "unexpected_error": "Carga interrumpida: error inesperado.",
+      "automation_warning":
+          "Instagram detecto comportamiento automatizado. Se detuvo la carga por seguridad.",
+      "security_required":
+          "Instagram solicita verificacion de seguridad. Verifica en la app y vuelve a intentar.",
+      "session_invalid":
+          "La sesion es invalida o espera verificacion. Inicia sesion nuevamente.",
+      "rate_limited":
+          "Demasiadas solicitudes. La carga se detuvo por seguridad.",
+      "connection_error":
+          "No se pudo completar la carga por un problema de conexion.",
+      "server_error":
+          "Error de Instagram (HTTP {code}). Carga interrumpida.",
+      "story_security_required":
+          "Se requiere verificacion de seguridad de Instagram (no se pudieron obtener historias).",
+      "story_detail":
+          "No se pudieron obtener datos de historias. Suele deberse a verificacion de Instagram, limite temporal de API o problema de conexion. Intenta de nuevo en 2-3 minutos.",
+      "story_generic":
+          "No se pudieron obtener datos de historias. Intenta de nuevo en breve.",
+      "secret_mode_label": "MODO SECRETO",
+    },
+    "es-mx": {
+      "followers_incomplete":
+          "Carga interrumpida: datos de seguidores incompletos ({fetched}/{total}).",
+      "following_incomplete":
+          "Carga interrumpida: datos de seguidos incompletos ({fetched}/{total}).",
+      "empty_data":
+          "Carga interrumpida: Instagram devolvio datos vacios.",
+      "unexpected_error": "Carga interrumpida: error inesperado.",
+      "automation_warning":
+          "Instagram detecto comportamiento automatizado. Se detuvo la carga por seguridad.",
+      "security_required":
+          "Instagram solicita verificacion de seguridad. Verifica en la app y vuelve a intentar.",
+      "session_invalid":
+          "La sesion es invalida o espera verificacion. Inicia sesion otra vez.",
+      "rate_limited":
+          "Demasiadas solicitudes. La carga se detuvo por seguridad.",
+      "connection_error":
+          "No se pudo completar la carga por un problema de conexion.",
+      "server_error":
+          "Error de Instagram (HTTP {code}). Carga interrumpida.",
+      "story_security_required":
+          "Se requiere verificacion de seguridad de Instagram (no se pudieron obtener historias).",
+      "story_detail":
+          "No se pudieron obtener datos de historias. Suele deberse a verificacion de Instagram, limite temporal de API o problema de conexion. Intenta de nuevo en 2-3 minutos.",
+      "story_generic":
+          "No se pudieron obtener datos de historias. Intenta de nuevo en breve.",
+      "secret_mode_label": "MODO SECRETO",
+    },
+    "fr": {
+      "followers_incomplete":
+          "Chargement interrompu : donnees abonnes incompletes ({fetched}/{total}).",
+      "following_incomplete":
+          "Chargement interrompu : donnees abonnements incompletes ({fetched}/{total}).",
+      "empty_data":
+          "Chargement interrompu : Instagram a renvoye des donnees vides.",
+      "unexpected_error": "Chargement interrompu : erreur inattendue.",
+      "automation_warning":
+          "Instagram a detecte un comportement automatise. Chargement arrete pour la securite.",
+      "security_required":
+          "Instagram demande une verification de securite. Verifiez dans l'application puis reessayez.",
+      "session_invalid":
+          "Session invalide ou en attente de verification. Reconnectez-vous.",
+      "rate_limited":
+          "Trop de requetes. Chargement interrompu pour la securite.",
+      "connection_error":
+          "Impossible de terminer le chargement a cause d'un probleme reseau.",
+      "server_error":
+          "Erreur Instagram (HTTP {code}). Chargement interrompu.",
+      "story_security_required":
+          "Verification de securite Instagram requise (impossible de recuperer les stories).",
+      "story_detail":
+          "Impossible de recuperer les donnees story. Souvent a cause d'une verification Instagram, d'une limite API temporaire ou d'un probleme reseau. Reessayez dans 2-3 minutes.",
+      "story_generic":
+          "Impossible de recuperer les donnees story. Reessayez bientot.",
+      "secret_mode_label": "MODE SECRET",
+    },
+    "it": {
+      "followers_incomplete":
+          "Caricamento interrotto: dati follower incompleti ({fetched}/{total}).",
+      "following_incomplete":
+          "Caricamento interrotto: dati following incompleti ({fetched}/{total}).",
+      "empty_data":
+          "Caricamento interrotto: Instagram ha restituito dati vuoti.",
+      "unexpected_error": "Caricamento interrotto: errore imprevisto.",
+      "automation_warning":
+          "Instagram ha rilevato comportamento automatico. Caricamento fermato per sicurezza.",
+      "security_required":
+          "Instagram richiede verifica di sicurezza. Verifica nell'app e riprova.",
+      "session_invalid":
+          "Sessione non valida o in attesa di verifica. Accedi di nuovo.",
+      "rate_limited":
+          "Troppe richieste inviate. Caricamento interrotto per sicurezza.",
+      "connection_error":
+          "Impossibile completare il caricamento per un problema di connessione.",
+      "server_error":
+          "Errore Instagram (HTTP {code}). Caricamento interrotto.",
+      "story_security_required":
+          "Verifica di sicurezza Instagram necessaria (impossibile ottenere i dati story).",
+      "story_detail":
+          "Impossibile ottenere i dati story. Di solito per verifica Instagram, limite API temporaneo o problema di rete. Riprova tra 2-3 minuti.",
+      "story_generic":
+          "Impossibile ottenere i dati story. Riprova tra poco.",
+      "secret_mode_label": "MODALITA SEGRETA",
+    },
+    "pt": {
+      "followers_incomplete":
+          "Carregamento interrompido: dados de seguidores incompletos ({fetched}/{total}).",
+      "following_incomplete":
+          "Carregamento interrompido: dados de seguindo incompletos ({fetched}/{total}).",
+      "empty_data":
+          "Carregamento interrompido: o Instagram retornou dados vazios.",
+      "unexpected_error": "Carregamento interrompido: erro inesperado.",
+      "automation_warning":
+          "O Instagram detectou comportamento automatizado. Interrompemos a coleta por seguranca.",
+      "security_required":
+          "O Instagram solicitou verificacao de seguranca. Verifique no app e tente novamente.",
+      "session_invalid":
+          "Sessao invalida ou aguardando verificacao. Faca login novamente.",
+      "rate_limited":
+          "Muitas solicitacoes. O carregamento foi interrompido por seguranca.",
+      "connection_error":
+          "Nao foi possivel concluir o carregamento por problema de conexao.",
+      "server_error":
+          "Erro do Instagram (HTTP {code}). Carregamento interrompido.",
+      "story_security_required":
+          "Verificacao de seguranca do Instagram necessaria (nao foi possivel obter stories).",
+      "story_detail":
+          "Nao foi possivel carregar stories. Geralmente por verificacao do Instagram, limite temporario de API ou problema de conexao. Tente novamente em 2-3 minutos.",
+      "story_generic":
+          "Nao foi possivel obter os dados de stories. Tente novamente em instantes.",
+      "secret_mode_label": "MODO SECRETO",
+    },
+    "nl": {
+      "followers_incomplete":
+          "Laden onderbroken: volgersgegevens onvolledig ({fetched}/{total}).",
+      "following_incomplete":
+          "Laden onderbroken: volgend-gegevens onvolledig ({fetched}/{total}).",
+      "empty_data":
+          "Laden onderbroken: Instagram gaf lege gegevens terug.",
+      "unexpected_error": "Laden onderbroken: onverwachte fout.",
+      "automation_warning":
+          "Instagram detecteerde geautomatiseerd gedrag. Laden is om veiligheidsredenen gestopt.",
+      "security_required":
+          "Instagram vereist beveiligingscontrole. Verifieer in de app en probeer opnieuw.",
+      "session_invalid":
+          "Sessie ongeldig of wacht op verificatie. Log opnieuw in.",
+      "rate_limited":
+          "Te veel verzoeken. Laden is uit veiligheid onderbroken.",
+      "connection_error":
+          "Laden kon niet worden voltooid door een verbindingsprobleem.",
+      "server_error":
+          "Instagram-fout (HTTP {code}). Laden onderbroken.",
+      "story_security_required":
+          "Instagram-beveiligingsverificatie vereist (storygegevens konden niet worden opgehaald).",
+      "story_detail":
+          "Storygegevens konden niet worden opgehaald. Meestal door Instagram-verificatie, tijdelijke API-limiet of netwerkprobleem. Probeer opnieuw over 2-3 minuten.",
+      "story_generic":
+          "Storygegevens konden niet worden opgehaald. Probeer zo opnieuw.",
+      "secret_mode_label": "GEHEIME MODUS",
+    },
+    "pl": {
+      "followers_incomplete":
+          "Ladowanie przerwane: dane obserwujacych sa niepelne ({fetched}/{total}).",
+      "following_incomplete":
+          "Ladowanie przerwane: dane obserwowanych sa niepelne ({fetched}/{total}).",
+      "empty_data":
+          "Ladowanie przerwane: Instagram zwrocil puste dane.",
+      "unexpected_error": "Ladowanie przerwane: nieoczekiwany blad.",
+      "automation_warning":
+          "Instagram wykryl automatyczne zachowanie. Dla bezpieczenstwa zatrzymano pobieranie.",
+      "security_required":
+          "Instagram wymaga weryfikacji bezpieczenstwa. Zweryfikuj w aplikacji i sprobuj ponownie.",
+      "session_invalid":
+          "Sesja jest niewazna lub oczekuje weryfikacji. Zaloguj sie ponownie.",
+      "rate_limited":
+          "Wyslano zbyt wiele zadan. Ladowanie zostalo przerwane dla bezpieczenstwa.",
+      "connection_error":
+          "Nie mozna zakonczyc ladowania z powodu problemu z polaczeniem.",
+      "server_error":
+          "Blad Instagram (HTTP {code}). Ladowanie przerwane.",
+      "story_security_required":
+          "Wymagana weryfikacja bezpieczenstwa Instagram (nie mozna pobrac danych story).",
+      "story_detail":
+          "Nie mozna pobrac danych story. Zwykle z powodu weryfikacji Instagram, tymczasowego limitu API lub problemu z siecia. Sprobuj ponownie za 2-3 minuty.",
+      "story_generic":
+          "Nie mozna pobrac danych story. Sprobuj ponownie za chwile.",
+      "secret_mode_label": "TRYB TAJNY",
+    },
+  };
+
+  static const Map<String, Map<String, String>> _humanizedUiOverrides = {
+    'tr': {
+      'story_section_title':
+          'Hikayeleri gizlice izle veya profil fotoğrafını büyüt',
+      'story_login_required':
+          'Hikayeleri gizlice izleyebilmemiz için geçerli bir Instagram oturumu gerekiyor. Giriş yaptıktan sonra da bu uyarıyı görüyorsanız Instagram hesabınızdan çıkış yapıp tekrar giriş yapın.',
+      'story_ad_wait': 'Reklamdan sonra gösterilecek. Lütfen bekleyin.',
+      'story_action_title': 'Ne yapmak istersiniz?',
+      'story_view_photo': 'Profil fotoğrafını büyüt',
+      'story_watch_secret': 'Hikayeyi gizlice izle',
+      'story_no_data': 'Hikaye verisi yok.',
+      'story_close': 'KAPAT',
+    },
+    'en': {
+      'story_section_title':
+          'Watch stories secretly or zoom profile photos',
+      'story_login_required':
+          'A valid Instagram login is required to view stories privately. If you are already logged in and still see this warning, log out of Instagram and log in again.',
+      'story_ad_wait': 'Will be shown after the ad. Please wait.',
+      'story_action_title': 'What would you like to do?',
+      'story_view_photo': 'Enlarge profile photo',
+      'story_watch_secret': 'Watch story secretly',
+      'story_no_data': 'No story data available.',
+      'story_close': 'CLOSE',
+    },
+    'de': {
+      'story_section_title':
+          'Stories heimlich ansehen oder Profilfotos vergrößern',
+      'story_login_required':
+          'Zum anonymen Ansehen von Stories ist eine gültige Instagram-Anmeldung erforderlich. Wenn du bereits eingeloggt bist und diese Warnung weiter siehst, melde dich bei Instagram ab und wieder an.',
+      'story_ad_wait': 'Wird nach der Werbung angezeigt. Bitte warten.',
+      'story_action_title': 'Was möchtest du tun?',
+      'story_view_photo': 'Profilfoto vergrößern',
+      'story_watch_secret': 'Story heimlich ansehen',
+      'story_no_data': 'Keine Story-Daten verfügbar.',
+      'story_close': 'SCHLIESSEN',
+      'adsense_banner': 'WERBEFLÄCHE',
+      'analysis_available_now': 'Analyse ist jetzt verfügbar.',
+      'analysis_fast_no_change': 'Schnellprüfung: Keine Änderung gefunden.',
+      'data_fetch_error':
+          'Daten konnten nicht geladen werden: {err}\n\nTipp: Abmelden und erneut anmelden kann helfen.',
+      'error_title': 'FEHLER',
+      'followers': 'Follower',
+      'following': 'Gefolgt',
+      'left_followers': 'Verlorene Follower',
+      'left_following': 'Entfolgte Konten',
+      'new_followers': 'Neue Follower',
+      'non_followers': 'Folgen nicht zurück',
+      'premium_not_active':
+          'Kauf abgeschlossen, aber Premium ist nicht aktiv. Bitte versuche es erneut.',
+      'rate_test_message':
+          'Gefällt dir die App? Deine Bewertung hilft uns sehr.',
+      'redirecting': 'Sitzung bestätigt, du wirst weitergeleitet...',
+      'usage_metrics_active': 'Aktive Nutzer',
+      'usage_metrics_live': 'live',
+      'usage_metrics_na': '--',
+      'usage_metrics_queries': 'Tägliche Abfragen',
+      'usage_metrics_title': 'Tagesmetriken',
+      'warning': 'Warnung',
+    },
+    'ko': {
+      'story_section_title': '스토리를 몰래 보거나 프로필 사진을 확대하세요',
+      'story_login_required': '스토리를 익명으로 보려면 유효한 Instagram 로그인 세션이 필요합니다. 이미 로그인했는데도 이 안내가 계속 보이면 Instagram에서 로그아웃한 뒤 다시 로그인해 주세요.',
+      'story_ad_wait': '광고 후 표시됩니다. 잠시만 기다려 주세요.',
+      'story_action_title': '무엇을 하시겠어요?',
+      'story_view_photo': '프로필 사진 확대',
+      'story_watch_secret': '스토리 몰래 보기',
+      'story_no_data': '스토리 데이터가 없습니다.',
+      'story_close': '닫기',
+      'adsense_banner': '광고 영역',
+      'analysis_available_now': '지금 분석할 수 있어요.',
+      'analysis_fast_no_change': '빠른 확인: 변경 사항이 없습니다.',
+      'data_fetch_error':
+          '데이터를 가져오지 못했습니다: {err}\\n\\n팁: 로그아웃 후 다시 로그인해 보세요.',
+      'error_title': '오류',
+      'followers': '팔로워',
+      'following': '팔로잉',
+      'left_followers': '떠난 팔로워',
+      'left_following': '언팔로우한 계정',
+      'new_followers': '새 팔로워',
+      'non_followers': '맞팔하지 않는 계정',
+      'premium_not_active':
+          '구매는 완료되었지만 프리미엄이 활성화되지 않았습니다. 다시 시도해 주세요.',
+      'rate_test_message': '앱이 마음에 드시나요? 평점이 큰 도움이 됩니다.',
+      'redirecting': '세션이 확인되어 이동 중입니다...',
+      'usage_metrics_active': '활성 사용자',
+      'usage_metrics_live': '실시간',
+      'usage_metrics_na': '--',
+      'usage_metrics_queries': '일일 조회 수',
+      'usage_metrics_title': '일일 지표',
+      'warning': '경고',
+    },
+    'ja': {
+      'story_section_title': 'ストーリーをこっそり見る / プロフィール写真を拡大',
+      'story_login_required': 'ストーリーを匿名で表示するには、有効なInstagramログインセッションが必要です。すでにログイン済みでもこの案内が出る場合は、Instagramで一度ログアウトしてから再ログインしてください。',
+      'story_ad_wait': '広告の後に表示されます。しばらくお待ちください。',
+      'story_action_title': 'どうしますか？',
+      'story_view_photo': 'プロフィール写真を拡大',
+      'story_watch_secret': '足跡を残さず見る',
+      'story_no_data': 'ストーリーデータがありません。',
+      'story_close': '閉じる',
+      'adsense_banner': '広告枠',
+      'analysis_available_now': '今すぐ分析できます。',
+      'analysis_fast_no_change': 'クイック確認: 変更は見つかりませんでした。',
+      'data_fetch_error':
+          'データを取得できませんでした: {err}\\n\\nヒント: いったんログアウトして再ログインすると改善する場合があります。',
+      'error_title': 'エラー',
+      'followers': 'フォロワー',
+      'following': 'フォロー中',
+      'left_followers': '離れたフォロワー',
+      'left_following': 'フォロー解除したアカウント',
+      'new_followers': '新しいフォロワー',
+      'non_followers': 'フォローバックしていないユーザー',
+      'premium_not_active': '購入は完了しましたが、プレミアムが有効になっていません。もう一度お試しください。',
+      'rate_test_message': 'このアプリは役に立ちましたか？評価で応援してください。',
+      'redirecting': 'セッションを確認しました。リダイレクトしています...',
+      'usage_metrics_active': 'アクティブユーザー',
+      'usage_metrics_live': 'ライブ',
+      'usage_metrics_na': '--',
+      'usage_metrics_queries': '1日のクエリ数',
+      'usage_metrics_title': '日次メトリクス',
+      'warning': '警告',
+    },
+    'ru': {
+      'story_section_title':
+          'Смотреть сторис анонимно или увеличить фото профиля',
+      'story_login_required':
+          'Чтобы смотреть сторис анонимно, нужен действующий вход в Instagram. Если вы уже вошли, но это сообщение не исчезает, выйдите из Instagram и войдите снова.',
+      'story_ad_wait': 'Появится после рекламы. Пожалуйста, подождите.',
+      'story_action_title': 'Что хотите сделать?',
+      'story_view_photo': 'Увеличить фото профиля',
+      'story_watch_secret': 'Смотреть сторис анонимно',
+      'story_no_data': 'Данные сторис недоступны.',
+      'story_close': 'ЗАКРЫТЬ',
+      'adsense_banner': 'РЕКЛАМНОЕ МЕСТО',
+      'analysis_available_now': 'Анализ доступен сейчас.',
+      'analysis_fast_no_change': 'Быстрая проверка: изменений не найдено.',
+      'data_fetch_error':
+          'Не удалось получить данные: {err}\\n\\nСовет: выйдите и войдите снова.',
+      'error_title': 'ОШИБКА',
+      'followers': 'Подписчики',
+      'following': 'Подписки',
+      'left_followers': 'Отписавшиеся',
+      'left_following': 'Вы перестали читать',
+      'new_followers': 'Новые подписчики',
+      'non_followers': 'Не подписаны в ответ',
+      'premium_not_active':
+          'Покупка завершена, но Premium не активен. Попробуйте снова.',
+      'rate_test_message': 'Нравится приложение? Ваша оценка очень помогает.',
+      'redirecting': 'Сессия подтверждена, выполняется переход...',
+      'usage_metrics_active': 'Активные пользователи',
+      'usage_metrics_live': 'в реальном времени',
+      'usage_metrics_na': '--',
+      'usage_metrics_queries': 'Запросов за день',
+      'usage_metrics_title': 'Дневные метрики',
+      'warning': 'Предупреждение',
+    },
+    'pt': {
+      'story_section_title':
+          'Ver stories em segredo ou ampliar foto de perfil',
+      'story_login_required':
+          'Para ver stories de forma anônima, é necessário um login válido no Instagram. Se você já entrou e este aviso continua, saia do Instagram e entre novamente.',
+      'story_ad_wait': 'Será exibido após o anúncio. Aguarde.',
+      'story_action_title': 'O que você quer fazer?',
+      'story_view_photo': 'Ampliar foto de perfil',
+      'story_watch_secret': 'Ver story em segredo',
+      'story_no_data': 'Não há dados de story disponíveis.',
+      'story_close': 'FECHAR',
+      'adsense_banner': 'ESPAÇO DE ANÚNCIO',
+      'analysis_available_now': 'Análise disponível agora.',
+      'analysis_fast_no_change': 'Verificação rápida: nenhuma alteração encontrada.',
+      'data_fetch_error':
+          'Não foi possível obter os dados: {err}\\n\\nDica: sair e entrar novamente pode ajudar.',
+      'error_title': 'ERRO',
+      'followers': 'Seguidores',
+      'following': 'Seguindo',
+      'left_followers': 'Perdeu seguidores',
+      'left_following': 'Deixou de seguir',
+      'new_followers': 'Novos seguidores',
+      'non_followers': 'Não seguem de volta',
+      'premium_not_active':
+          'Compra concluída, mas o Premium não foi ativado. Tente novamente.',
+      'rate_test_message': 'Está gostando do app? Sua avaliação ajuda muito.',
+      'redirecting': 'Sessão verificada, redirecionando...',
+      'usage_metrics_active': 'Usuários ativos',
+      'usage_metrics_live': 'ao vivo',
+      'usage_metrics_na': '--',
+      'usage_metrics_queries': 'Consultas diárias',
+      'usage_metrics_title': 'Métricas diárias',
+      'warning': 'Aviso',
+    },
+    'ar': {
+      'story_section_title':
+          'شاهد القصص بسرية أو كبّر صورة الملف الشخصي',
+      'story_login_required':
+          'لمشاهدة القصص بشكل سري، يلزم تسجيل دخول صالح في Instagram. إذا كنت مسجلا بالفعل وما زال هذا التنبيه يظهر، سجل الخروج من Instagram ثم سجل الدخول مرة أخرى.',
+      'story_ad_wait': 'سيظهر بعد الإعلان. يرجى الانتظار.',
+      'story_action_title': 'ماذا تريد أن تفعل؟',
+      'story_view_photo': 'تكبير صورة الملف الشخصي',
+      'story_watch_secret': 'مشاهدة القصة بسرية',
+      'story_no_data': 'لا تتوفر بيانات القصة.',
+      'story_close': 'إغلاق',
+      'adsense_banner': 'مساحة إعلانية',
+      'analysis_available_now': 'التحليل متاح الآن.',
+      'analysis_fast_no_change': 'فحص سريع: لا توجد تغييرات.',
+      'data_fetch_error':
+          'تعذّر جلب البيانات: {err}\\n\\nنصيحة: سجّل الخروج ثم سجّل الدخول مرة أخرى.',
+      'error_title': 'خطأ',
+      'followers': 'المتابعون',
+      'following': 'تتابع',
+      'left_followers': 'من ألغى متابعتك',
+      'left_following': 'ألغيت متابعتهم',
+      'new_followers': 'متابعون جدد',
+      'non_followers': 'لا يتابعونك بالمقابل',
+      'premium_not_active':
+          'اكتملت عملية الشراء لكن لم يتم تفعيل Premium. حاول مرة أخرى.',
+      'rate_test_message': 'هل أعجبك التطبيق؟ تقييمك يساعدنا كثيرًا.',
+      'redirecting': 'تم التحقق من الجلسة، جارٍ التحويل...',
+      'usage_metrics_active': 'المستخدمون النشطون',
+      'usage_metrics_live': 'مباشر',
+      'usage_metrics_na': '--',
+      'usage_metrics_queries': 'عدد التحليلات اليومية',
+      'usage_metrics_title': 'إحصاءات اليوم',
+      'warning': 'تحذير',
+    },
+    'es': {
+      'story_section_title':
+          'Ver historias en secreto o ampliar foto de perfil',
+      'story_login_required':
+          'Para ver historias en modo anónimo necesitas una sesión válida de Instagram. Si ya iniciaste sesión y este aviso sigue apareciendo, cierra sesión en Instagram y vuelve a iniciar sesión.',
+      'story_ad_wait':
+          'Se mostrará después del anuncio. Espera un momento.',
+      'story_action_title': '¿Qué te gustaría hacer?',
+      'story_view_photo': 'Ampliar foto de perfil',
+      'story_watch_secret': 'Ver historia en secreto',
+      'story_no_data': 'No hay datos de historias disponibles.',
+      'story_close': 'CERRAR',
+    },
+    'es-mx': {
+      'story_section_title':
+          'Ver historias en secreto o ampliar foto de perfil',
+      'story_login_required':
+          'Para ver historias en modo anónimo necesitas una sesión válida de Instagram. Si ya iniciaste sesión y este aviso sigue apareciendo, cierra sesión en Instagram y vuelve a iniciar sesión.',
+      'story_ad_wait':
+          'Se mostrará después del anuncio. Espera un momento.',
+      'story_action_title': '¿Qué te gustaría hacer?',
+      'story_view_photo': 'Ampliar foto de perfil',
+      'story_watch_secret': 'Ver historia en secreto',
+      'story_no_data': 'No hay datos de historias disponibles.',
+      'story_close': 'CERRAR',
+    },
+    'hi': {
+      'story_section_title':
+          'स्टोरी चुपचाप देखें या प्रोफाइल फोटो बड़ा करें',
+      'story_login_required':
+          'स्टोरी को गुप्त रूप से देखने के लिए Instagram में मान्य लॉगिन सत्र जरूरी है। यदि आपने पहले से लॉगिन किया है और यह संदेश फिर भी दिख रहा है, तो Instagram से लॉगआउट करके दोबारा लॉगिन करें।',
+      'story_ad_wait':
+          'विज्ञापन के बाद दिखाया जाएगा। कृपया इंतज़ार करें।',
+      'story_action_title': 'आप क्या करना चाहेंगे?',
+      'story_view_photo': 'प्रोफाइल फोटो बड़ा करें',
+      'story_watch_secret': 'स्टोरी चुपचाप देखें',
+      'story_no_data': 'स्टोरी डेटा उपलब्ध नहीं है।',
+      'story_close': 'बंद करें',
+    },
+    'hu': {
+      'story_section_title':
+          'Sztorik megtekintése titokban vagy profilkép nagyítása',
+      'story_login_required':
+          'A történetek névtelen megtekintéséhez érvényes Instagram-bejelentkezés szükséges. Ha már be vagy jelentkezve, de ez az üzenet továbbra is megjelenik, jelentkezz ki az Instagramból, majd jelentkezz be újra.',
+      'story_ad_wait':
+          'A hirdetés után jelenik meg. Kérjük, várj.',
+      'story_action_title': 'Mit szeretnél csinálni?',
+      'story_view_photo': 'Profilkép nagyítása',
+      'story_watch_secret': 'Sztori megtekintése titokban',
+      'story_no_data': 'Nem érhető el sztoriadat.',
+      'story_close': 'BEZÁR',
+    },
+    'zh-hans': {
+      'story_section_title': '匿名查看动态或放大头像',
+      'story_login_required': '要匿名查看动态，需要有效的 Instagram 登录会话。如果你已经登录但仍看到此提示，请先退出 Instagram，再重新登录。',
+      'story_ad_wait': '广告后显示，请稍候。',
+      'story_action_title': '你想做什么？',
+      'story_view_photo': '放大头像',
+      'story_watch_secret': '匿名查看动态',
+      'story_no_data': '暂无动态数据。',
+      'story_close': '关闭',
+    },
+    'id': {
+      'story_section_title':
+          'Lihat story diam-diam atau perbesar foto profil',
+      'story_login_required':
+          'Untuk melihat story secara anonim, diperlukan sesi login Instagram yang valid. Jika Anda sudah login tetapi peringatan ini masih muncul, keluar dari Instagram lalu masuk kembali.',
+      'story_ad_wait': 'Akan ditampilkan setelah iklan. Harap tunggu.',
+      'story_action_title': 'Apa yang ingin Anda lakukan?',
+      'story_view_photo': 'Perbesar foto profil',
+      'story_watch_secret': 'Lihat story diam-diam',
+      'story_no_data': 'Data story tidak tersedia.',
+      'story_close': 'TUTUP',
+    },
+    'nl': {
+      'story_section_title':
+          'Bekijk stories stiekem of vergroot de profielfoto',
+      'story_login_required':
+          'Voor het anoniem bekijken van stories is een geldige Instagram-login nodig. Ben je al ingelogd maar zie je deze melding nog steeds, log dan uit bij Instagram en log opnieuw in.',
+      'story_ad_wait': 'Wordt na de advertentie getoond. Even geduld.',
+      'story_action_title': 'Wat wil je doen?',
+      'story_view_photo': 'Profielfoto vergroten',
+      'story_watch_secret': 'Story stiekem bekijken',
+      'story_no_data': 'Geen storygegevens beschikbaar.',
+      'story_close': 'SLUITEN',
+    },
+    'fr': {
+      'story_section_title':
+          'Voir les stories discrètement ou agrandir la photo de profil',
+      'story_login_required':
+          'Pour voir les stories en mode anonyme, une session Instagram valide est nécessaire. Si vous êtes déjà connecté mais que ce message persiste, déconnectez-vous de Instagram puis reconnectez-vous.',
+      'story_ad_wait': 'S’affichera après la publicité. Veuillez patienter.',
+      'story_action_title': 'Que souhaitez-vous faire ?',
+      'story_view_photo': 'Agrandir la photo de profil',
+      'story_watch_secret': 'Voir la story discrètement',
+      'story_no_data': 'Aucune donnée de story disponible.',
+      'story_close': 'FERMER',
+    },
+    'it': {
+      'story_section_title':
+          'Guarda le storie in segreto o ingrandisci la foto profilo',
+      'story_login_required':
+          'Per vedere le storie in modo anonimo serve una sessione Instagram valida. Se hai già fatto login ma questo avviso continua a comparire, esci da Instagram e accedi di nuovo.',
+      'story_ad_wait': 'Verrà mostrato dopo l’annuncio. Attendi.',
+      'story_action_title': 'Cosa vuoi fare?',
+      'story_view_photo': 'Ingrandisci la foto profilo',
+      'story_watch_secret': 'Guarda la storia in segreto',
+      'story_no_data': 'Nessun dato story disponibile.',
+      'story_close': 'CHIUDI',
+    },
+    'vi': {
+      'story_section_title':
+          'Xem story bí mật hoặc phóng to ảnh hồ sơ',
+      'story_login_required':
+          'Để xem story ẩn danh, bạn cần phiên đăng nhập Instagram hợp lệ. Nếu bạn đã đăng nhập mà vẫn thấy thông báo này, hãy đăng xuất khỏi Instagram rồi đăng nhập lại.',
+      'story_ad_wait': 'Sẽ hiển thị sau quảng cáo. Vui lòng chờ.',
+      'story_action_title': 'Bạn muốn làm gì?',
+      'story_view_photo': 'Phóng to ảnh hồ sơ',
+      'story_watch_secret': 'Xem story bí mật',
+      'story_no_data': 'Không có dữ liệu story.',
+      'story_close': 'ĐÓNG',
+    },
+    'th': {
+      'story_section_title':
+          'ดูสตอรีแบบลับ ๆ หรือขยายรูปโปรไฟล์',
+      'story_login_required':
+          'การดูสตอรีแบบไม่ระบุตัวตนต้องใช้เซสชันเข้าสู่ระบบ Instagram ที่ถูกต้อง หากคุณเข้าสู่ระบบแล้วแต่ยังเห็นข้อความนี้ ให้ลงชื่อออกจาก Instagram แล้วเข้าสู่ระบบอีกครั้ง',
+      'story_ad_wait': 'จะแสดงหลังโฆษณา กรุณารอสักครู่',
+      'story_action_title': 'คุณต้องการทำอะไร?',
+      'story_view_photo': 'ขยายรูปโปรไฟล์',
+      'story_watch_secret': 'ดูสตอรีแบบลับ ๆ',
+      'story_no_data': 'ไม่มีข้อมูลสตอรี',
+      'story_close': 'ปิด',
+    },
+    'pl': {
+      'story_section_title':
+          'Oglądaj relacje anonimowo lub powiększ zdjęcie profilowe',
+      'story_login_required':
+          'Aby oglądać relacje anonimowo, wymagane jest poprawne logowanie do Instagrama. Jeśli jesteś już zalogowany, a komunikat nadal się pojawia, wyloguj się z Instagrama i zaloguj ponownie.',
+      'story_ad_wait':
+          'Zostanie pokazane po reklamie. Prosimy czekać.',
+      'story_action_title': 'Co chcesz zrobić?',
+      'story_view_photo': 'Powiększ zdjęcie profilowe',
+      'story_watch_secret': 'Oglądaj relację anonimowo',
+      'story_no_data': 'Brak danych relacji.',
+      'story_close': 'ZAMKNIJ',
+    },
+  };
+
   String _t(String key, [Map<String, String>? args]) {
-    if (key == 'tagline') {
-      final String fixedTagline = _localized['en']?['tagline'] ??
-          'Professional Social Media Solutions';
-      return _repairDisplayText(fixedTagline);
+    if (key == 'tagline') return 'Professional Social Media Solutions';
+
+    final String lang = _lang.trim().toLowerCase();
+    final String? direct = _humanizedUiOverrides[lang]?[key] ??
+        _localized[lang]?[key] ??
+        _flowLocalized[lang]?[key];
+    final String? enText =
+        _localized['en']?[key] ?? _flowLocalized['en']?[key];
+    final String? trText =
+        _localized['tr']?[key] ?? _flowLocalized['tr']?[key];
+
+    bool looksUntranslated(String? value, String? en) {
+      if (lang == 'en') return false;
+      final String v = (value ?? '').replaceAll(RegExp(r'\s+'), ' ').trim();
+      final String e = (en ?? '').replaceAll(RegExp(r'\s+'), ' ').trim();
+      if (v.isEmpty || e.isEmpty) return false;
+      return v.toLowerCase() == e.toLowerCase();
     }
 
-    String res = _localized[_lang]?[key] ?? _localized['en']?[key] ?? key;
+    String res;
+    if (direct == null || direct.trim().isEmpty || looksUntranslated(direct, enText)) {
+      final String trBase = (trText ?? enText ?? key).trim();
+      final String enBase = (enText ?? trText ?? key).trim();
+      res = localizeTrEn(lang, trBase, enBase);
+    } else {
+      res = direct;
+    }
+
     if (args != null) {
       args.forEach((k, v) {
         res = res.replaceAll('{$k}', v);
       });
     }
-    return _repairDisplayText(res);
+    final String repaired = _repairDisplayText(res).trim();
+    if (!_looksLikeMojibakeText(repaired)) return repaired;
+
+    String fallback = _repairDisplayText((enText ?? trText ?? key).trim());
+    if (args != null) {
+      args.forEach((k, v) {
+        fallback = fallback.replaceAll('{$k}', v);
+      });
+    }
+    return fallback.trim();
   }
 
   bool _isSupportedLanguageCode(String code) {
     return _supportedLanguageCodes.contains(code.trim().toLowerCase());
+  }
+
+  String _languageFlagFor(String code) {
+    return _languageFlags[code.trim().toLowerCase()] ?? '\u{1F310}';
+  }
+
+  String _compactLanguageName(String code) {
+    final String normalized = code.trim().toLowerCase();
+    final String nativeName =
+        _languageNativeNames[normalized] ?? normalized.toUpperCase();
+    const int maxLength = 12;
+    if (nativeName.length <= maxLength) return nativeName;
+    return '${nativeName.substring(0, maxLength - 1)}\u2026';
   }
 
   String _resolveLanguageFromLocale(String localeRaw) {
@@ -4619,7 +5803,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     _loadRemoteUserFlags();
     _updatePrivacyOptionsRequirement();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _checkUserAgreement();
       _checkRatingDialog();
       _maybeLoadBannerAfterConsent();
       _maybeRequestATT();
@@ -4909,6 +6092,18 @@ class _DashboardScreenState extends State<DashboardScreen>
           backgroundColor: Colors.redAccent,
         ));
       }
+    }
+  }
+
+  Future<void> _openPrivacyPolicySource() async {
+    final Uri uri = Uri.parse(_privacyPolicySourceUrl);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(localizeTrEn(
+            _lang, 'Link açılamadı.', 'Could not open the link.')),
+        backgroundColor: Colors.redAccent,
+      ));
     }
   }
 
@@ -5241,8 +6436,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   Future<DateTime> _getNetworkTime() async {
     try {
       final response = await http
-          .head(Uri.parse(
-              'https://raw.githubusercontent.com/grkmcomert/verdict-web/refs/heads/main/privacy-policy.txt'))
+          .head(Uri.parse(_privacyPolicySourceUrl))
           .timeout(const Duration(seconds: 2));
       final String? dateHeader = response.headers['date'];
       if (dateHeader != null) {
@@ -6827,7 +8021,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       return;
     }
 
-    String version = '12.0.0';
+    String version = '15.0.0';
     try {
       final info = await PackageInfo.fromPlatform();
       final String v = info.version.trim();
@@ -7150,14 +8344,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     } catch (_) {}
   }
 
-  Future<void> _launchPrivacyPolicyURL() async {
-    final Uri url = Uri.parse(
-        'https://raw.githubusercontent.com/grkmcomert/verdict-web/refs/heads/main/privacy-policy.txt');
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      debugPrint("Link açılamadı");
-    }
-  }
-
   Future<void> _updatePrivacyOptionsRequirement() async {
     try {
       final status = await ConsentInformation.instance
@@ -7353,16 +8539,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         seedColor: Colors.blueGrey,
         brightness: isDarkMode ? Brightness.dark : Brightness.light,
       ),
-      snackBarTheme: SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor:
-            isDarkMode ? const Color(0xFF2A3441) : const Color(0xFF2F3B4A),
-        contentTextStyle: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-        ),
-        actionTextColor: const Color(0xFFB3D7FF),
-      ),
+      snackBarTheme: _appSnackBarTheme(isDark: isDarkMode),
       textTheme: Theme.of(context).textTheme.apply(
             bodyColor: isDarkMode ? Colors.white : Colors.black87,
             displayColor: isDarkMode ? Colors.white : Colors.black87,
@@ -7383,93 +8560,113 @@ class _DashboardScreenState extends State<DashboardScreen>
                         horizontal: 10, vertical: 15),
                     child: Column(
                       children: [
-                        Stack(
-                          alignment: Alignment.center,
+                        Column(
                           children: [
-                            Align(
-                                alignment: Alignment.centerLeft,
-                                child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                          icon: Icon(
-                                              isDarkMode
-                                                  ? Icons.light_mode
-                                                  : Icons.dark_mode,
-                                              color: headerColor),
-                                          onPressed: _toggleDarkMode),
-                                      PopupMenuButton<String>(
-                                        tooltip: 'Language',
-                                        onSelected: (String code) {
-                                          unawaited(_setLanguage(code));
-                                        },
-                                        itemBuilder: (context) {
-                                          return _supportedLanguageCodes
-                                              .map((String code) {
-                                            final bool selected = code == _lang;
-                                            final String nativeName =
-                                                _languageNativeNames[code] ??
-                                                    code.toUpperCase();
-                                            return PopupMenuItem<String>(
-                                              value: code,
-                                              child: Row(
-                                                children: [
-                                                  SizedBox(
-                                                    width: 28,
-                                                    child: Text(
-                                                      code.toUpperCase(),
-                                                      style: TextStyle(
-                                                        fontWeight: selected
-                                                            ? FontWeight.bold
-                                                            : FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Text(
-                                                    nativeName,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontWeight: selected
-                                                          ? FontWeight.w700
-                                                          : FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ],
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                PopupMenuButton<String>(
+                                  tooltip: 'Language',
+                                  onSelected: (String code) {
+                                    unawaited(_setLanguage(code));
+                                  },
+                                  itemBuilder: (context) {
+                                    return _supportedLanguageCodes
+                                        .map((String code) {
+                                      final bool selected = code == _lang;
+                                      final String nativeName =
+                                          _languageNativeNames[code] ??
+                                              code.toUpperCase();
+                                      final String flag = _languageFlagFor(code);
+                                      return PopupMenuItem<String>(
+                                        value: code,
+                                        child: Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 28,
+                                              child: Text(
+                                                flag,
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                    fontSize: 18),
                                               ),
-                                            );
-                                          }).toList();
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 8,
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(Icons.language,
-                                                  color: headerColor),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                _lang.toUpperCase(),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                nativeName,
+                                                overflow: TextOverflow.ellipsis,
                                                 style: TextStyle(
-                                                  color: headerColor,
-                                                  fontWeight: FontWeight.bold,
+                                                  fontWeight: selected
+                                                      ? FontWeight.w700
+                                                      : FontWeight.w500,
                                                 ),
                                               ),
+                                            ),
+                                            if (selected) ...[
+                                              const SizedBox(width: 8),
+                                              const Icon(Icons.check, size: 16),
                                             ],
+                                          ],
+                                        ),
+                                      );
+                                    }).toList();
+                                  },
+                                  child: Tooltip(
+                                    message:
+                                        '${_languageFlagFor(_lang)} ${_languageNativeNames[_lang] ?? _lang.toUpperCase()}',
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 8),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            _languageFlagFor(_lang),
+                                            style:
+                                                const TextStyle(fontSize: 18),
                                           ),
-                                        ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            _compactLanguageName(_lang),
+                                            style: TextStyle(
+                                              color: headerColor,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      if (_privacyOptionsRequired)
-                                        IconButton(
-                                          icon: Icon(Icons.privacy_tip_outlined,
-                                              color: headerColor),
-                                          onPressed: _showPrivacyOptionsForm,
-                                        ),
-                                    ])),
+                                    ),
+                                  ),
+                                ),
+                                const Spacer(),
+                                if (_privacyOptionsRequired)
+                                  IconButton(
+                                    icon: Icon(Icons.privacy_tip_outlined,
+                                        color: headerColor),
+                                    onPressed: _showPrivacyOptionsForm,
+                                  ),
+                                IconButton(
+                                  icon: Icon(
+                                    isDarkMode
+                                        ? Icons.light_mode
+                                        : Icons.dark_mode,
+                                    color: headerColor,
+                                  ),
+                                  onPressed: _toggleDarkMode,
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_sweep_outlined,
+                                    color: Colors.redAccent,
+                                  ),
+                                  onPressed: (isProcessing || _isClearingData)
+                                      ? null
+                                      : _clearCache,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
                             Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -7486,15 +8683,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                                         color: headerColor.withOpacity(0.6))),
                               ],
                             ),
-                            Align(
-                                alignment: Alignment.centerRight,
-                                child: IconButton(
-                                    icon: const Icon(
-                                        Icons.delete_sweep_outlined,
-                                        color: Colors.redAccent),
-                                    onPressed: (isProcessing || _isClearingData)
-                                        ? null
-                                        : _clearCache)),
                           ],
                         ),
                         const SizedBox(height: 20),
@@ -7897,10 +9085,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       },
       onTap: () async {
         if (titleKey == 'legal_warning') {
-          showDialog(
-              context: context,
-              builder: (ctx) =>
-                  _buildDetailedLegalDialog(ctx, isInitial: false));
+          await _showPrivacyPolicyDialog();
         } else if (titleKey == 'rate_us') {
           await _launchRateUrl();
         } else if (titleKey == 'contact_us') {
@@ -8397,6 +9582,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       return;
     }
     final String uaToUse = _resolveUserAgent();
+    _storyTrayRefreshQueued = true;
 
     try {
       final DateTime now = await _getEstimatedNetworkTime();
@@ -8476,7 +9662,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           if (fetched == null) throw Exception('invalid_payload');
           return fetched;
         },
-        maxAttempts: 3,
+        maxAttempts: 2,
       );
 
       _setAnalysisProgressCap(0.55);
@@ -8553,17 +9739,22 @@ class _DashboardScreenState extends State<DashboardScreen>
       _setAnalysisProgressCap(0.96);
 
       if (tFollowers > 0 && fetchedFollowers < (tFollowers * 0.85)) {
-        _showAnalysisWarning(localizeTrEn(_lang,
-            'Takipçi verileri eksik geldi.', 'Follower data was incomplete.'));
+        _showAnalysisWarning(localizeTrEn(
+          _lang,
+          'Veri yükleme kesildi: takipçi verisi eksik ($fetchedFollowers/$tFollowers). Biraz bekleyip tekrar deneyin.',
+          'Data loading was interrupted: follower data incomplete ($fetchedFollowers/$tFollowers). Please wait a bit and try again.',
+        ));
         return;
       }
       if (tFollowing > 0 && fetchedFollowing < (tFollowing * 0.85)) {
         _showAnalysisWarning(localizeTrEn(
-            _lang,
-            'Takip edilen verileri eksik geldi.',
-            'Following data was incomplete.'));
+          _lang,
+          'Veri yükleme kesildi: takip edilen verisi eksik ($fetchedFollowing/$tFollowing). Biraz bekleyip tekrar deneyin.',
+          'Data loading was interrupted: following data incomplete ($fetchedFollowing/$tFollowing). Please wait a bit and try again.',
+        ));
         return;
       }
+
 
       if (nFollowers.isNotEmpty || nFollowing.isNotEmpty) {
         final bool mustWatchAdToShowResults =
@@ -8614,50 +9805,109 @@ class _DashboardScreenState extends State<DashboardScreen>
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(_t('data_updated')),
               backgroundColor: Colors.green));
+      } else {
+        if (tFollowers == 0 && tFollowing == 0) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(_t('data_updated')),
+                backgroundColor: Colors.green));
+          }
+        } else {
+          _showAnalysisWarning(localizeTrEn(
+            _lang,
+            'Veri yükleme kesildi: Instagram boş veri döndürdü. Lütfen tekrar deneyin.',
+            'Data loading was interrupted: Instagram returned empty data. Please try again.',
+          ));
+        }
       }
     } catch (e) {
-      String reason = localizeTrEn(_lang, 'Beklenmeyen bir hata oluştu.',
-          'An unexpected error occurred.');
+      String reason = localizeTrEn(
+        _lang,
+        'Veri yükleme kesildi: beklenmeyen bir hata oluştu.',
+        'Data loading stopped due to an unexpected error.',
+      );
       final String raw = e.toString();
-      if (raw.toLowerCase().contains('ig_warning')) {
-        final String igMsg = _extractIgWarningTextFromError(e);
+      final String rawLower = raw.toLowerCase();
+
+      if (rawLower.contains('ig_warning')) {
+        final String igMsg = _extractIgWarningTextFromError(e).trim();
         reason = localizeTrEn(
-            _lang,
-            'Instagram bu işlemi geçici olarak kısıtladı. Biraz bekleyip tekrar deneyin.',
-            'Instagram temporarily restricted this action. Please wait a bit and try again.');
+          _lang,
+          'Instagram otomatik davranış uyarısı verdi. Güvenlik için veri çekme durduruldu. Biraz bekleyip tekrar deneyin.',
+          'Instagram returned an automated-behavior warning. We stopped fetching data for safety. Please wait and try again.',
+        );
         unawaited(_showIgWarningGuide(igMsg));
-      } else if (raw.contains('http_401') || raw.contains('http_403')) {
-        reason = localizeTrEn(
-            _lang,
-            'Oturum süresi doldu veya doğrulama gerekli.',
-            'Session expired or verification required.');
-      } else if (raw.contains('http_429')) {
-        reason = localizeTrEn(_lang, 'Çok hızlı istek gönderildi.',
-            'Too many requests were sent.');
-      } else if (raw.contains('checkpoint_required') ||
-          raw.contains('challenge_required')) {
-        final String code = raw.contains('checkpoint_required')
+      } else if (rawLower.contains('checkpoint_required') ||
+          rawLower.contains('challenge_required')) {
+        final String code = rawLower.contains('checkpoint_required')
             ? 'checkpoint_required'
             : 'challenge_required';
         reason = localizeTrEn(
-            _lang,
-            'Instagram güvenlik doğrulaması istedi (şüpheli giriş / hesap kilidi). Instagram uygulamasından doğrulayın ve tekrar deneyin.',
-            'Instagram requires a security verification (suspicious login / account lock). Verify in the Instagram app and try again.');
+          _lang,
+          'Instagram güvenlik doğrulaması istedi (şüpheli giriş / hesap kilidi). Instagram uygulamasından doğrulayıp tekrar deneyin.',
+          'Instagram requested security verification (suspicious login / account lock). Verify in Instagram app and try again.',
+        );
         unawaited(_showIgSecurityVerificationGuide(code));
-      } else if (raw.contains('session_invalid')) {
+      } else if (rawLower.contains('session_invalid') ||
+          rawLower.contains('http_401') ||
+          rawLower.contains('http_403')) {
         reason = localizeTrEn(
-            _lang,
-            'Instagram oturumu geçersiz veya doğrulama bekliyor.',
-            'Instagram session is invalid or pending verification.');
-      } else if (raw.contains('invalid_json') ||
-          raw.contains('invalid_payload')) {
+          _lang,
+          'Oturum geçersiz veya doğrulama bekliyor. Lütfen tekrar giriş yapın.',
+          'Session is invalid or waiting for verification. Please log in again.',
+        );
+      } else if (rawLower.contains('http_429')) {
         reason = localizeTrEn(
+          _lang,
+          'Çok hızlı istek gönderildi. Veri yükleme güvenlik nedeniyle kesildi.',
+          'Too many requests were sent. Data loading was interrupted for safety.',
+        );
+      } else if (rawLower.contains('timeoutexception') ||
+          rawLower.contains('timeout')) {
+        reason = localizeTrEn(
+          _lang,
+          'Bağlantı zaman aşımına uğradı. Veri yükleme yarıda kesildi.',
+          'Connection timed out. Data loading was interrupted.',
+        );
+      } else if (rawLower.contains('socketexception') ||
+          rawLower.contains('failed host lookup') ||
+          rawLower.contains('network is unreachable') ||
+          rawLower.contains('connection reset') ||
+          rawLower.contains('clientexception')) {
+        reason = localizeTrEn(
+          _lang,
+          'İnternet bağlantısı kesildi veya zayıf. Veri yükleme tamamlanamadı.',
+          'Network connection dropped or is unstable. Data loading could not complete.',
+        );
+      } else if (rawLower.contains('handshakeexception') ||
+          rawLower.contains('certificate')) {
+        reason = localizeTrEn(
+          _lang,
+          'Güvenli bağlantı kurulamadığı için veri yükleme durdu.',
+          'Secure connection could not be established, so loading stopped.',
+        );
+      } else if (rawLower.contains('invalid_json') ||
+          rawLower.contains('invalid_payload')) {
+        reason = localizeTrEn(
+          _lang,
+          'Instagram beklenmeyen bir yanıt döndürdü. Veri yükleme kesildi.',
+          'Instagram returned an unexpected response. Data loading was interrupted.',
+        );
+      } else if (rawLower.contains('http_')) {
+        final int? code = _parseHttpErrorCode(rawLower);
+        if (code != null) {
+          reason = localizeTrEn(
             _lang,
-            'Instagram beklenmeyen bir yanıt döndürdü.',
-            'Instagram returned an unexpected response.');
-      } else if (raw.contains('http_')) {
-        reason = localizeTrEn(_lang, 'Instagram sunucusu hata döndürdü.',
-            'Instagram returned an error.');
+            'Instagram sunucusu hata döndürdü (HTTP $code). Veri yükleme kesildi.',
+            'Instagram returned an error (HTTP $code). Data loading was interrupted.',
+          );
+        } else {
+          reason = localizeTrEn(
+            _lang,
+            'Instagram sunucusu hata döndürdü. Veri yükleme kesildi.',
+            'Instagram returned an error. Data loading was interrupted.',
+          );
+        }
       }
       _showAnalysisWarning(reason);
     } finally {
@@ -8669,6 +9919,9 @@ class _DashboardScreenState extends State<DashboardScreen>
           _analysisStartedAt = null;
           _progressValue = _progressTarget.clamp(0.0, 1.0);
         });
+      }
+      if (isLoggedIn && !_isBanned && _storyTrayRefreshQueued) {
+        unawaited(_loadStoryTray());
       }
     }
   }
@@ -8857,14 +10110,18 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     final int jitterMs = jitterMaxMs <= 0 ? 0 : _storyRand.nextInt(jitterMaxMs);
     int breatherMs = 0;
+    int humanPauseMs = 0;
     if (allowBreather) {
       _igPageRequestCounter++;
-      if (_igPageRequestCounter % 12 == 0) {
-        breatherMs = 280 + _storyRand.nextInt(520);
+      if (_igPageRequestCounter % 8 == 0) {
+        breatherMs = 700 + _storyRand.nextInt(1100);
+      } else if (_storyRand.nextInt(100) < 20) {
+        humanPauseMs = 140 + _storyRand.nextInt(260);
       }
     }
 
-    final int desiredGapMs = minGap.inMilliseconds + jitterMs + breatherMs;
+    final int desiredGapMs =
+        minGap.inMilliseconds + jitterMs + humanPauseMs + breatherMs;
     if (last != null) {
       final int elapsedMs = now.difference(last).inMilliseconds;
       final int waitMs = desiredGapMs - elapsedMs;
@@ -8876,8 +10133,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Future<T> _withIgRequestPacing<T>(
     Future<T> Function() action, {
-    Duration minGap = const Duration(milliseconds: 220),
-    int jitterMaxMs = 200,
+    Duration minGap = const Duration(milliseconds: 360),
+    int jitterMaxMs = 260,
     bool allowBreather = false,
   }) async {
     final Completer<T> completer = Completer<T>();
@@ -8903,8 +10160,8 @@ class _DashboardScreenState extends State<DashboardScreen>
   Future<http.Response> _igGet(
     Uri uri, {
     required Map<String, String> headers,
-    Duration minGap = const Duration(milliseconds: 410),
-    int jitterMaxMs = 280,
+    Duration minGap = const Duration(milliseconds: 560),
+    int jitterMaxMs = 420,
     bool allowBreather = false,
   }) {
     return _withIgRequestPacing(
@@ -8993,8 +10250,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       final webResp = await _igGet(
         Uri.parse("https://www.instagram.com/api/v1/users/$userId/info/"),
         headers: _buildWebHeaders(cookie, ua, dsUserId: userId),
-        minGap: const Duration(milliseconds: 410),
-        jitterMaxMs: 280,
+        minGap: const Duration(milliseconds: 460),
+        jitterMaxMs: 320,
       );
       final parsed = parseUser(webResp);
       if (parsed != null) return parsed;
@@ -9003,8 +10260,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     final appResp = await _igGet(
       Uri.parse("https://i.instagram.com/api/v1/users/$userId/info/"),
       headers: _buildAppHeaders(cookie, appUa, dsUserId: userId),
-      minGap: const Duration(milliseconds: 410),
-      jitterMaxMs: 280,
+      minGap: const Duration(milliseconds: 460),
+      jitterMaxMs: 320,
     );
     final appParsed = parseUser(appResp);
     if (appParsed != null) return appParsed;
@@ -9013,8 +10270,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       final webResp = await _igGet(
         Uri.parse("https://www.instagram.com/api/v1/users/$userId/info/"),
         headers: _buildWebHeaders(cookie, ua, dsUserId: userId),
-        minGap: const Duration(milliseconds: 410),
-        jitterMaxMs: 280,
+        minGap: const Duration(milliseconds: 460),
+        jitterMaxMs: 320,
       );
       final parsed = parseUser(webResp);
       if (parsed != null) return parsed;
@@ -9045,32 +10302,63 @@ class _DashboardScreenState extends State<DashboardScreen>
     bool triedAlternate = false;
     String? nextMaxId;
     bool hasNext = true;
-    int currentCount = 0;
+    int currentCount = targetMap.length;
     String? terminalError;
+    final int expected = max(1, totalExpected);
+    const int pageCount = 200;
+    int adaptiveMinGapMs = expected <= 350
+        ? 340
+        : (expected <= 1200 ? 430 : 520);
+    int adaptiveJitterMaxMs = expected <= 350
+        ? 140
+        : (expected <= 1200 ? 200 : 260);
+    final int adaptiveMinGapFloorMs = expected <= 350 ? 300 : 390;
+    final int adaptiveJitterFloorMs = expected <= 350 ? 110 : 160;
+    final int adaptiveMinGapMaxMs = expected <= 350 ? 980 : 1280;
+    int repeatedCursorCount = 0;
 
-    void switchEndpointAndReset() {
+    bool canSwitchEndpoint() {
+      return !triedAlternate;
+    }
+
+    void slowDownAdaptivePacing() {
+      adaptiveMinGapMs = min(
+        adaptiveMinGapMaxMs,
+        adaptiveMinGapMs + (expected <= 350 ? 90 : 130),
+      );
+      adaptiveJitterMaxMs = min(
+        520,
+        adaptiveJitterMaxMs + (expected <= 350 ? 50 : 90),
+      );
+    }
+
+    void switchEndpointPreservingProgress() {
       triedAlternate = true;
       useWebApi = !useWebApi;
-      nextMaxId = null;
-      hasNext = true;
-      currentCount = 0;
-      targetMap.clear();
+      repeatedCursorCount = 0;
     }
 
     while (hasNext) {
       String base = useWebApi
           ? "https://www.instagram.com/api/v1/"
           : "https://i.instagram.com/api/v1/";
-      String url = "$base$endpoint";
-      if (nextMaxId != null) url += "?max_id=$nextMaxId";
+      final String? requestCursor = nextMaxId;
+      final Uri baseUri = Uri.parse("$base$endpoint");
+      final Map<String, String> query = <String, String>{
+        'count': pageCount.toString(),
+      };
+      if (requestCursor != null && requestCursor.isNotEmpty) {
+        query['max_id'] = requestCursor;
+      }
+      final Uri requestUri = baseUri.replace(queryParameters: query);
 
       final response = await _igGet(
-        Uri.parse(url),
+        requestUri,
         headers: useWebApi
             ? _buildWebHeaders(cookie, ua, dsUserId: userId)
             : _buildAppHeaders(cookie, appUa, dsUserId: userId),
-        minGap: const Duration(milliseconds: 410),
-        jitterMaxMs: 280,
+        minGap: Duration(milliseconds: adaptiveMinGapMs),
+        jitterMaxMs: adaptiveJitterMaxMs,
         allowBreather: true,
       );
 
@@ -9090,15 +10378,17 @@ class _DashboardScreenState extends State<DashboardScreen>
             terminalError = 'ig_warning:$warning';
             throw Exception(terminalError);
           }
-          if (!triedAlternate) {
-            switchEndpointAndReset();
+          slowDownAdaptivePacing();
+          if (canSwitchEndpoint()) {
+            switchEndpointPreservingProgress();
             continue;
           }
           throw Exception('invalid_json');
         }
         if (decoded is! Map) {
-          if (!triedAlternate) {
-            switchEndpointAndReset();
+          slowDownAdaptivePacing();
+          if (canSwitchEndpoint()) {
+            switchEndpointPreservingProgress();
             continue;
           }
           throw Exception('invalid_payload');
@@ -9115,8 +10405,8 @@ class _DashboardScreenState extends State<DashboardScreen>
             message.contains('challenge') ||
             message.contains('checkpoint')) {
           terminalError = 'session_invalid';
-          if (!triedAlternate) {
-            switchEndpointAndReset();
+          if (canSwitchEndpoint()) {
+            switchEndpointPreservingProgress();
             continue;
           }
           throw Exception(terminalError);
@@ -9124,32 +10414,67 @@ class _DashboardScreenState extends State<DashboardScreen>
 
         final String? warning = _detectIgWarningFromMap(data);
         if (warning != null) {
+          slowDownAdaptivePacing();
           terminalError = 'ig_warning:$warning';
           throw Exception(terminalError);
         }
 
         if (status == 'fail') {
+          slowDownAdaptivePacing();
           final String rawMsg = data['message']?.toString().trim() ?? '';
           terminalError =
               rawMsg.isNotEmpty ? 'ig_warning:$rawMsg' : 'ig_warning';
+          if (canSwitchEndpoint()) {
+            switchEndpointPreservingProgress();
+            continue;
+          }
           throw Exception(terminalError);
         }
 
         final List users = data['users'] is List ? data['users'] : const [];
-        for (var u in users) {
-          String picUrl = u['profile_pic_url'].toString();
-          picUrl = _normalizeProfileImageUrl(picUrl);
-
-          targetMap[u['username'].toString()] = picUrl;
-          currentCount++;
+        if (users.isNotEmpty) {
+          adaptiveMinGapMs = max(adaptiveMinGapFloorMs, adaptiveMinGapMs - 6);
+          adaptiveJitterMaxMs =
+              max(adaptiveJitterFloorMs, adaptiveJitterMaxMs - 4);
+        }
+        for (final dynamic u in users) {
+          if (u is! Map) continue;
+          final String username = (u['username'] ?? '').toString().trim();
+          if (username.isEmpty) continue;
+          String picUrl = _extractBestProfilePhotoUrlFromUser(u) ?? '';
+          if (picUrl.isEmpty) {
+            picUrl =
+                _normalizeHdProfileImageUrl((u['profile_pic_url'] ?? '').toString());
+          }
+          final bool isNew = !targetMap.containsKey(username);
+          final String existingPic = (targetMap[username] ?? '').trim();
+          if (picUrl.isNotEmpty || existingPic.isEmpty) {
+            targetMap[username] = picUrl;
+          }
+          if (isNew) currentCount++;
         }
 
         if (onProgress != null) onProgress(currentCount);
 
         final String? nextCursor = data['next_max_id']?.toString();
-        nextMaxId =
-            (nextCursor != null && nextCursor.isNotEmpty) ? nextCursor : null;
+        if (nextCursor != null &&
+            nextCursor.isNotEmpty &&
+            requestCursor != null &&
+            nextCursor == requestCursor) {
+          repeatedCursorCount++;
+        } else {
+          repeatedCursorCount = 0;
+        }
+        nextMaxId = (nextCursor != null && nextCursor.isNotEmpty)
+            ? nextCursor
+            : null;
         hasNext = nextMaxId != null;
+        if (repeatedCursorCount >= 2) {
+          hasNext = false;
+        }
+        if (totalExpected > 0 && currentCount >= totalExpected) {
+          hasNext = false;
+        }
       } else {
         final String? security = _detectIgSecurityBlockFromText(response.body);
         if (security != null) {
@@ -9161,6 +10486,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           terminalError = 'ig_warning:$warning';
           throw Exception(terminalError);
         }
+        slowDownAdaptivePacing();
         if (response.statusCode == 401 || response.statusCode == 403) {
           terminalError = 'session_invalid';
         } else if (response.statusCode == 429) {
@@ -9168,8 +10494,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         } else {
           terminalError ??= 'http_${response.statusCode}';
         }
-        if (!triedAlternate) {
-          switchEndpointAndReset();
+        if (canSwitchEndpoint()) {
+          switchEndpointPreservingProgress();
           continue;
         }
         throw Exception(terminalError);
@@ -9252,8 +10578,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     _applyUserFlags();
     if (_isBanned) return;
+    _storyTrayRefreshQueued = true;
     unawaited(_refreshData(startProcessingImmediately: true));
-    unawaited(_loadStoryTray());
   }
 
   Future<void> _processData(
@@ -9536,7 +10862,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       input.forEach((k, v) {
         final String key = k.toString();
         final String raw = v.toString();
-        output[key] = _normalizeProfileImageUrl(raw);
+        output[key] = _normalizeHdProfileImageUrl(raw);
       });
     }
     return output;
@@ -9758,19 +11084,12 @@ class _DashboardScreenState extends State<DashboardScreen>
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),
       duration: const Duration(seconds: 5),
-      backgroundColor: Colors.redAccent,
+      backgroundColor: _storySnackColor(tone: 'error'),
     ));
   }
 
   Color _storySnackColor({String tone = 'info'}) {
-    switch (tone) {
-      case 'error':
-        return isDarkMode ? const Color(0xFF9A4155) : const Color(0xFFB34A61);
-      case 'warn':
-        return isDarkMode ? const Color(0xFF8C6A2C) : const Color(0xFFAF8235);
-      default:
-        return isDarkMode ? const Color(0xFF365069) : const Color(0xFF3F5F7A);
-    }
+    return _appSnackColorForTone(isDark: isDarkMode, tone: tone);
   }
 
   void _ensureStoryAutoScroll() {
@@ -9841,9 +11160,17 @@ class _DashboardScreenState extends State<DashboardScreen>
       final source = followingMap.isNotEmpty ? followingMap : followersMap;
       final List<_StoryProfile> list = source.entries.map((e) {
         final String unameLower = e.key.toLowerCase();
+        final String normalizedPic = _normalizeHdProfileImageUrl(e.value);
+        final String trayPic =
+            _normalizeHdProfileImageUrl((_storyUserPics[unameLower] ?? '').trim());
+        final String resolvedPic =
+            normalizedPic.isNotEmpty ? normalizedPic : trayPic;
         return _StoryProfile(
             username: e.key,
-            imageUrl: e.value,
+            imageUrl: resolvedPic.isNotEmpty
+                ? resolvedPic
+                : "https://via.placeholder.com/150",
+            isBlurred: resolvedPic.isEmpty,
             hasStory: _storyUsersWithActive.contains(unameLower),
             pk: _storyUserPks[unameLower]);
       }).toList();
@@ -9853,7 +11180,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       for (final unameLower in _storyUsersWithActive) {
         if (seen.contains(unameLower)) continue;
         if (added >= 25) break;
-        final String pic = (_storyUserPics[unameLower] ?? '').trim();
+        final String pic =
+            _normalizeHdProfileImageUrl((_storyUserPics[unameLower] ?? '').trim());
         final bool hasPic = pic.isNotEmpty;
         list.add(_StoryProfile(
             username: unameLower,
@@ -10169,10 +11497,15 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   String _normalizeProfileImageUrl(String url) {
+    final String normalized = url.trim();
+    if (normalized.isEmpty) return normalized;
     try {
-      return url.replaceAll(RegExp(r'\/[sp]\d+x\d+\/'), '/');
+      final Uri? parsed = Uri.tryParse(normalized);
+      if (parsed == null) return normalized;
+      if (parsed.scheme.isEmpty || parsed.host.isEmpty) return normalized;
+      return parsed.toString();
     } catch (_) {
-      return url;
+      return normalized;
     }
   }
 
@@ -10184,13 +11517,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       if (parsed != null && parsed.hasQuery) {
         final Map<String, String> query =
             Map<String, String>.from(parsed.queryParameters);
-        final String stp = (query['stp'] ?? '').toLowerCase();
-        if (stp.isNotEmpty && RegExp(r's\d+x\d+').hasMatch(stp)) {
-          query.remove('stp');
-          normalized = parsed
-              .replace(queryParameters: query.isEmpty ? null : query)
-              .toString();
-        }
+        query.removeWhere((key, value) => value.trim().isEmpty);
+        normalized = parsed
+            .replace(queryParameters: query.isEmpty ? null : query)
+            .toString();
       }
     } catch (_) {}
     return normalized;
@@ -10285,84 +11615,166 @@ class _DashboardScreenState extends State<DashboardScreen>
     return null;
   }
 
+  bool _looksLikeDirectStoryMediaNode(dynamic node) {
+    if (node is! Map) return false;
+    return node.containsKey('media_type') ||
+        node.containsKey('image_versions2') ||
+        node.containsKey('image_candidates2') ||
+        node.containsKey('video_versions') ||
+        node.containsKey('video_resources') ||
+        node.containsKey('carousel_media') ||
+        node.containsKey('display_url') ||
+        node.containsKey('thumbnail_url');
+  }
+
+  Map<dynamic, dynamic>? _resolveStoryMediaNode(dynamic node,
+      {int depth = 0}) {
+    if (depth > 6) return null;
+
+    if (node is Map) {
+      if (_looksLikeDirectStoryMediaNode(node)) return node;
+
+      const List<String> priorityKeys = <String>[
+        'story_feed_media',
+        'story_media',
+        'story_reel_media',
+        'story_share',
+        'story_app_attribution',
+        'reel_share',
+        'media_share',
+        'media_container',
+        'media',
+        'clip',
+        'clips',
+        'xma_story',
+        'reshared_story_media',
+        'reshared_media',
+        'reposted_media',
+        'repost',
+        'original_media',
+        'parent_media',
+      ];
+
+      for (final String key in priorityKeys) {
+        final Map<dynamic, dynamic>? resolved =
+            _resolveStoryMediaNode(node[key], depth: depth + 1);
+        if (resolved != null) return resolved;
+      }
+
+      for (final MapEntry<dynamic, dynamic> entry in node.entries) {
+        final String key = entry.key.toString();
+        if (key == 'user' || key == 'owner') continue;
+        final Map<dynamic, dynamic>? resolved =
+            _resolveStoryMediaNode(entry.value, depth: depth + 1);
+        if (resolved != null) return resolved;
+      }
+      return null;
+    }
+
+    if (node is List) {
+      for (final dynamic child in node) {
+        final Map<dynamic, dynamic>? resolved =
+            _resolveStoryMediaNode(child, depth: depth + 1);
+        if (resolved != null) return resolved;
+      }
+    }
+    return null;
+  }
+
   List<StoryItem> _extractStoryItemsFromPayload(
       String responseBody, String targetUserId) {
     try {
       final dynamic decoded = jsonDecode(responseBody);
-      if (decoded is! Map) return const [];
-      final Map data = decoded;
-
-      List<dynamic>? itemsFrom(dynamic node) {
-        if (node is! Map) return null;
-        final dynamic direct = node['items'];
-        if (direct is List) return direct;
-        return null;
-      }
-
-      bool matchesTarget(dynamic node) {
-        if (node is! Map) return false;
-        final dynamic user = node['user'];
-        final dynamic owner = node['owner'];
-        final List<dynamic> ids = [
-          node['id'],
-          node['user_id'],
-          user is Map ? user['pk'] : null,
-          user is Map ? user['id'] : null,
-          owner is Map ? owner['pk'] : null,
-          owner is Map ? owner['id'] : null,
-        ];
-        for (final dynamic id in ids) {
-          if ((id ?? '').toString().trim() == targetUserId) return true;
-        }
-        return false;
-      }
-
-      final dynamic topItems = data['items'];
-      if (topItems is List && topItems.isNotEmpty) {
-        return _parseStoryItems(topItems);
-      }
-
-      final List<dynamic> reelNodes = [];
-      final dynamic reels = data['reels'];
-      if (reels is Map) {
-        final dynamic targetReel = reels[targetUserId];
-        if (targetReel != null) reelNodes.add(targetReel);
-        for (final dynamic entry in reels.entries) {
-          if (entry is! MapEntry) continue;
-          if (entry.key.toString() == targetUserId) continue;
-          reelNodes.add(entry.value);
-        }
-      }
-      if (reels is List) reelNodes.addAll(reels);
-
-      final dynamic reelsMedia = data['reels_media'];
-      if (reelsMedia is Map) {
-        final dynamic targetReel = reelsMedia[targetUserId];
-        if (targetReel != null) reelNodes.add(targetReel);
-        for (final dynamic entry in reelsMedia.entries) {
-          if (entry is! MapEntry) continue;
-          if (entry.key.toString() == targetUserId) continue;
-          reelNodes.add(entry.value);
-        }
-      }
-      if (reelsMedia is List) reelNodes.addAll(reelsMedia);
-
-      final dynamic reel = data['reel'];
-      if (reel != null) reelNodes.add(reel);
-
-      if (reelNodes.isEmpty) return const [];
-
-      final List<dynamic> ordered = [
-        ...reelNodes.where(matchesTarget),
-        ...reelNodes.where((dynamic node) => !matchesTarget(node)),
-      ];
-      for (final dynamic reelNode in ordered) {
-        final List<dynamic>? items = itemsFrom(reelNode);
-        if (items != null && items.isNotEmpty) {
-          return _parseStoryItems(items);
-        }
-      }
+      return _extractStoryItemsFromDecodedPayload(decoded, targetUserId);
     } catch (_) {}
+    return const [];
+  }
+
+  List<StoryItem> _extractStoryItemsFromDecodedPayload(
+      dynamic decoded, String targetUserId) {
+    if (decoded is! Map && decoded is! List) return const [];
+    final String target = targetUserId.trim();
+    if (target.isEmpty) return const [];
+
+    bool matchesTarget(dynamic node) {
+      if (node is! Map) return false;
+      final dynamic user = node['user'];
+      final dynamic owner = node['owner'];
+      final List<dynamic> ids = [
+        node['id'],
+        node['user_id'],
+        node['pk'],
+        node['owner_id'],
+        node['reel_owner_id'],
+        node['target_user_id'],
+        node['author_id'],
+        user is Map ? user['pk'] : null,
+        user is Map ? user['id'] : null,
+        owner is Map ? owner['pk'] : null,
+        owner is Map ? owner['id'] : null,
+      ];
+      for (final dynamic id in ids) {
+        if ((id ?? '').toString().trim() == target) return true;
+      }
+      return false;
+    }
+
+    bool looksLikeStoryItem(dynamic node) {
+      return _resolveStoryMediaNode(node) != null;
+    }
+
+    final List<List<dynamic>> matchedItemLists = <List<dynamic>>[];
+    final List<List<dynamic>> fallbackItemLists = <List<dynamic>>[];
+
+    void collect(dynamic node, {bool forceMatch = false}) {
+      if (node is Map) {
+        final bool currentMatch = forceMatch || matchesTarget(node);
+        final dynamic directItems = node['items'];
+        if (directItems is List && directItems.isNotEmpty) {
+          final bool validItems = directItems.any(looksLikeStoryItem);
+          if (validItems) {
+            if (currentMatch) {
+              matchedItemLists.add(directItems);
+            } else {
+              fallbackItemLists.add(directItems);
+            }
+          }
+        }
+        for (final MapEntry<dynamic, dynamic> entry in node.entries) {
+          if (entry.key.toString() == 'items') continue;
+          final String entryKey = entry.key.toString().trim();
+          collect(
+            entry.value,
+            forceMatch: currentMatch || entryKey == target,
+          );
+        }
+        return;
+      }
+      if (node is List) {
+        for (final dynamic child in node) {
+          collect(child, forceMatch: forceMatch);
+        }
+      }
+    }
+
+    collect(decoded);
+
+    final List<List<dynamic>> orderedItemLists;
+    if (matchedItemLists.isNotEmpty) {
+      orderedItemLists = <List<dynamic>>[
+        ...matchedItemLists,
+        ...fallbackItemLists,
+      ];
+    } else if (fallbackItemLists.length == 1) {
+      // If target IDs are missing in payload, only trust a single-candidate set.
+      orderedItemLists = <List<dynamic>>[fallbackItemLists.first];
+    } else {
+      return const [];
+    }
+    for (final List<dynamic> items in orderedItemLists) {
+      final List<StoryItem> parsed = _parseStoryItems(items);
+      if (parsed.isNotEmpty) return parsed;
+    }
     return const [];
   }
 
@@ -10373,6 +11785,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     final String appUa =
         ua.toLowerCase().contains('instagram') ? ua : _defaultIgUserAgent;
     final bool preferWeb = _preferWebApi(ua);
+    final String? sessionDsUserId =
+        _resolveSessionDsUserId(savedUserId, savedCookie);
 
     Future<String?> fromUserId(String userId) async {
       final String cleanUserId = userId.trim();
@@ -10393,8 +11807,8 @@ class _DashboardScreenState extends State<DashboardScreen>
           final response = await _igGet(
             uri,
             headers: headers,
-            minGap: const Duration(milliseconds: 260),
-            jitterMaxMs: 220,
+            minGap: const Duration(milliseconds: 420),
+            jitterMaxMs: 320,
           );
           if (response.statusCode != 200) return null;
           final dynamic parsed = jsonDecode(response.body);
@@ -10416,25 +11830,25 @@ class _DashboardScreenState extends State<DashboardScreen>
           ? [
               () => fetchInfo(
                     uri: webUri,
-                    headers: _buildWebHeaders(cookie, ua,
-                        dsUserId: savedUserId ?? cleanUserId),
+                    headers:
+                        _buildWebHeaders(cookie, ua, dsUserId: sessionDsUserId),
                   ),
               () => fetchInfo(
                     uri: appUri,
-                    headers: _buildAppHeaders(cookie, appUa,
-                        dsUserId: savedUserId ?? cleanUserId),
+                    headers:
+                        _buildAppHeaders(cookie, appUa, dsUserId: sessionDsUserId),
                   ),
             ]
           : [
               () => fetchInfo(
                     uri: appUri,
-                    headers: _buildAppHeaders(cookie, appUa,
-                        dsUserId: savedUserId ?? cleanUserId),
+                    headers:
+                        _buildAppHeaders(cookie, appUa, dsUserId: sessionDsUserId),
                   ),
               () => fetchInfo(
                     uri: webUri,
-                    headers: _buildWebHeaders(cookie, ua,
-                        dsUserId: savedUserId ?? cleanUserId),
+                    headers:
+                        _buildWebHeaders(cookie, ua, dsUserId: sessionDsUserId),
                   ),
             ];
       for (final attempt in attempts) {
@@ -10472,8 +11886,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         final response = await _igGet(
           uri,
           headers: headers,
-          minGap: const Duration(milliseconds: 260),
-          jitterMaxMs: 220,
+          minGap: const Duration(milliseconds: 420),
+          jitterMaxMs: 320,
         );
         if (response.statusCode != 200) return null;
         final dynamic parsed = jsonDecode(response.body);
@@ -10491,24 +11905,24 @@ class _DashboardScreenState extends State<DashboardScreen>
             () => fetchByUsername(
                   uri: webProfileUri,
                   headers:
-                      _buildWebHeaders(cookie, ua, dsUserId: savedUserId),
+                      _buildWebHeaders(cookie, ua, dsUserId: sessionDsUserId),
                 ),
             () => fetchByUsername(
                   uri: appProfileUri,
                   headers:
-                      _buildAppHeaders(cookie, appUa, dsUserId: savedUserId),
+                      _buildAppHeaders(cookie, appUa, dsUserId: sessionDsUserId),
                 ),
           ]
         : [
             () => fetchByUsername(
                   uri: appProfileUri,
                   headers:
-                      _buildAppHeaders(cookie, appUa, dsUserId: savedUserId),
+                      _buildAppHeaders(cookie, appUa, dsUserId: sessionDsUserId),
                 ),
             () => fetchByUsername(
                   uri: webProfileUri,
                   headers:
-                      _buildWebHeaders(cookie, ua, dsUserId: savedUserId),
+                      _buildWebHeaders(cookie, ua, dsUserId: sessionDsUserId),
                 ),
           ];
     for (final attempt in usernameAttempts) {
@@ -10534,6 +11948,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       url = hdUrl;
     }
     url = _normalizeHdProfileImageUrl(url);
+    final String fallbackUrl = _normalizeProfileImageUrl(profile.imageUrl);
 
     if (mounted) Navigator.pop(context);
 
@@ -10571,6 +11986,34 @@ class _DashboardScreenState extends State<DashboardScreen>
                                           'Accept': '*/*',
                                         }
                                       : null,
+                                  errorBuilder: (context, error, stack) {
+                                    if (fallbackUrl.isNotEmpty &&
+                                        fallbackUrl != url) {
+                                      return Image.network(
+                                        fallbackUrl,
+                                        fit: BoxFit.contain,
+                                        filterQuality: FilterQuality.high,
+                                        headers: savedCookie != null
+                                            ? {
+                                                'Cookie': savedCookie!,
+                                                'User-Agent': _resolveUserAgent(),
+                                                'Accept': '*/*',
+                                              }
+                                            : null,
+                                        errorBuilder: (context, _, __) =>
+                                            const Icon(
+                                          Icons.broken_image,
+                                          color: Colors.white70,
+                                          size: 42,
+                                        ),
+                                      );
+                                    }
+                                    return const Icon(
+                                      Icons.broken_image,
+                                      color: Colors.white70,
+                                      size: 42,
+                                    );
+                                  },
                                 ),
                               ),
                             );
@@ -10614,6 +12057,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     final String appUa =
         ua.toLowerCase().contains('instagram') ? ua : _defaultIgUserAgent;
     final bool preferWeb = _preferWebApi(ua);
+    final String? sessionDsUserId =
+        _resolveSessionDsUserId(savedUserId, savedCookie);
     final String safe = Uri.encodeComponent(username);
 
     Future<String?> fetchId({
@@ -10624,8 +12069,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         final response = await _igGet(
           uri,
           headers: headers,
-          minGap: const Duration(milliseconds: 250),
-          jitterMaxMs: 220,
+          minGap: const Duration(milliseconds: 420),
+          jitterMaxMs: 320,
         );
         if (response.statusCode != 200) {
           _lastIgWarning = _extractIgWarning(response.body);
@@ -10648,24 +12093,24 @@ class _DashboardScreenState extends State<DashboardScreen>
             () => fetchId(
                   uri: webUri,
                   headers:
-                      _buildWebHeaders(cookie, ua, dsUserId: savedUserId),
+                      _buildWebHeaders(cookie, ua, dsUserId: sessionDsUserId),
                 ),
             () => fetchId(
                   uri: appUri,
                   headers:
-                      _buildAppHeaders(cookie, appUa, dsUserId: savedUserId),
+                      _buildAppHeaders(cookie, appUa, dsUserId: sessionDsUserId),
                 ),
           ]
         : [
             () => fetchId(
                   uri: appUri,
                   headers:
-                      _buildAppHeaders(cookie, appUa, dsUserId: savedUserId),
+                      _buildAppHeaders(cookie, appUa, dsUserId: sessionDsUserId),
                 ),
             () => fetchId(
                   uri: webUri,
                   headers:
-                      _buildWebHeaders(cookie, ua, dsUserId: savedUserId),
+                      _buildWebHeaders(cookie, ua, dsUserId: sessionDsUserId),
                 ),
           ];
     for (final attempt in attempts) {
@@ -10695,9 +12140,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     final bool preferWeb = _preferWebApi(ua);
     final String appUa =
         ua.toLowerCase().contains('instagram') ? ua : _defaultIgUserAgent;
-    final String savedDsUser = (savedUserId ?? '').trim();
-    final String dsUserHeader =
-        savedDsUser.isNotEmpty ? savedDsUser : targetUserId.trim();
+    final String? dsUserHeader =
+        _resolveSessionDsUserId(savedUserId, savedCookie);
 
     final Map<String, String> webHeaders =
         _buildWebHeaders(cookie, ua, dsUserId: dsUserHeader);
@@ -10712,6 +12156,10 @@ class _DashboardScreenState extends State<DashboardScreen>
         "https://www.instagram.com/api/v1/feed/user/$targetUserId/reel_media/");
     final Uri reelMediaApp = Uri.parse(
         "https://i.instagram.com/api/v1/feed/user/$targetUserId/reel_media/");
+    final Uri reelsTrayWeb =
+        Uri.parse("https://www.instagram.com/api/v1/feed/reels_tray/");
+    final Uri reelsTrayApp =
+        Uri.parse("https://i.instagram.com/api/v1/feed/reels_tray/");
 
     final List<Map<String, dynamic>> attempts = preferWeb
         ? [
@@ -10719,12 +12167,16 @@ class _DashboardScreenState extends State<DashboardScreen>
             {'uri': reelsMediaApp, 'headers': appHeaders},
             {'uri': reelMediaWeb, 'headers': webHeaders},
             {'uri': reelMediaApp, 'headers': appHeaders},
+            {'uri': reelsTrayWeb, 'headers': webHeaders},
+            {'uri': reelsTrayApp, 'headers': appHeaders},
           ]
         : [
             {'uri': reelsMediaApp, 'headers': appHeaders},
             {'uri': reelsMediaWeb, 'headers': webHeaders},
             {'uri': reelMediaApp, 'headers': appHeaders},
             {'uri': reelMediaWeb, 'headers': webHeaders},
+            {'uri': reelsTrayApp, 'headers': appHeaders},
+            {'uri': reelsTrayWeb, 'headers': webHeaders},
           ];
 
     for (final Map<String, dynamic> attempt in attempts) {
@@ -10732,18 +12184,51 @@ class _DashboardScreenState extends State<DashboardScreen>
         final http.Response response = await _igGet(
           attempt['uri'] as Uri,
           headers: attempt['headers'] as Map<String, String>,
-          minGap: const Duration(milliseconds: 260),
-          jitterMaxMs: 220,
+          minGap: const Duration(milliseconds: 460),
+          jitterMaxMs: 360,
         );
         if (response.statusCode != 200) {
+          final String? security = _detectIgSecurityBlockFromText(response.body);
+          if (security != null) {
+            _lastIgWarning = localizeTrEn(
+              _lang,
+              'Instagram güvenlik doğrulaması gerekiyor (hikaye verisi alınamadı).',
+              'Instagram security verification is required (story data could not be fetched).',
+            );
+          }
           final String? warning = _detectIgWarningFromText(response.body);
           if (warning != null && warning.trim().isNotEmpty) {
             _lastIgWarning = warning.trim();
           }
           continue;
         }
-        final List<StoryItem> parsed =
-            _extractStoryItemsFromPayload(response.body, targetUserId);
+
+        dynamic decoded;
+        try {
+          decoded = jsonDecode(response.body);
+        } catch (_) {
+          decoded = null;
+        }
+
+        if (decoded is Map) {
+          final String? security = _detectIgSecurityBlockFromMap(decoded);
+          if (security != null) {
+            _lastIgWarning = localizeTrEn(
+              _lang,
+              'Instagram güvenlik doğrulaması gerekiyor (hikaye verisi alınamadı).',
+              'Instagram security verification is required (story data could not be fetched).',
+            );
+            continue;
+          }
+          final String? warning = _detectIgWarningFromMap(decoded);
+          if (warning != null && warning.trim().isNotEmpty) {
+            _lastIgWarning = warning.trim();
+          }
+        }
+
+        final List<StoryItem> parsed = decoded == null
+            ? _extractStoryItemsFromPayload(response.body, targetUserId)
+            : _extractStoryItemsFromDecodedPayload(decoded, targetUserId);
         if (parsed.isNotEmpty) return parsed;
       } catch (e) {
         debugPrint("Story request error: $e");
@@ -10757,24 +12242,93 @@ class _DashboardScreenState extends State<DashboardScreen>
     for (final dynamic item in dynamicItems) {
       if (item is! Map) continue;
       try {
-        final int mType = _toIntOrNull(item['media_type']) ?? 1;
-        String url = "";
-        bool isVid = mType == 2;
+        final Map<dynamic, dynamic> rawItem = item;
+        final Map<dynamic, dynamic>? mediaNode = _resolveStoryMediaNode(rawItem);
+        if (mediaNode == null) continue;
+
+        String pickVideoUrl(Map<dynamic, dynamic> node) {
+          String candidate =
+              _pickLargestUrlFromVersionList(node['video_versions']) ?? '';
+          if (candidate.isEmpty) {
+            candidate =
+                _pickLargestUrlFromVersionList(node['video_resources']) ?? '';
+          }
+          if (candidate.isEmpty) {
+            final String clipVideo =
+                (node['video_url'] ?? '').toString().trim();
+            if (clipVideo.isNotEmpty) candidate = clipVideo;
+          }
+          return candidate;
+        }
+
+        String pickImageUrl(Map<dynamic, dynamic> node) {
+          final dynamic imageVersions = node['image_versions2'];
+          final dynamic candidates =
+              imageVersions is Map ? imageVersions['candidates'] : null;
+          String candidate = _pickLargestUrlFromVersionList(candidates) ?? '';
+          if (candidate.isEmpty) {
+            final dynamic imageCandidates2 = node['image_candidates2'];
+            final dynamic c2 = imageCandidates2 is Map
+                ? imageCandidates2['candidates']
+                : imageCandidates2;
+            candidate = _pickLargestUrlFromVersionList(c2) ?? '';
+          }
+          if (candidate.isEmpty) {
+            final String displayUrl = (node['display_url'] ?? '').toString().trim();
+            if (displayUrl.isNotEmpty) candidate = displayUrl;
+          }
+          if (candidate.isEmpty) {
+            final String thumbnailUrl =
+                (node['thumbnail_url'] ?? '').toString().trim();
+            if (thumbnailUrl.isNotEmpty) candidate = thumbnailUrl;
+          }
+          return candidate;
+        }
+
+        final int mType = _toIntOrNull(mediaNode['media_type']) ??
+            _toIntOrNull(rawItem['media_type']) ??
+            1;
+        String url = '';
+        bool isVid = mType == 2 ||
+            mediaNode.containsKey('video_versions') ||
+            mediaNode.containsKey('video_resources');
 
         if (isVid) {
-          url = _pickLargestUrlFromVersionList(item['video_versions']) ?? '';
+          url = pickVideoUrl(mediaNode);
+          if (url.isEmpty && !identical(mediaNode, rawItem)) {
+            url = pickVideoUrl(rawItem);
+          }
         }
 
         if (url.isEmpty) {
-          final dynamic imageVersions = item['image_versions2'];
-          final dynamic candidates =
-              imageVersions is Map ? imageVersions['candidates'] : null;
-          url = _pickLargestUrlFromVersionList(candidates) ?? '';
+          url = pickImageUrl(mediaNode);
+          if (url.isEmpty && !identical(mediaNode, rawItem)) {
+            url = pickImageUrl(rawItem);
+          }
           if (url.isNotEmpty) isVid = false;
         }
 
+        if (url.isEmpty) {
+          dynamic carousel = mediaNode['carousel_media'];
+          if ((carousel is! List || carousel.isEmpty) &&
+              !identical(mediaNode, rawItem)) {
+            carousel = rawItem['carousel_media'];
+          }
+          if (carousel is List && carousel.isNotEmpty) {
+            final List<StoryItem> nested = _parseStoryItems(carousel);
+            if (nested.isNotEmpty) {
+              result.add(nested.first);
+              continue;
+            }
+          }
+        }
+
         if (url.isNotEmpty) {
-          result.add(StoryItem(url: url, isVideo: isVid));
+          final String normalized =
+              isVid ? url.trim() : _normalizeHdProfileImageUrl(url);
+          if (normalized.isNotEmpty) {
+            result.add(StoryItem(url: normalized, isVideo: isVid));
+          }
         }
       } catch (_) {}
     }
@@ -10820,7 +12374,15 @@ class _DashboardScreenState extends State<DashboardScreen>
 
       if (stories.isEmpty) {
         final String warning = (_lastIgWarning ?? '').trim();
-        final String message = warning.isNotEmpty ? warning : _t('story_no_data');
+        final String message = warning.isNotEmpty
+            ? warning
+            : (profile.hasStory
+                ? localizeTrEn(
+                    _lang,
+                    'Hikaye verisi alınamadı. Bu durum genelde Instagram doğrulaması, geçici API kısıtı veya bağlantı kesintisinden kaynaklanır. 2-3 dakika sonra tekrar deneyin.',
+                    'Story data could not be fetched. This is usually caused by Instagram verification, temporary API restrictions, or connection interruption. Please try again in 2-3 minutes.',
+                  )
+                : _t('story_no_data'));
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(message),
@@ -10845,6 +12407,25 @@ class _DashboardScreenState extends State<DashboardScreen>
       }
     } catch (e) {
       if (mounted && Navigator.canPop(context)) Navigator.pop(context);
+      if (!mounted) return;
+      final String raw = e.toString().toLowerCase();
+      final String message = (raw.contains('timeout') ||
+              raw.contains('socketexception') ||
+              raw.contains('failed host lookup'))
+          ? localizeTrEn(
+              _lang,
+              'Hikaye yükleme bağlantı kesintisi nedeniyle durdu. Lütfen tekrar deneyin.',
+              'Story loading stopped due to a network interruption. Please try again.',
+            )
+          : localizeTrEn(
+              _lang,
+              'Hikaye verisi alınamadı. Lütfen biraz sonra tekrar deneyin.',
+              'Could not fetch story data. Please try again shortly.',
+            );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(message),
+        backgroundColor: _storySnackColor(tone: 'warn'),
+      ));
     }
   }
 
@@ -10968,6 +12549,74 @@ class _DashboardScreenState extends State<DashboardScreen>
     }
   }
 
+  String _legalSummaryForLang(String raw) {
+    final String lang = raw.trim().toLowerCase().replaceAll('_', '-');
+    String code = lang;
+    if (lang.startsWith('es')) {
+      code = lang == 'es-mx' ? 'es-mx' : 'es';
+    } else if (lang.startsWith('zh')) {
+      code = 'zh-hans';
+    } else if (lang == 'in') {
+      code = 'id';
+    }
+    final String resolvedCode =
+        _legalWarningSummaryLabels.containsKey(code) ? code : 'en';
+    return localizedPrivacyPolicyBody(resolvedCode);
+  }
+
+  String _buildLegalBodyText() {
+    return _legalSummaryForLang(_lang);
+  }
+
+  Future<void> _showPrivacyPolicyDialog() async {
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(Icons.privacy_tip_outlined, color: Colors.blueAccent),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                localizedPrivacyPolicyLabel(_lang),
+                style: TextStyle(
+                    color: isDarkMode ? Colors.white : Colors.black87),
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Text(
+            localizedPrivacyPolicyBody(_lang),
+            style: TextStyle(
+                fontSize: 11,
+                height: 1.5,
+                color: isDarkMode ? Colors.white70 : Colors.black87),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: _openPrivacyPolicySource,
+            child: Text(
+              localizedPrivacyPolicyOpenSourceLabel(_lang),
+              style: const TextStyle(fontSize: 11),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              localizedPrivacyPolicyCloseLabel(_lang),
+              style: const TextStyle(fontSize: 11),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDetailedLegalDialog(BuildContext context,
       {required bool isInitial, SharedPreferences? prefs}) {
     return AlertDialog(
@@ -10976,59 +12625,42 @@ class _DashboardScreenState extends State<DashboardScreen>
       title: Row(children: [
         const Icon(Icons.info_outline, color: Colors.blueAccent),
         const SizedBox(width: 10),
-        Text(_t('legal_warning'),
+        Text(localizedPrivacyPolicyLabel(_lang),
             style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87))
       ]),
       content: SingleChildScrollView(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(_t('legal_intro'),
+        child: Text(_buildLegalBodyText(),
             style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+                fontSize: 11,
+                height: 1.5,
                 color: isDarkMode ? Colors.white70 : Colors.black87)),
-        const SizedBox(height: 15),
-        _legalSection('article1_title', 'article1_text'),
-        _legalSection('article2_title', 'article2_text'),
-        _legalSection('article3_title', 'article3_text'),
-        _legalSection('article4_title', 'article4_text'),
-        _legalSection('article5_title', 'article5_text'),
-        const Divider(height: 30),
-      ])),
+      ),
       actions: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              runSpacing: 4,
-              children: [
-                TextButton(
-                  onPressed: _launchPrivacyPolicyURL,
-                  child: Text(
-                    localizeTrEn(
-                        _lang, "Gizlilik Politikası", "Privacy Policy"),
-                    style: TextStyle(
-                        color: isDarkMode ? Colors.white70 : Colors.blueGrey,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (!isInitial)
-                  TextButton(
-                    onPressed: _revokeConsentAndShowForm,
-                    child: Text(
-                      _t('withdraw_consent'),
-                      style: TextStyle(
-                          color: isDarkMode ? Colors.white70 : Colors.blueGrey,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold),
+            if (!isInitial)
+              Row(
+                children: [
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _revokeConsentAndShowForm,
+                        child: Text(
+                          localizedWithdrawConsentLabel(_lang),
+                          style: TextStyle(
+                              color:
+                                  isDarkMode ? Colors.white70 : Colors.blueGrey,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
                   ),
-              ],
-            ),
-            const SizedBox(height: 4),
+                ],
+              ),
+            if (!isInitial) const SizedBox(height: 4),
             isInitial
                 ? ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -11045,29 +12677,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                     ))
                 : TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(localizeTrEn(_lang, "KAPAT", "CLOSE"))),
+                    child: Text(localizedPrivacyPolicyCloseLabel(_lang))),
           ],
         )
       ],
     );
-  }
-
-  Widget _legalSection(String titleKey, String contentKey) {
-    return Padding(
-        padding: const EdgeInsets.only(bottom: 15),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(_t(titleKey),
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isDarkMode ? Colors.white : Colors.blueAccent,
-                  fontSize: 13)),
-          const SizedBox(height: 4),
-          Text(_t(contentKey),
-              style: TextStyle(
-                  fontSize: 11,
-                  height: 1.5,
-                  color: isDarkMode ? Colors.white70 : Colors.black87))
-        ]));
   }
 }
 
@@ -11300,9 +12914,12 @@ class _StoryItemViewState extends State<_StoryItemView> {
         children: [
           if (!_isVideoInitialized)
             const Center(child: CircularProgressIndicator(color: Colors.white)),
-          IgnorePointer(
-            ignoring: true,
-            child: WebViewWidget(controller: _videoController),
+          Offstage(
+            offstage: !_isVideoInitialized,
+            child: IgnorePointer(
+              ignoring: true,
+              child: WebViewWidget(controller: _videoController),
+            ),
           ),
         ],
       );
@@ -11618,3 +13235,5 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
             : WebViewWidget(controller: _controller));
   }
 }
+
+

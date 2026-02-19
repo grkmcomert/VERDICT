@@ -53,8 +53,8 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Build IPA (FINAL BUILD 12.0.0)
-        run: flutter build ipa --release --no-codesign --build-name=12.0.0 --build-number=${{ github.run_number }}
+      - name: Build IPA (FINAL BUILD 15.0.0)
+        run: flutter build ipa --release --no-codesign --build-name=15.0.0 --build-number=${{ github.run_number }}
 
       - name: Sign & Fix IPA
         env:

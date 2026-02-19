@@ -4,69 +4,147 @@ import 'dart:convert';
 // Source language key is English phrase.
 
 bool _looksLikeMojibake(String value) {
-  final bool hasC1Controls = _mojibakeC1Pattern.hasMatch(value);
-  final bool hasUtf8BytePattern = _mojibakeUtf8BytePattern.hasMatch(value);
-  return value.contains('\uFFFD') ||
-      value.contains('\u00C2') ||
-      value.contains('\u00C3') ||
-      value.contains('\u00C4') ||
-      value.contains('\u00C5') ||
-      value.contains('\u00D0') ||
-      value.contains('\u00D1') ||
-      value.contains('\u00E2\u20AC') ||
-      hasC1Controls ||
-      hasUtf8BytePattern;
+  if (value.isEmpty) return false;
+  if (value.contains('\uFFFD')) return true;
+  if (_mojibakeC1Pattern.hasMatch(value)) return true;
+  if (value.contains('\u00E2\u20AC')) return true; // "â€…"
+  if (_mojibakeMarkerPattern.hasMatch(value)) return true;
+  if (value.contains('\u00EF\u00BB\u00BF')) return true; // "ï»¿"
+  return false;
 }
 
 final RegExp _mojibakeC1Pattern = RegExp(r'[\u0080-\u009F]');
-final RegExp _mojibakeUtf8BytePattern =
-    RegExp(r'[\u00D8-\u00DB][\u00A0-\u00BF]|[\u00E0-\u00EF][\u0080-\u00BF]');
+final RegExp _mojibakeMarkerPattern = RegExp(
+  '[\u00C2\u00C3\u00C4\u00C5\u00D0\u00D1]'
+  '(?:'
+  '[\u0080-\u00BF]'
+  '|'
+  '[\u0152\u0153\u0160\u0161\u017D\u017E\u0178\u0192\u02C6\u02DC'
+  '\u2013\u2014\u2018\u2019\u201A\u201C\u201D\u201E\u2020\u2021\u2022\u2026'
+  '\u2030\u2039\u203A\u20AC\u2122]'
+  ')',
+);
+
+const Map<int, int> _windows125xExtendedByteMap = <int, int>{
+  0x20AC: 0x80,
+  0x201A: 0x82,
+  0x0192: 0x83,
+  0x201E: 0x84,
+  0x2026: 0x85,
+  0x2020: 0x86,
+  0x2021: 0x87,
+  0x02C6: 0x88,
+  0x2030: 0x89,
+  0x0160: 0x8A,
+  0x2039: 0x8B,
+  0x0152: 0x8C,
+  0x017D: 0x8E,
+  0x2018: 0x91,
+  0x2019: 0x92,
+  0x201C: 0x93,
+  0x201D: 0x94,
+  0x2022: 0x95,
+  0x2013: 0x96,
+  0x2014: 0x97,
+  0x02DC: 0x98,
+  0x2122: 0x99,
+  0x0161: 0x9A,
+  0x203A: 0x9B,
+  0x0153: 0x9C,
+  0x017E: 0x9E,
+  0x0178: 0x9F,
+  0x011E: 0xD0,
+  0x0130: 0xDD,
+  0x015E: 0xDE,
+  0x011F: 0xF0,
+  0x0131: 0xFD,
+  0x015F: 0xFE,
+};
+
+int? _byteForMojibakeCodeUnit(int unit) {
+  if (unit <= 0x00FF) return unit;
+  return _windows125xExtendedByteMap[unit];
+}
 
 List<int>? _encodeWindows1252Bytes(String value) {
-  const Map<int, int> cp1252Extended = <int, int>{
-    0x20AC: 0x80,
-    0x201A: 0x82,
-    0x0192: 0x83,
-    0x201E: 0x84,
-    0x2026: 0x85,
-    0x2020: 0x86,
-    0x2021: 0x87,
-    0x02C6: 0x88,
-    0x2030: 0x89,
-    0x0160: 0x8A,
-    0x2039: 0x8B,
-    0x0152: 0x8C,
-    0x017D: 0x8E,
-    0x2018: 0x91,
-    0x2019: 0x92,
-    0x201C: 0x93,
-    0x201D: 0x94,
-    0x2022: 0x95,
-    0x2013: 0x96,
-    0x2014: 0x97,
-    0x02DC: 0x98,
-    0x2122: 0x99,
-    0x0161: 0x9A,
-    0x203A: 0x9B,
-    0x0153: 0x9C,
-    0x017E: 0x9E,
-    0x0178: 0x9F,
-  };
-
   final List<int> bytes = <int>[];
   for (final int unit in value.codeUnits) {
-    if (unit <= 0x00FF) {
-      bytes.add(unit);
-      continue;
-    }
-    final int? mapped = cp1252Extended[unit];
+    final int? mapped = _byteForMojibakeCodeUnit(unit);
     if (mapped == null) return null;
     bytes.add(mapped);
   }
   return bytes;
 }
 
+int _utf8SequenceLength(int? firstByte) {
+  if (firstByte == null) return 0;
+  if (firstByte >= 0xC2 && firstByte <= 0xDF) return 2;
+  if (firstByte >= 0xE0 && firstByte <= 0xEF) return 3;
+  if (firstByte >= 0xF0 && firstByte <= 0xF4) return 4;
+  return 0;
+}
+
+bool _isValidUtf8Sequence(List<int> bytes) {
+  if (bytes.length == 3) {
+    if ((bytes[0] == 0xE0 && bytes[1] < 0xA0) ||
+        (bytes[0] == 0xED && bytes[1] > 0x9F)) {
+      return false;
+    }
+  }
+  if (bytes.length == 4) {
+    if ((bytes[0] == 0xF0 && bytes[1] < 0x90) ||
+        (bytes[0] == 0xF4 && bytes[1] > 0x8F)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+String _decodeUtf8Fragments(String value) {
+  final List<int> units = value.codeUnits;
+  final StringBuffer out = StringBuffer();
+  int i = 0;
+
+  while (i < units.length) {
+    final int? firstByte = _byteForMojibakeCodeUnit(units[i]);
+    final int length = _utf8SequenceLength(firstByte);
+    if (firstByte == null || length == 0 || i + length > units.length) {
+      out.writeCharCode(units[i]);
+      i++;
+      continue;
+    }
+
+    final List<int> bytes = <int>[firstByte];
+    bool valid = true;
+    for (int j = 1; j < length; j++) {
+      final int? nextByte = _byteForMojibakeCodeUnit(units[i + j]);
+      if (nextByte == null || nextByte < 0x80 || nextByte > 0xBF) {
+        valid = false;
+        break;
+      }
+      bytes.add(nextByte);
+    }
+    if (!valid || !_isValidUtf8Sequence(bytes)) {
+      out.writeCharCode(units[i]);
+      i++;
+      continue;
+    }
+
+    try {
+      out.write(utf8.decode(bytes, allowMalformed: false));
+      i += length;
+    } catch (_) {
+      out.writeCharCode(units[i]);
+      i++;
+    }
+  }
+  return out.toString();
+}
+
 String _repairMojibakeText(String value) {
+  if (value.isEmpty) return value;
+  if (!_looksLikeMojibake(value)) return value;
+
   String fixed = value;
   const Map<String, String> replacements = <String, String>{
     '\u00E2\u20AC\u2122': '\u2019',
@@ -80,20 +158,34 @@ String _repairMojibakeText(String value) {
     '\u00C2': '',
   };
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 8; i++) {
     if (!_looksLikeMojibake(fixed)) break;
+    bool changed = false;
+
+    final String fragmentDecoded = _decodeUtf8Fragments(fixed);
+    if (fragmentDecoded != fixed) {
+      fixed = fragmentDecoded;
+      changed = true;
+    }
+
     for (final MapEntry<String, String> entry in replacements.entries) {
-      fixed = fixed.replaceAll(entry.key, entry.value);
+      final String next = fixed.replaceAll(entry.key, entry.value);
+      if (next != fixed) changed = true;
+      fixed = next;
     }
+
     final List<int>? bytes = _encodeWindows1252Bytes(fixed);
-    if (bytes == null) break;
-    try {
-      final String decoded = utf8.decode(bytes, allowMalformed: false);
-      if (decoded == fixed) break;
-      fixed = decoded;
-    } catch (_) {
-      break;
+    if (bytes != null) {
+      try {
+        final String decoded = utf8.decode(bytes, allowMalformed: false);
+        if (decoded != fixed) {
+          fixed = decoded;
+          changed = true;
+        }
+      } catch (_) {}
     }
+
+    if (!changed) break;
   }
 
   for (final MapEntry<String, String> entry in replacements.entries) {
@@ -109,6 +201,12 @@ String _cleanLocalizedText(String value) {
 String _normalizeLocalizationLookupKey(String value) {
   final String repaired = _repairMojibakeText(value);
   return repaired.replaceAll(RegExp(r'\s+'), ' ').trim();
+}
+
+bool _looksLowQualityLocalizedText(String localized, String sourceEn) {
+  final String loc = localized.replaceAll(RegExp(r'\s+'), ' ').trim();
+  if (loc.isEmpty) return true;
+  return false;
 }
 
 String localizeTrEn(String lang, String tr, String en) {
@@ -129,9 +227,15 @@ String localizeTrEn(String lang, String tr, String en) {
     }
   }
 
-  if (translated == null) return _cleanLocalizedText(en);
+  final String cleanEn = _cleanLocalizedText(en);
+  if (translated == null) return cleanEn;
   final String clean = _cleanLocalizedText(translated);
-  return clean.isEmpty ? _cleanLocalizedText(en) : clean;
+  if (clean.isEmpty ||
+      _looksLowQualityLocalizedText(clean, cleanEn) ||
+      _looksLikeMojibake(clean)) {
+    return cleanEn;
+  }
+  return clean;
 }
 
 const Map<String, Map<String, String>> _trEnPhraseLocalizations = {
@@ -193,7 +297,7 @@ const Map<String, Map<String, String>> _trEnPhraseLocalizations = {
     'Follower data was incomplete.': 'Die Follower-Daten waren unvollständig.',
     'Following data was incomplete.': 'Die folgenden Daten waren unvollständig.',
     'GPS is free to use worldwide, but the U.S. government reportedly spends around \\\$2 million a day to keep it running.': 'Die Nutzung von GPS ist weltweit kostenlos, aber die US-Regierung gibt Berichten zufolge täglich rund 2 Millionen US-Dollar aus, um es am Laufen zu halten.',
-    'Hippo “sweat” can look pink and acts like both sunscreen and an antibacterial shield.': 'Hippo-„Schweiß“ kann rosa aussehen und wirkt sowohl als Sonnenschutz als auch als antibakterieller Schutzschild.',
+    'Hippo “sweat” can look pink and acts like both sunscreen and an antibacterial shield.': 'Hippo-„Schweiߓ kann rosa aussehen und wirkt sowohl als Sonnenschutz als auch als antibakterieller Schutzschild.',
     'Honey never spoils; archaeologists have found 3,000-year-old jars of honey in Egyptian pyramids that were still edible.': 'Honig verdirbt nie; ',
     'Honeybees can recognize human faces and remember them individually.': 'Honigbienen können menschliche Gesichter erkennen und sich individuell an sie erinnern.',
     'Human DNA is about 50% similar to banana DNA—so calling a banana “my sibling” tomorrow morning isn’t totally unfair.': 'Die menschliche DNA ist der Bananen-DNA zu etwa 50 % ähnlich – daher ist es nicht völlig unfair, morgen früh eine Banane „mein Geschwister“ zu nennen.',
@@ -273,278 +377,278 @@ const Map<String, Map<String, String>> _trEnPhraseLocalizations = {
     'Your consent preference was updated.': 'Ihre Einwilligungspräferenz wurde aktualisiert.',
   },
   'ko': {
-    'Bio Planner': 'ë°”ì´ì˜¤ í”Œë˜ë„ˆ',
-    'CLOSE': 'ë‹«ê¸°',
-    'Code': 'ì½”ë“œ',
-    'Exception': 'ì˜ˆì™¸',
-    'Instagram message': 'ì¸ìŠ¤íƒ€ê·¸ë¨ ë©”ì‹œì§€',
-    'Load error': 'ë¡œë“œ ì˜¤ë¥˜',
-    'Open Instagram': 'ì¸ìŠ¤íƒ€ê·¸ë¨ ì—´ê¸°',
-    'Show error': 'ì˜¤ë¥˜ í‘œì‹œ',
-    'SYSTEM UNDER MAINTENANCE': 'ì‹œìŠ¤í…œ ì ê²€ ì¤‘',
-    'user': 'ì‚¬ìš©ì',
-    '“Whistling” mice are essentially singing to each other, but at frequencies too high for humans to hear.': '"íœ˜íŒŒëŒì„ ë¶€ëŠ”" ì¥ëŠ” ë³¸ì§ˆì ìœ¼ë¡œ ì„œë¡œì—ê²Œ ë…¸ë˜ë¥¼ ë¶€ë¥´ì§€ë§Œ, ê·¸ ì£¼íŒŒìˆ˜ëŠ” ì¸ê°„ì´ ë“¤ì„ ìˆ˜ ì—†ì„ ì •ë„ë¡œ ë„ˆë¬´ ë†’ìŠµë‹ˆë‹¤.',
-    'A blue whale’s heart is so large that a human could swim through its main arteries.': 'ëŒ€ì™•ê³ ë˜ì˜ ì‹¬ì¥ì€ ì¸ê°„ì´ ì£¼ìš” ë™ë§¥ì„ í—¤ì—„ì³ ì§€ë‚˜ê°ˆ ìˆ˜ ìˆì„ ë§Œí¼ í¬ë‹¤.',
-    'A new update is available. Please check the store.': 'ìƒˆë¡œìš´ ì—…ë°ì´íŠ¸ë¥¼ ì‚¬ìš©í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤. ',
-    'A snail can sleep for up to three years without waking up—honestly, relatable.': 'ë‹¬íŒ½ì´ëŠ” ê¹¨ì–´ë‚˜ì§€ ì•Šê³  ìµœëŒ€ 3ë…„ ë™ì•ˆ ì ì„ ì˜ ìˆ˜ ìˆìŠµë‹ˆë‹¤. ì†”ì§íˆ ë§í•´ì„œ ê³µê°í•  ìˆ˜ ìˆëŠ” ì¼ì…ë‹ˆë‹¤.',
-    'Access is restricted for this account.': 'ì´ ê³„ì •ì— ëŒ€í•œ ì•¡ì„¸ìŠ¤ê°€ ì œí•œë˜ì–´ ìˆìŠµë‹ˆë‹¤.',
-    'Ad could not be shown. Please try again.': 'ê´‘ê³ ë¥¼ ê²Œì¬í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ',
-    'Ad could not be shown. Results cannot be displayed.': 'ê´‘ê³ ë¥¼ ê²Œì¬í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ',
-    'An ant can lift up to 50 times its own weight—if you were an ant, you could lift a car by yourself.': 'ê°œë¯¸ëŠ” ìì‹ ì˜ ëª¸ë¬´ê²Œì˜ 50ë°°ê¹Œì§€ ë“¤ì–´ ì˜¬ë¦´ ìˆ˜ ìˆìŠµë‹ˆë‹¤. ê°œë¯¸ë¼ë©´ í˜¼ìì„œ ì°¨ë„ ë“¤ì–´ ì˜¬ë¦´ ìˆ˜ ìˆìŠµë‹ˆë‹¤.',
-    'An average cloud can weigh around 500,000 kg—like a massive herd of elephants floating overhead.': 'í‰ê·  êµ¬ë¦„ì˜ ë¬´ê²ŒëŠ” ì•½ 500,000kgì— ë‹¬í•©ë‹ˆë‹¤. ë§ˆì¹˜ ë¨¸ë¦¬ ìœ„ë¡œ ë– ë‹¤ë‹ˆëŠ” ê±°ëŒ€í•œ ì½”ë¼ë¦¬ ë–¼ì™€ ê°™ìŠµë‹ˆë‹¤.',
-    'An ostrich’s eyes are bigger than its brain—living on the fine line between looking and thinking.': 'íƒ€ì¡°ì˜ ëˆˆì€ ë‡Œë³´ë‹¤ í½ë‹ˆë‹¤. ë³´ëŠ” ê²ƒê³¼ ìƒê°í•˜ëŠ” ê²ƒ ì‚¬ì´ì˜ ë¯¸ì„¸í•œ ê²½ê³„ì— ì‚´ê³  ìˆìŠµë‹ˆë‹¤.',
-    'An unexpected error occurred.': 'ì˜ˆìƒì¹˜ ëª»í•œ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.',
-    'Analysis Time!': 'ë¶„ì„ ì‹œê°„!',
-    'Ants don’t have lungs—and they never truly “sleep”; they operate nonstop like tiny workaholics.': 'ê°œë¯¸ëŠ” íê°€ ì—†ìœ¼ë©° ê²°ì½” ì§„ì •ìœ¼ë¡œ "ì "ì„ ìì§€ ì•ŠìŠµë‹ˆë‹¤. ',
-    'Auth Probe': 'ì¸ì¦ í”„ë¡œë¸Œ',
-    'Bananas are botanically berries, but strawberries aren’t—botany can be weird.': 'ë°”ë‚˜ë‚˜ëŠ” ì‹ë¬¼í•™ì ìœ¼ë¡œ ì—´ë§¤ì´ì§€ë§Œ ë”¸ê¸°ëŠ” ê·¸ë ‡ì§€ ì•ŠìŠµë‹ˆë‹¤. ì‹ë¬¼í•™ì€ ì´ìƒí•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.',
-    'Butterflies taste with their feet—when they land on a leaf, they’re basically sampling dinner.': 'ë‚˜ë¹„ëŠ” ë°œë¡œ ë§›ì„ ë´…ë‹ˆë‹¤. ë‚˜ë­‡ìì— ì•‰ìœ¼ë©´ ê¸°ë³¸ì ìœ¼ë¡œ ì €ë… ì‹ì‚¬ë¥¼ ë§›ë³´ê²Œ ë©ë‹ˆë‹¤.',
-    'Cashews grow outside the cashew apple, hanging at the very end—an oddly surprising design.': 'ìºìŠˆë„›ì€ ìºìŠˆì‚¬ê³¼ ì™¸ë¶€ì—ì„œ ìë¼ì„œ ë§¨ ëì— ë§¤ë‹¬ë ¤ ìˆìŠµë‹ˆë‹¤. ì´ìƒí•˜ê²Œë„ ë†€ë¼ìš´ ë””ìì¸ì…ë‹ˆë‹¤.',
-    'Cats spend about 70% of their lives asleep—so a 10-year-old cat has been awake for only about 3 years.': 'ê³ ì–‘ì´ëŠ” ì¼ìƒì˜ ì•½ 70%ë¥¼ ì ìœ¼ë¡œ ë³´ëƒ…ë‹ˆë‹¤. ë”°ë¼ì„œ 10ì‚´ ëœ ê³ ì–‘ì´ëŠ” ê¹¨ì–´ ìˆëŠ” ê¸°ê°„ì´ ì•½ 3ë…„ì— ë¶ˆê³¼í•©ë‹ˆë‹¤.',
-    'Clear Firebase logs': 'Firebase ë¡œê·¸ ì§€ìš°ê¸°',
-    'Clear store logs': 'ë§¤ì¥ ë¡œê·¸ ì§€ìš°ê¸°',
-    'Close': 'ë‹«ë‹¤',
-    'Connection error. Please try again.': 'ì—°ê²° ì˜¤ë¥˜ì…ë‹ˆë‹¤. ',
-    'Consent update failed. Please try again.': 'ë™ì˜ ì—…ë°ì´íŠ¸ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤. ',
-    'COPY': 'ë³µì‚¬',
-    'Copy all': 'ëª¨ë‘ ë³µì‚¬',
-    'Could not open the link.': 'ë§í¬ë¥¼ ì—´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.',
+    'Bio Planner': '바이오 플래너',
+    'CLOSE': '닫기',
+    'Code': '코드',
+    'Exception': '예외',
+    'Instagram message': '인스타그램 메시지',
+    'Load error': '로드 오류',
+    'Open Instagram': '인스타그램 열기',
+    'Show error': '오류 표시',
+    'SYSTEM UNDER MAINTENANCE': '시스템 ì 검 중',
+    'user': '사용자',
+    '“Whistling” mice are essentially singing to each other, but at frequencies too high for humans to hear.': '"휘파람을 부는" 쥐는 본질ì 으로 서로에게 노래를 부르지만, 그 주파수는 인간이 들을 수 없을 ì •도로 너무 높습니다.',
+    'A blue whale’s heart is so large that a human could swim through its main arteries.': '대왕ê³ 래의 심장은 인간이 주요 동맥을 헤엄쳐 지나갈 수 있을 만큼 크다.',
+    'A new update is available. Please check the store.': '새로운 업데이트를 사용í•  수 있습니다. ',
+    'A snail can sleep for up to three years without waking up—honestly, relatable.': '달팽이는 깨어나지 않ê³  최대 3년 동안 ì 을 잘 수 있습니다. 솔직히 말해서 공감í•  수 있는 일입니다.',
+    'Access is restricted for this account.': '이 계ì •에 대한 액세스가 ì œ한되어 있습니다.',
+    'Ad could not be shown. Please try again.': '광ê³ 를 게재í•  수 없습니다. ',
+    'Ad could not be shown. Results cannot be displayed.': '광ê³ 를 게재í•  수 없습니다. ',
+    'An ant can lift up to 50 times its own weight—if you were an ant, you could lift a car by yourself.': '개미는 자ì‹ 의 몸무게의 50배까지 들어 올릴 수 있습니다. 개미라면 혼자서 차도 들어 올릴 수 있습니다.',
+    'An average cloud can weigh around 500,000 kg—like a massive herd of elephants floating overhead.': '평ê·  구름의 무게는 약 500,000kg에 달합니다. 마치 머리 위로 ë– 다니는 거대한 코끼리 떼와 같습니다.',
+    'An ostrich’s eyes are bigger than its brain—living on the fine line between looking and thinking.': '타조의 눈은 뇌보다 큽니다. 보는 것과 생각하는 것 사이의 미세한 경계에 살ê³  있습니다.',
+    'An unexpected error occurred.': '예상치 못한 오류가 발생했습니다.',
+    'Analysis Time!': '분석 시간!',
+    'Ants don’t have lungs—and they never truly “sleep”; they operate nonstop like tiny workaholics.': '개미는 폐가 없으며 결코 진ì •으로 "ì "을 자지 않습니다. ',
+    'Auth Probe': '인증 프로브',
+    'Bananas are botanically berries, but strawberries aren’t—botany can be weird.': '바나나는 식물학ì 으로 열매이지만 딸기는 그ë ‡지 않습니다. 식물학은 이상í•  수 있습니다.',
+    'Butterflies taste with their feet—when they land on a leaf, they’re basically sampling dinner.': '나비는 발로 맛을 봅니다. 나뭇잎에 앉으면 기본ì 으로 ì €녁 식사를 맛보게 됩니다.',
+    'Cashews grow outside the cashew apple, hanging at the very end—an oddly surprising design.': '캐슈넛은 캐슈사과 외부에서 자라서 맨 끝에 매달ë ¤ 있습니다. 이상하게도 놀라운 디자인입니다.',
+    'Cats spend about 70% of their lives asleep—so a 10-year-old cat has been awake for only about 3 years.': 'ê³ 양이는 일생의 약 70%를 ì 으로 보냅니다. 따라서 10살 된 ê³ 양이는 깨어 있는 기간이 약 3년에 불과합니다.',
+    'Clear Firebase logs': 'Firebase 로그 지우기',
+    'Clear store logs': '매장 로그 지우기',
+    'Close': '닫다',
+    'Connection error. Please try again.': '연결 오류입니다. ',
+    'Consent update failed. Please try again.': '동의 업데이트에 실패했습니다. ',
+    'COPY': '복사',
+    'Copy all': '모두 복사',
+    'Could not open the link.': '링크를 열 수 없습니다.',
     'Cows have “best friends,” and they can get seriously stressed—and even cry—when separated.': '소에게는 “가장 친한 친구”가 있으며, 떨어져 있을 때 심각한 스트레스를 받을 수 있으며 심지어 울 수도 있습니다.',
-    'CRITICAL DIAGNOSTIC ERROR': 'ì‹¬ê°í•œ ì§„ë‹¨ ì˜¤ë¥˜',
-    'Crows don’t just recognize human faces; they can remember people who treated them badly for years—and even warn other crows.': 'ê¹Œë§ˆê·€ëŠ” ì‚¬ëŒì˜ ì–¼êµ´ë§Œ ì¸ì‹í•˜ëŠ” ê²ƒì´ ì•„ë‹™ë‹ˆë‹¤. ',
-    'DID YOU KNOW?': 'ì•Œê³  ê³„ì…¨ë‚˜ìš”?',
-    'Exception: \$e': 'ì˜ˆì™¸: \$e',
-    'Firebase': 'ì¤‘í¬ ê¸°ì§€',
-    'Firebase + Purchase Logs': 'Firebase + êµ¬ë§¤ ë¡œê·¸',
-    'Firebase auth error: user verification failed.': 'Firebase ì¸ì¦ ì˜¤ë¥˜: ì‚¬ìš©ì í™•ì¸ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.',
-    'Firebase Auth probe failed.': 'Firebase ì¸ì¦ í”„ë¡œë¸Œì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.',
-    'Firebase Auth probe success.': 'Firebase ì¸ì¦ í”„ë¡œë¸Œê°€ ì„±ê³µí–ˆìŠµë‹ˆë‹¤.',
-    'Firebase token probe failed.': 'Firebase í† í° ì¡°ì‚¬ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.',
-    'Firestore auth error: user verification failed.': 'Firestore ì¸ì¦ ì˜¤ë¥˜: ì‚¬ìš©ì í™•ì¸ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.',
-    'Firestore auth missing: ig_users write blocked.': 'Firestore ì¸ì¦ ëˆ„ë½: ig_users ì“°ê¸°ê°€ ì°¨ë‹¨ë˜ì—ˆìŠµë‹ˆë‹¤.',
-    'Firestore counter write failed.': 'Firestore ì¹´ìš´í„° ì“°ê¸°ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.',
-    'Firestore ig_users write failed.': 'Firestore ig_users ì“°ê¸°ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.',
-    'Firestore test failed.': 'Firestore í…ŒìŠ¤íŠ¸ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.',
-    'Firestore test write successful.': 'Firestore í…ŒìŠ¤íŠ¸ ì“°ê¸°ì— ì„±ê³µí–ˆìŠµë‹ˆë‹¤.',
-    'Flamingos are born gray; their famous pink comes from pigments in shrimp and algae they eat.': 'í”Œë¼ë°ê³ ëŠ” íšŒìƒ‰ìœ¼ë¡œ íƒœì–´ë‚¬ìŠµë‹ˆë‹¤. ',
-    'Follower data was incomplete.': 'íŒ”ë¡œì–´ ë°ì´í„°ê°€ ë¶ˆì™„ì „í–ˆìŠµë‹ˆë‹¤.',
-    'Following data was incomplete.': 'ë‹¤ìŒ ë°ì´í„°ê°€ ë¶ˆì™„ì „í–ˆìŠµë‹ˆë‹¤.',
-    'GPS is free to use worldwide, but the U.S. government reportedly spends around \\\$2 million a day to keep it running.': 'GPSëŠ” ì „ ì„¸ê³„ì ìœ¼ë¡œ ë¬´ë£Œë¡œ ì‚¬ìš©í•  ìˆ˜ ìˆì§€ë§Œ, ë¯¸êµ­ ì •ë¶€ëŠ” ì´ë¥¼ ìœ ì§€í•˜ê¸° ìœ„í•´ í•˜ë£¨ ì•½ 200ë§Œ ë‹¬ëŸ¬ë¥¼ ì§€ì¶œí•˜ëŠ” ê²ƒìœ¼ë¡œ ì•Œë ¤ì¡Œë‹¤.',
+    'CRITICAL DIAGNOSTIC ERROR': '심각한 진단 오류',
+    'Crows don’t just recognize human faces; they can remember people who treated them badly for years—and even warn other crows.': '까마귀는 사람의 얼굴만 인식하는 것이 아닙니다. ',
+    'DID YOU KNOW?': '알ê³  계셨나요?',
+    'Exception: \$e': '예외: \$e',
+    'Firebase': '중포 기지',
+    'Firebase + Purchase Logs': 'Firebase + 구매 로그',
+    'Firebase auth error: user verification failed.': 'Firebase 인증 오류: 사용자 확인에 실패했습니다.',
+    'Firebase Auth probe failed.': 'Firebase 인증 프로브에 실패했습니다.',
+    'Firebase Auth probe success.': 'Firebase 인증 프로브가 성공했습니다.',
+    'Firebase token probe failed.': 'Firebase í† 큰 조사에 실패했습니다.',
+    'Firestore auth error: user verification failed.': 'Firestore 인증 오류: 사용자 확인에 실패했습니다.',
+    'Firestore auth missing: ig_users write blocked.': 'Firestore 인증 누락: ig_users 쓰기가 차단되었습니다.',
+    'Firestore counter write failed.': 'Firestore 카운터 쓰기에 실패했습니다.',
+    'Firestore ig_users write failed.': 'Firestore ig_users 쓰기에 실패했습니다.',
+    'Firestore test failed.': 'Firestore 테스트에 실패했습니다.',
+    'Firestore test write successful.': 'Firestore 테스트 쓰기에 성공했습니다.',
+    'Flamingos are born gray; their famous pink comes from pigments in shrimp and algae they eat.': '플라밍ê³ 는 회색으로 태어났습니다. ',
+    'Follower data was incomplete.': '팔로어 데이터가 불완ì „했습니다.',
+    'Following data was incomplete.': '다음 데이터가 불완ì „했습니다.',
+    'GPS is free to use worldwide, but the U.S. government reportedly spends around \\\$2 million a day to keep it running.': 'GPS는 ì „ 세계ì 으로 무료로 사용í•  수 있지만, 미국 ì •부는 이를 ìœ 지하기 위해 하루 약 200만 달러를 지출하는 것으로 알ë ¤졌다.',
     'Hippo “sweat” can look pink and acts like both sunscreen and an antibacterial shield.': '하마의 “땀”은 분홍색으로 보일 수 있으며 자외선 차단제와 항균막 역할을 합니다.',
-    'Honey never spoils; archaeologists have found 3,000-year-old jars of honey in Egyptian pyramids that were still edible.': 'ê¿€ì€ ê²°ì½” ìƒí•˜ì§€ ì•ŠìŠµë‹ˆë‹¤. ',
-    'Honeybees can recognize human faces and remember them individually.': 'ê¿€ë²Œì€ ì‚¬ëŒì˜ ì–¼êµ´ì„ ì¸ì‹í•˜ê³  ê°œë³„ì ìœ¼ë¡œ ê¸°ì–µí•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.',
-    'Human DNA is about 50% similar to banana DNA—so calling a banana “my sibling” tomorrow morning isn’t totally unfair.': 'ì¸ê°„ DNAëŠ” ë°”ë‚˜ë‚˜ DNAì™€ ì•½ 50% ìœ ì‚¬í•©ë‹ˆë‹¤. ë”°ë¼ì„œ ë‚´ì¼ ì•„ì¹¨ ë°”ë‚˜ë‚˜ë¥¼ "ë‚´ í˜•ì œ"ë¼ê³  ë¶€ë¥´ëŠ” ê²ƒì€ ì™„ì „íˆ ë¶ˆê³µí‰í•œ ê²ƒì€ ì•„ë‹™ë‹ˆë‹¤.',
-    'Instagram message:\\n\$cleanIg': 'ì¸ìŠ¤íƒ€ê·¸ë¨ ë©”ì‹œì§€:\\n\$cleanIg',
-    'Instagram requires a security verification (suspicious login / account lock). Verify in the Instagram app and try again.': 'ì¸ìŠ¤íƒ€ê·¸ë¨ì€ ë³´ì•ˆ í™•ì¸(ì˜ì‹¬ìŠ¤ëŸ¬ìš´ ë¡œê·¸ì¸/ê³„ì • ì ê¸ˆ)ì´ í•„ìš”í•©ë‹ˆë‹¤. ',
-    'Instagram requires a security verification for your account (suspicious login / temporary lock). We can’t fetch data until it’s verified.': 'Instagramì—ì„œëŠ” ê³„ì •ì— ëŒ€í•œ ë³´ì•ˆ í™•ì¸(ì˜ì‹¬ìŠ¤ëŸ¬ìš´ ë¡œê·¸ì¸/ì„ì‹œ ì ê¸ˆ)ì´ í•„ìš”í•©ë‹ˆë‹¤. ',
-    'Instagram returned an error.': 'Instagramì—ì„œ ì˜¤ë¥˜ë¥¼ ë°˜í™˜í–ˆìŠµë‹ˆë‹¤.',
-    'Instagram returned an unexpected response.': 'ì¸ìŠ¤íƒ€ê·¸ë¨ì´ ì˜ˆìƒì¹˜ ëª»í•œ ì‘ë‹µì„ ë³´ëƒˆìŠµë‹ˆë‹¤.',
-    'Instagram returned no data.': 'Instagramì€ ë°ì´í„°ë¥¼ ë°˜í™˜í•˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.',
-    'Instagram session is invalid or pending verification.': 'Instagram ì„¸ì…˜ì´ ìœ íš¨í•˜ì§€ ì•Šê±°ë‚˜ í™•ì¸ ëŒ€ê¸° ì¤‘ì…ë‹ˆë‹¤.',
-    'Instagram temporarily restricted this action. Please wait a bit and try again.': 'Instagramì—ì„œëŠ” ì´ ì‘ì—…ì„ ì¼ì‹œì ìœ¼ë¡œ ì œí•œí–ˆìŠµë‹ˆë‹¤. ',
-    'Instagram temporarily restricted this action. This can happen when requests are too frequent or activity looks automated. We stopped fetching data.': 'Instagramì—ì„œëŠ” ì´ ì‘ì—…ì„ ì¼ì‹œì ìœ¼ë¡œ ì œí•œí–ˆìŠµë‹ˆë‹¤. ',
-    'Instagram Temporary Restriction': 'ì¸ìŠ¤íƒ€ê·¸ë¨ ì„ì‹œ ì œí•œ',
-    'Instagram Verification Required': 'ì¸ìŠ¤íƒ€ê·¸ë¨ ì¸ì¦ í•„ìš”',
-    'Invalid store link.': 'ì˜ëª»ëœ ë§¤ì¥ ë§í¬ì…ë‹ˆë‹¤.',
-    'Load error: \${err.message} (Code: \${err.code})': 'ë¡œë“œ ì˜¤ë¥˜: \${err.message}(ì½”ë“œ: \${err.code})',
-    'Loading stories...': 'ìŠ¤í† ë¦¬ ë¡œë“œ ì¤‘...',
-    'Loading...': 'ë¡œë“œ ì¤‘...',
-    'Login': 'ë¡œê·¸ì¸',
-    'Mount Everest keeps growing by about 4 millimeters each year—Earth is still changing.': 'ì—ë² ë ˆìŠ¤íŠ¸ ì‚°ì€ ë§¤ë…„ ì•½ 4mmì”© ê³„ì† ìëë‹ˆë‹¤. ì§€êµ¬ëŠ” ì—¬ì „íˆ ë³€í™”í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    'NEW': 'ìƒˆë¡œìš´',
-    'No data': 'ë°ì´í„° ì—†ìŒ',
-    'No Firebase logs yet.': 'ì•„ì§ Firebase ë¡œê·¸ê°€ ì—†ìŠµë‹ˆë‹¤.',
-    'No store logs yet.': 'ì•„ì§ ë§¤ì¥ ë¡œê·¸ê°€ ì—†ìŠµë‹ˆë‹¤.',
-    'Note: After verification, you may need to wait 1–2 minutes.': 'ì°¸ê³ : í™•ì¸ í›„ 1~2ë¶„ ì •ë„ ê¸°ë‹¤ë ¤ì•¼ í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.',
-    'Note: Running analyses back-to-back can trigger this.': 'ì°¸ê³ : ì—°ì†ì ìœ¼ë¡œ ë¶„ì„ì„ ì‹¤í–‰í•˜ë©´ ì´ ë¬¸ì œê°€ ë°œìƒí•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.',
-    'Octopuses have three hearts and nine brains—forgetting things isn’t really an option.': 'ë¬¸ì–´ëŠ” 3ê°œì˜ ì‹¬ì¥ê³¼ 9ê°œì˜ ë‡Œë¥¼ ê°€ì§€ê³  ìˆìŠµë‹ˆë‹¤. ìŠì–´ë²„ë¦¬ëŠ” ê²ƒì€ ì‹¤ì œë¡œ ì„ íƒ ì‚¬í•­ì´ ì•„ë‹™ë‹ˆë‹¤.',
-    'On Saturn and Jupiter, it can literally rain diamonds—apparently we’re living on the wrong planet.': 'í† ì„±ê³¼ ëª©ì„±ì—ì„œëŠ” ë¬¸ì ê·¸ëŒ€ë¡œ ë‹¤ì´ì•„ëª¬ë“œ ë¹„ê°€ ë‚´ë¦´ ìˆ˜ ìˆìŠµë‹ˆë‹¤. ë¶„ëª…íˆ ìš°ë¦¬ëŠ” ì˜ëª»ëœ í–‰ì„±ì— ì‚´ê³  ìˆìŠµë‹ˆë‹¤.',
-    'On Venus, a day is longer than a year—it rotates on its axis more slowly than it orbits the Sun.': 'ê¸ˆì„±ì—ì„œëŠ” í•˜ë£¨ê°€ 1ë…„ë³´ë‹¤ ê¸¸ê¸° ë•Œë¬¸ì— íƒœì–‘ì„ ê³µì „í•˜ëŠ” ê²ƒë³´ë‹¤ ì¶•ì„ ì¤‘ì‹¬ìœ¼ë¡œ ë” ì²œì²œíˆ íšŒì „í•©ë‹ˆë‹¤.',
-    'OPEN LOGS': 'ì˜¤í”ˆ ë¡œê·¸',
-    'Opening consent form...': 'ë™ì˜ì„œë¥¼ ì—¬ëŠ” ì¤‘...',
-    'Pigeons can tell the difference between paintings by Picasso and Monet—turns out they’re more art-savvy than we think.': 'ë¹„ë‘˜ê¸°ëŠ” í”¼ì¹´ì†Œì™€ ëª¨ë„¤ì˜ ê·¸ë¦¼ì„ êµ¬ë³„í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤. ì•Œê³  ë³´ë‹ˆ ê·¸ ê·¸ë¦¼ì€ ìš°ë¦¬ê°€ ìƒê°í•˜ëŠ” ê²ƒë³´ë‹¤ ì˜ˆìˆ ì— ë” ì •í†µí•œ ê²ƒìœ¼ë¡œ ë‚˜íƒ€ë‚¬ìŠµë‹ˆë‹¤.',
-    'Platypuses don’t have stomachs—food goes from the esophagus straight to the intestines.': 'ì˜¤ë¦¬ë„ˆêµ¬ë¦¬ì—ëŠ” ìœ„ê°€ ì—†ìŠµë‹ˆë‹¤. ìŒì‹ì€ ì‹ë„ì—ì„œ ê³§ë°”ë¡œ ì¥ìœ¼ë¡œ ì´ë™í•©ë‹ˆë‹¤.',
-    'Please try again.': 'ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.',
-    'Polar bears actually have black skin, and their fur is transparent; they look white because of how light scatters.': 'ë¶ê·¹ê³°ì€ ì‹¤ì œë¡œ ê²€ì€ í”¼ë¶€ë¥¼ ê°€ì§€ê³  ìˆê³  í„¸ì€ íˆ¬ëª…í•©ë‹ˆë‹¤. ',
+    'Honey never spoils; archaeologists have found 3,000-year-old jars of honey in Egyptian pyramids that were still edible.': '꿀은 결코 상하지 않습니다. ',
+    'Honeybees can recognize human faces and remember them individually.': '꿀벌은 사람의 얼굴을 인식하ê³  개별ì 으로 기억í•  수 있습니다.',
+    'Human DNA is about 50% similar to banana DNA—so calling a banana “my sibling” tomorrow morning isn’t totally unfair.': '인간 DNA는 바나나 DNA와 약 50% ìœ 사합니다. 따라서 내일 아침 바나나를 "내 형ì œ"라ê³  부르는 것은 완ì „히 불공평한 것은 아닙니다.',
+    'Instagram message:\\n\$cleanIg': '인스타그램 메시지:\\n\$cleanIg',
+    'Instagram requires a security verification (suspicious login / account lock). Verify in the Instagram app and try again.': '인스타그램은 보안 확인(의심스러운 로그인/계ì • ì 금)이 필요합니다. ',
+    'Instagram requires a security verification for your account (suspicious login / temporary lock). We can’t fetch data until it’s verified.': 'Instagram에서는 계ì •에 대한 보안 확인(의심스러운 로그인/임시 ì 금)이 필요합니다. ',
+    'Instagram returned an error.': 'Instagram에서 오류를 반환했습니다.',
+    'Instagram returned an unexpected response.': '인스타그램이 예상치 못한 응답을 보냈습니다.',
+    'Instagram returned no data.': 'Instagram은 데이터를 반환하지 않았습니다.',
+    'Instagram session is invalid or pending verification.': 'Instagram 세션이 ìœ 효하지 않거나 확인 대기 중입니다.',
+    'Instagram temporarily restricted this action. Please wait a bit and try again.': 'Instagram에서는 이 작업을 일시ì 으로 ì œ한했습니다. ',
+    'Instagram temporarily restricted this action. This can happen when requests are too frequent or activity looks automated. We stopped fetching data.': 'Instagram에서는 이 작업을 일시ì 으로 ì œ한했습니다. ',
+    'Instagram Temporary Restriction': '인스타그램 임시 ì œ한',
+    'Instagram Verification Required': '인스타그램 인증 필요',
+    'Invalid store link.': '잘못된 매장 링크입니다.',
+    'Load error: \${err.message} (Code: \${err.code})': '로드 오류: \${err.message}(코드: \${err.code})',
+    'Loading stories...': '스í† 리 로드 중...',
+    'Loading...': '로드 중...',
+    'Login': '로그인',
+    'Mount Everest keeps growing by about 4 millimeters each year—Earth is still changing.': '에ë² ë ˆ스트 산은 매년 약 4mm씩 계속 자랍니다. 지구는 여ì „히 변화하ê³  있습니다.',
+    'NEW': '새로운',
+    'No data': '데이터 없음',
+    'No Firebase logs yet.': '아직 Firebase 로그가 없습니다.',
+    'No store logs yet.': '아직 매장 로그가 없습니다.',
+    'Note: After verification, you may need to wait 1–2 minutes.': '참ê³ : 확인 후 1~2분 ì •도 기다ë ¤야 í•  수 있습니다.',
+    'Note: Running analyses back-to-back can trigger this.': '참ê³ : 연속ì 으로 분석을 실행하면 이 문ì œ가 발생í•  수 있습니다.',
+    'Octopuses have three hearts and nine brains—forgetting things isn’t really an option.': '문어는 3개의 심장과 9개의 뇌를 가지ê³  있습니다. 잊어버리는 것은 실ì œ로 ì„ 택 사항이 아닙니다.',
+    'On Saturn and Jupiter, it can literally rain diamonds—apparently we’re living on the wrong planet.': 'í† 성과 목성에서는 문자 그대로 다이아몬드 비가 내릴 수 있습니다. 분명히 우리는 잘못된 행성에 살ê³  있습니다.',
+    'On Venus, a day is longer than a year—it rotates on its axis more slowly than it orbits the Sun.': '금성에서는 하루가 1년보다 길기 때문에 태양을 공ì „하는 것보다 축을 중심으로 더 천천히 회ì „합니다.',
+    'OPEN LOGS': '오픈 로그',
+    'Opening consent form...': '동의서를 여는 중...',
+    'Pigeons can tell the difference between paintings by Picasso and Monet—turns out they’re more art-savvy than we think.': '비둘기는 피카소와 모네의 그림을 구별í•  수 있습니다. 알ê³  보니 그 그림은 우리가 생각하는 것보다 예ìˆ 에 더 ì •통한 것으로 나타났습니다.',
+    'Platypuses don’t have stomachs—food goes from the esophagus straight to the intestines.': '오리너구리에는 위가 없습니다. 음식은 식도에서 곧바로 장으로 이동합니다.',
+    'Please try again.': '다시 시도해 주세요.',
+    'Polar bears actually have black skin, and their fur is transparent; they look white because of how light scatters.': '북극곰은 실ì œ로 검은 피부를 가지ê³  있ê³  털은 투명합니다. ',
     'Premium active ✅ Ads and wait times are disabled.': '프리미엄 활성 ✅ 광고 및 대기 시간이 비활성화됩니다.',
-    'Privacy Policy': 'ê°œì¸ ì •ë³´ ë³´í˜¸ ì •ì±…',
-    'Purchase cancelled.': 'êµ¬ë§¤ê°€ ì·¨ì†Œë˜ì—ˆìŠµë‹ˆë‹¤.',
-    'Purchase failed.': 'êµ¬ë§¤ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.',
-    'Purchase failed. Please try again.': 'êµ¬ë§¤ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤. ',
-    'Purchase successful.': 'êµ¬ë§¤ì— ì„±ê³µí–ˆìŠµë‹ˆë‹¤.',
-    'Purchase Test': 'êµ¬ë§¤ í…ŒìŠ¤íŠ¸',
-    'REST Probe': 'REST í”„ë¡œë¸Œ',
-    'REST probe failed (check logs).': 'REST í”„ë¡œë¸Œê°€ ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤(ë¡œê·¸ í™•ì¸).',
-    'REST probe failed: missing auth.': 'REST í”„ë¡œë¸Œ ì‹¤íŒ¨: ì¸ì¦ì´ ëˆ„ë½ë˜ì—ˆìŠµë‹ˆë‹¤.',
-    'REST probe success (Firestore endpoint reachable).': 'REST í”„ë¡œë¸Œ ì„±ê³µ(Firestore ì—”ë“œí¬ì¸íŠ¸ì— ë„ë‹¬ ê°€ëŠ¥)',
-    'Restore Test': 'ë³µì› í…ŒìŠ¤íŠ¸',
-    'Sea otters hold hands while they sleep so they don’t drift apart in the current.': 'í•´ë‹¬ì€ ì ì„ ì˜ ë•Œ ì†ì„ ì¡ê³  ë¬¼ì‚´ì— í©ì–´ì§€ì§€ ì•Šë„ë¡ í•©ë‹ˆë‹¤.',
-    'Secret Mode': 'ë¹„ë°€ ëª¨ë“œ',
-    'Session expired or verification required.': 'ì„¸ì…˜ì´ ë§Œë£Œë˜ì—ˆê±°ë‚˜ í™•ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤.',
-    'Session is invalid. Please log in again.': 'ì„¸ì…˜ì´ ìœ íš¨í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤. ',
-    'Session verification failed. Please log in again.': 'ì„¸ì…˜ í™•ì¸ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤. ',
-    'Session verified, redirecting...': 'ì„¸ì…˜ì´ í™•ì¸ë˜ì—ˆìŠµë‹ˆë‹¤. ë¦¬ë””ë ‰ì…˜ ì¤‘...',
-    'Sharks are older than Saturn’s rings—they were around millions of years before Saturn got its famous bling.': 'ìƒì–´ëŠ” í† ì„±ì˜ ê³ ë¦¬ë³´ë‹¤ ë‚˜ì´ê°€ ë§ìŠµë‹ˆë‹¤. í† ì„±ì´ ê·¸ ìœ ëª…í•œ ë¸”ë§ë¸”ë§ì„ ê°–ê¸° ì•½ ìˆ˜ë°±ë§Œ ë…„ ì „ì…ë‹ˆë‹¤.',
-    'Sharks are older than trees—sharks have been around for about 400 million years, trees for about 350 million.': 'ìƒì–´ëŠ” ë‚˜ë¬´ë³´ë‹¤ ë‚˜ì´ê°€ ë§ìŠµë‹ˆë‹¤. ìƒì–´ëŠ” ì•½ 4ì–µ ë…„, ë‚˜ë¬´ëŠ” ì•½ 3ì–µ 5ì²œë§Œ ë…„ ë™ì•ˆ ì¡´ì¬í–ˆìŠµë‹ˆë‹¤.',
-    'Show error: \${err.message}': 'ì˜¤ë¥˜ í‘œì‹œ: \${err.message}',
-    'Sloths can hold their breath underwater longer than dolphins—up to about 40 minutes.': 'ë‚˜ë¬´ëŠ˜ë³´ëŠ” ë¬¼ ì†ì—ì„œ ëŒê³ ë˜ë³´ë‹¤ ë” ì˜¤ë«ë™ì•ˆ(ìµœëŒ€ ì•½ 40ë¶„) ìˆ¨ì„ ì°¸ì„ ìˆ˜ ìˆìŠµë‹ˆë‹¤.',
-    'Squirrels help grow thousands of new trees each year because they forget where they buried nuts.': 'ë‹¤ëŒì¥ëŠ” ê²¬ê³¼ë¥˜ë¥¼ ì–´ë””ì— ë¬»ì—ˆëŠ”ì§€ ìŠì–´ë²„ë¦¬ê¸° ë•Œë¬¸ì— ë§¤ë…„ ìˆ˜ì²œ ê·¸ë£¨ì˜ ìƒˆë¡œìš´ ë‚˜ë¬´ê°€ ìë¼ëŠ” ë° ë„ì›€ì„ ì¤ë‹ˆë‹¤.',
-    'Starting purchase...': 'êµ¬ë§¤ ì‹œì‘ ì¤‘...',
-    'Store': 'ê°€ê²Œ',
-    'Store link not set.': 'ìŠ¤í† ì–´ ë§í¬ê°€ ì„¤ì •ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.',
-    'The Eiffel Tower can grow by about 15 centimeters in summer due to thermal expansion.': 'ì—í íƒ‘ì€ ì—¬ë¦„ì— ì—´íŒ½ì°½ìœ¼ë¡œ ì¸í•´ ì•½ 15cm ì •ë„ ìë„ ìˆ˜ ìˆìŠµë‹ˆë‹¤.',
-    'The first video game played in space was Tetris—played on a Game Boy by a cosmonaut in 1993.': 'ìš°ì£¼ì—ì„œ í”Œë ˆì´ëœ ìµœì´ˆì˜ ë¹„ë””ì˜¤ ê²Œì„ì€ 1993ë…„ ìš°ì£¼ë¹„í–‰ì‚¬ê°€ ê²Œì„ë³´ì´ë¡œ í”Œë ˆì´í•œ í…ŒíŠ¸ë¦¬ìŠ¤ì˜€ìŠµë‹ˆë‹¤.',
-    'The lighter was invented before the match—sometimes “old” tech is older than we think.': 'ë¼ì´í„°ëŠ” ê²½ê¸° ì „ì— ë°œëª…ë˜ì—ˆìŠµë‹ˆë‹¤. ë•Œë¡œëŠ” "ì˜¤ë˜ëœ" ê¸°ìˆ ì´ ìš°ë¦¬ê°€ ìƒê°í•˜ëŠ” ê²ƒë³´ë‹¤ ì˜¤ë˜ë˜ì—ˆìŠµë‹ˆë‹¤.',
-    'The total weight of all humans on Earth is roughly comparable to the total weight of all ants.': 'ì§€êµ¬ìƒì˜ ëª¨ë“  ì¸ê°„ì˜ ì´ ë¬´ê²ŒëŠ” ëª¨ë“  ê°œë¯¸ì˜ ì´ ë¬´ê²Œì™€ ëŒ€ëµ ë¹„ìŠ·í•©ë‹ˆë‹¤.',
-    'The world’s first computer virus was called “Creeper,” and it displayed: “I’m the creeper, catch me if you can!”': 'ì„¸ê³„ ìµœì´ˆì˜ ì»´í“¨í„° ë°”ì´ëŸ¬ìŠ¤ëŠ” "í¬ë¦¬í¼(Creeper)"ë¼ê³  ë¶ˆë¦¬ë©° ë‹¤ìŒê³¼ ê°™ì´ í‘œì‹œë©ë‹ˆë‹¤. "ë‚´ê°€ í¬ë¦¬í¼ì…ë‹ˆë‹¤. ê°€ëŠ¥í•˜ë‹¤ë©´ ë‚˜ë¥¼ ì¡ì•„ì£¼ì„¸ìš”!"',
-    'Time to update data! Analyze now to see changes in your follower list.': 'ë°ì´í„°ë¥¼ ì—…ë°ì´íŠ¸í•  ì‹œê°„ì…ë‹ˆë‹¤! ',
-    'Timeout': 'ì‹œê°„ ì´ˆê³¼',
-    'Too many requests were sent.': 'ìš”ì²­ì´ ë„ˆë¬´ ë§ì´ ì „ì†¡ë˜ì—ˆìŠµë‹ˆë‹¤.',
-    'User': 'ì‚¬ìš©ì',
-    'William Shakespeare is credited with the first recorded use of the word “swagger”—even in the 16th century, he had style.': 'ìœŒë¦¬ì—„ ì…°ìµìŠ¤í”¼ì–´ëŠ” "swagger"ë¼ëŠ” ë‹¨ì–´ë¥¼ ì²˜ìŒìœ¼ë¡œ ì‚¬ìš©í•œ ê²ƒìœ¼ë¡œ ê¸°ë¡ë˜ì–´ ìˆìŠµë‹ˆë‹¤. 16ì„¸ê¸°ì—ë„ ê·¸ì—ê²ŒëŠ” ìŠ¤íƒ€ì¼ì´ ìˆì—ˆìŠµë‹ˆë‹¤.',
-    'Wombat poop is cube-shaped, so it doesn’t roll away and can mark territory more effectively.': 'ì›œë±ƒì˜ ë˜¥ì€ íë¸Œ í˜•íƒœì´ê¸° ë•Œë¬¸ì— êµ´ëŸ¬ê°€ì§€ ì•Šê³  ë”ìš± íš¨ê³¼ì ìœ¼ë¡œ ì˜ì—­ì„ í‘œì‹œí•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.',
-    'Woodpeckers wrap their tongues around their brains to help avoid concussions—using your tongue as a helmet is a wild solution.': 'ë”±ë”°êµ¬ë¦¬ëŠ” ë‡Œì§„íƒ•ì„ í”¼í•˜ê¸° ìœ„í•´ í˜€ë¡œ ë‡Œë¥¼ ê°ìŒ‰ë‹ˆë‹¤. í˜€ë¥¼ í—¬ë©§ìœ¼ë¡œ ì‚¬ìš©í•˜ëŠ” ê²ƒì€ íšê¸°ì ì¸ í•´ê²°ì±…ì…ë‹ˆë‹¤.',
-    'Write Test': 'í…ŒìŠ¤íŠ¸ ì‘ì„±',
-    'You can’t really cry in space: without gravity, tears don’t run down your face—they form a blob in your eye.': 'ìš°ì£¼ì—ì„œëŠ” ì‹¤ì œë¡œ ìš¸ ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ì¤‘ë ¥ì´ ì—†ìœ¼ë©´ ëˆˆë¬¼ì´ ì–¼êµ´ë¡œ í˜ëŸ¬ë‚´ë¦¬ì§€ ì•Šê³  ëˆˆì— ë°©ìš¸ì„ í˜•ì„±í•©ë‹ˆë‹¤.',
-    'Your account is blocked': 'ê·€í•˜ì˜ ê³„ì •ì´ ì°¨ë‹¨ë˜ì—ˆìŠµë‹ˆë‹¤',
-    'Your consent preference was updated.': 'ë™ì˜ ê¸°ë³¸ ì„¤ì •ì´ ì—…ë°ì´íŠ¸ë˜ì—ˆìŠµë‹ˆë‹¤.',
+    'Privacy Policy': '개인 ì •보 보호 ì •책',
+    'Purchase cancelled.': '구매가 취소되었습니다.',
+    'Purchase failed.': '구매에 실패했습니다.',
+    'Purchase failed. Please try again.': '구매에 실패했습니다. ',
+    'Purchase successful.': '구매에 성공했습니다.',
+    'Purchase Test': '구매 테스트',
+    'REST Probe': 'REST 프로브',
+    'REST probe failed (check logs).': 'REST 프로브가 실패했습니다(로그 확인).',
+    'REST probe failed: missing auth.': 'REST 프로브 실패: 인증이 누락되었습니다.',
+    'REST probe success (Firestore endpoint reachable).': 'REST 프로브 성공(Firestore 엔드포인트에 도달 가능)',
+    'Restore Test': '복원 테스트',
+    'Sea otters hold hands while they sleep so they don’t drift apart in the current.': '해달은 ì 을 잘 때 손을 잡ê³  물살에 흩어지지 않도록 합니다.',
+    'Secret Mode': '비밀 모드',
+    'Session expired or verification required.': '세션이 만료되었거나 확인이 필요합니다.',
+    'Session is invalid. Please log in again.': '세션이 ìœ 효하지 않습니다. ',
+    'Session verification failed. Please log in again.': '세션 확인에 실패했습니다. ',
+    'Session verified, redirecting...': '세션이 확인되었습니다. 리디ë ‰션 중...',
+    'Sharks are older than Saturn’s rings—they were around millions of years before Saturn got its famous bling.': '상어는 í† 성의 ê³ 리보다 나이가 많습니다. í† 성이 그 ìœ 명한 블링블링을 갖기 약 수백만 년 ì „입니다.',
+    'Sharks are older than trees—sharks have been around for about 400 million years, trees for about 350 million.': '상어는 나무보다 나이가 많습니다. 상어는 약 4억 년, 나무는 약 3억 5천만 년 동안 존재했습니다.',
+    'Show error: \${err.message}': '오류 표시: \${err.message}',
+    'Sloths can hold their breath underwater longer than dolphins—up to about 40 minutes.': '나무늘보는 물 속에서 돌ê³ 래보다 더 오랫동안(최대 약 40분) 숨을 참을 수 있습니다.',
+    'Squirrels help grow thousands of new trees each year because they forget where they buried nuts.': '다람쥐는 견과류를 어디에 묻었는지 잊어버리기 때문에 매년 수천 그루의 새로운 나무가 자라는 데 도움을 줍니다.',
+    'Starting purchase...': '구매 시작 중...',
+    'Store': '가게',
+    'Store link not set.': '스í† 어 링크가 설ì •되지 않았습니다.',
+    'The Eiffel Tower can grow by about 15 centimeters in summer due to thermal expansion.': '에í 탑은 여름에 열팽창으로 인해 약 15cm ì •도 자랄 수 있습니다.',
+    'The first video game played in space was Tetris—played on a Game Boy by a cosmonaut in 1993.': '우주에서 플ë ˆ이된 최초의 비디오 게임은 1993년 우주비행사가 게임보이로 플ë ˆ이한 테트리스였습니다.',
+    'The lighter was invented before the match—sometimes “old” tech is older than we think.': '라이터는 경기 ì „에 발명되었습니다. 때로는 "오래된" 기ìˆ 이 우리가 생각하는 것보다 오래되었습니다.',
+    'The total weight of all humans on Earth is roughly comparable to the total weight of all ants.': '지구상의 모ë“  인간의 총 무게는 모ë“  개미의 총 무게와 대략 비슷합니다.',
+    'The world’s first computer virus was called “Creeper,” and it displayed: “I’m the creeper, catch me if you can!”': '세계 최초의 컴퓨터 바이러스는 "크리퍼(Creeper)"라ê³  불리며 다음과 같이 표시됩니다. "내가 크리퍼입니다. 가능하다면 나를 잡아주세요!"',
+    'Time to update data! Analyze now to see changes in your follower list.': '데이터를 업데이트í•  시간입니다! ',
+    'Timeout': '시간 초과',
+    'Too many requests were sent.': '요청이 너무 많이 ì „송되었습니다.',
+    'User': '사용자',
+    'William Shakespeare is credited with the first recorded use of the word “swagger”—even in the 16th century, he had style.': '윌리엄 셰익스피어는 "swagger"라는 단어를 처음으로 사용한 것으로 기록되어 있습니다. 16세기에도 그에게는 스타일이 있었습니다.',
+    'Wombat poop is cube-shaped, so it doesn’t roll away and can mark territory more effectively.': '웜뱃의 똥은 큐브 형태이기 때문에 굴러가지 않ê³  더욱 효과ì 으로 영역을 표시í•  수 있습니다.',
+    'Woodpeckers wrap their tongues around their brains to help avoid concussions—using your tongue as a helmet is a wild solution.': '딱따구리는 뇌진탕을 피하기 위해 혀로 뇌를 감쌉니다. 혀를 헬멧으로 사용하는 것은 획기ì 인 해결책입니다.',
+    'Write Test': '테스트 작성',
+    'You can’t really cry in space: without gravity, tears don’t run down your face—they form a blob in your eye.': '우주에서는 실ì œ로 울 수 없습니다. 중ë ¥이 없으면 눈물이 얼굴로 흘러내리지 않ê³  눈에 방울을 형성합니다.',
+    'Your account is blocked': '귀하의 계ì •이 차단되었습니다',
+    'Your consent preference was updated.': '동의 기본 설ì •이 업데이트되었습니다.',
   },
   'ja': {
-    'Bio Planner': 'Bio ãƒ—ãƒ©ãƒ³ãƒŠãƒ¼',
-    'CLOSE': 'é–‰ã˜ã‚‹',
-    'Code': 'ã‚³ãƒ¼ãƒ‰',
-    'Exception': 'ä¾‹å¤–',
-    'Instagram message': 'Instagram ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸',
-    'Load error': 'ãƒ­ãƒ¼ãƒ‰ã‚¨ãƒ©ãƒ¼',
-    'Open Instagram': 'ã‚¤ãƒ³ã‚¹ã‚¿ã‚°ãƒ©ãƒ ã‚’é–‹ã',
-    'Show error': 'ã‚¨ãƒ©ãƒ¼ã‚’è¡¨ç¤º',
-    'SYSTEM UNDER MAINTENANCE': 'ã‚·ã‚¹ãƒ†ãƒ ãƒ¡ãƒ³ãƒ†ãƒŠãƒ³ã‚¹ä¸­',
-    'user': 'ãƒ¦ãƒ¼ã‚¶ãƒ¼',
-    '“Whistling” mice are essentially singing to each other, but at frequencies too high for humans to hear.': 'ã€Œå£ç¬›ã‚’å¹ãã€ãƒã‚ºãƒŸã¯åŸºæœ¬çš„ã«ãŠäº’ã„ã«æ­Œã‚’æ­Œã£ã¦ã„ã¾ã™ãŒã€ãã®å‘¨æ³¢æ•°ã¯äººé–“ã«ã¯èãå–ã‚Œãªã„ã»ã©é«˜ã™ãã¾ã™ã€‚',
-    'A blue whale’s heart is so large that a human could swim through its main arteries.': 'ã‚·ãƒ­ãƒŠã‚¬ã‚¹ã‚¯ã‚¸ãƒ©ã®å¿ƒè‡“ã¯ã€äººé–“ãŒãã®å¤§å‹•è„ˆã‚’æ³³ã„ã§é€šã‚Œã‚‹ã»ã©å¤§ãã„ã€‚',
-    'A new update is available. Please check the store.': 'æ–°ã—ã„ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆãŒåˆ©ç”¨å¯èƒ½ã§ã™ã€‚',
-    'A snail can sleep for up to three years without waking up—honestly, relatable.': 'ã‚«ã‚¿ãƒ„ãƒ ãƒªã¯æœ€é•· 3 å¹´é–“ç›®è¦šã‚ãšã«çœ ã‚‹ã“ã¨ãŒã§ãã¾ã™ã€‚æ­£ç›´è¨€ã£ã¦ã€ã¨ã¦ã‚‚å…±æ„Ÿã§ãã¾ã™ã€‚',
-    'Access is restricted for this account.': 'ã“ã®ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã¸ã®ã‚¢ã‚¯ã‚»ã‚¹ã¯åˆ¶é™ã•ã‚Œã¦ã„ã¾ã™ã€‚',
-    'Ad could not be shown. Please try again.': 'åºƒå‘Šã‚’è¡¨ç¤ºã§ãã¾ã›ã‚“ã§ã—ãŸã€‚',
-    'Ad could not be shown. Results cannot be displayed.': 'åºƒå‘Šã‚’è¡¨ç¤ºã§ãã¾ã›ã‚“ã§ã—ãŸã€‚',
-    'An ant can lift up to 50 times its own weight—if you were an ant, you could lift a car by yourself.': 'ã‚¢ãƒªã¯è‡ªåˆ†ã®ä½“é‡ã® 50 å€ã‚‚ã®é‡é‡ã‚’æŒã¡ä¸Šã’ã‚‹ã“ã¨ãŒã§ãã¾ã™ã€‚ã‚ãªãŸãŒã‚¢ãƒªã ã£ãŸã‚‰ã€ä¸€äººã§è»Šã‚’æŒã¡ä¸Šã’ã‚‹ã“ã¨ãŒã§ãã‚‹ã§ã—ã‚‡ã†ã€‚',
-    'An average cloud can weigh around 500,000 kg—like a massive herd of elephants floating overhead.': 'å¹³å‡çš„ãªé›²ã®é‡ã•ã¯ç´„ 500,000 kg ã‚ã‚Šã€é ­ä¸Šã«æµ®ã‹ã¶å·¨å¤§ãªè±¡ã®ç¾¤ã‚Œã«ä¼¼ã¦ã„ã¾ã™ã€‚',
-    'An ostrich’s eyes are bigger than its brain—living on the fine line between looking and thinking.': 'ãƒ€ãƒãƒ§ã‚¦ã®ç›®ã¯è„³ã‚ˆã‚Šã‚‚å¤§ããã€è¦‹ã‚‹ã“ã¨ã¨è€ƒãˆã‚‹ã“ã¨ã®ç´™ä¸€é‡ã§ç”Ÿãã¦ã„ã¾ã™ã€‚',
-    'An unexpected error occurred.': 'äºˆæœŸã—ãªã„ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚',
+    'Bio Planner': 'Bio プランナー',
+    'CLOSE': '閉じる',
+    'Code': 'コード',
+    'Exception': '例外',
+    'Instagram message': 'Instagram メッセージ',
+    'Load error': 'ロードエラー',
+    'Open Instagram': 'インスタグラãƒ を開く',
+    'Show error': 'エラーを表示',
+    'SYSTEM UNDER MAINTENANCE': 'システãƒ メンテナンス中',
+    'user': 'ユーザー',
+    '“Whistling” mice are essentially singing to each other, but at frequencies too high for humans to hear.': '「口笛を吹く」ネズミは基本的にお互いに歌を歌っていますが、その周波数は人間には聞き取れないほど高すぎます。',
+    'A blue whale’s heart is so large that a human could swim through its main arteries.': 'シロナガスクジラの心臓は、人間がその大動脈を泳いで通れるほど大きい。',
+    'A new update is available. Please check the store.': '新しいアップデートが利用可能です。',
+    'A snail can sleep for up to three years without waking up—honestly, relatable.': 'カタツãƒ リは最長 3 年間目覚めずにçœ ることができます。正直言って、とても共感できます。',
+    'Access is restricted for this account.': 'このアカウントへのアクセスは制限されています。',
+    'Ad could not be shown. Please try again.': '広告を表示できませんでした。',
+    'Ad could not be shown. Results cannot be displayed.': '広告を表示できませんでした。',
+    'An ant can lift up to 50 times its own weight—if you were an ant, you could lift a car by yourself.': 'アリは自分の体重の 50 倍もの重量を持ち上げることができます。あなたがアリã ったら、一人で車を持ち上げることができるでしょう。',
+    'An average cloud can weigh around 500,000 kg—like a massive herd of elephants floating overhead.': '平均的な雲の重さは約 500,000 kg あり、é ­上に浮かぶ巨大な象の群れに似ています。',
+    'An ostrich’s eyes are bigger than its brain—living on the fine line between looking and thinking.': 'ダチョウの目は脳よりも大きく、見ることと考えることの紙一重で生きています。',
+    'An unexpected error occurred.': '予期しないエラーが発生しました。',
     'Analysis Time!': '分析タイム！',
-    'Ants don’t have lungs—and they never truly “sleep”; they operate nonstop like tiny workaholics.': 'ã‚¢ãƒªã«ã¯è‚ºãŒã‚ã‚Šã¾ã›ã‚“ã€‚ãã—ã¦ã€ã‚¢ãƒªã¯æœ¬å½“ã«ã€Œçœ ã‚‹ã€ã“ã¨ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚',
-    'Auth Probe': 'èªè¨¼ãƒ—ãƒ­ãƒ¼ãƒ–',
-    'Bananas are botanically berries, but strawberries aren’t—botany can be weird.': 'ãƒãƒŠãƒŠã¯æ¤ç‰©å­¦çš„ã«ã¯æœå®Ÿã§ã™ãŒã€ã‚¤ãƒã‚´ã¯ãã†ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚æ¤ç‰©å­¦ã¯å¥‡å¦™ãªå ´åˆãŒã‚ã‚Šã¾ã™ã€‚',
-    'Butterflies taste with their feet—when they land on a leaf, they’re basically sampling dinner.': 'è¶ã¯è¶³ã§å‘³ã‚’æ„Ÿã˜ã¾ã™ã€‚è‘‰ã«æ­¢ã¾ã‚‹ã¨ãã€å½¼ã‚‰ã¯åŸºæœ¬çš„ã«å¤•é£Ÿã‚’è©¦é£Ÿã—ã¦ã„ã‚‹ã®ã§ã™ã€‚',
-    'Cashews grow outside the cashew apple, hanging at the very end—an oddly surprising design.': 'ã‚«ã‚·ãƒ¥ãƒ¼ãƒŠãƒƒãƒ„ã¯ã‚«ã‚·ãƒ¥ãƒ¼ã‚¢ãƒƒãƒ—ãƒ«ã®å¤–å´ã«ç”Ÿãˆã€æœ€å¾Œã«ã¶ã‚‰ä¸‹ãŒã£ã¦ã„ã¾ã™ã€‚å¥‡å¦™ã«é©šãã¹ããƒ‡ã‚¶ã‚¤ãƒ³ã§ã™ã€‚',
-    'Cats spend about 70% of their lives asleep—so a 10-year-old cat has been awake for only about 3 years.': 'çŒ«ã¯ä¸€ç”Ÿã®ç´„ 70% ã‚’çœ ã£ã¦éã”ã—ã¾ã™ã€‚ã¤ã¾ã‚Šã€10 æ­³ã®çŒ«ãŒèµ·ãã¦ã„ã‚‹ã®ã¯ã‚ãšã‹ 3 å¹´ã»ã©ã§ã™ã€‚',
-    'Clear Firebase logs': 'Firebase ãƒ­ã‚°ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹',
-    'Clear store logs': 'ã‚¹ãƒˆã‚¢ãƒ­ã‚°ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹',
-    'Close': 'è¿‘ã„',
-    'Connection error. Please try again.': 'æ¥ç¶šã‚¨ãƒ©ãƒ¼ã€‚',
-    'Consent update failed. Please try again.': 'åŒæ„ã®æ›´æ–°ã«å¤±æ•—ã—ã¾ã—ãŸã€‚',
-    'COPY': 'ã‚³ãƒ”ãƒ¼',
-    'Copy all': 'ã™ã¹ã¦ã‚³ãƒ”ãƒ¼',
-    'Could not open the link.': 'ãƒªãƒ³ã‚¯ã‚’é–‹ã‘ã¾ã›ã‚“ã§ã—ãŸã€‚',
-    'Cows have “best friends,” and they can get seriously stressed—and even cry—when separated.': 'ç‰›ã«ã¯ã€Œè¦ªå‹ã€ãŒãŠã‚Šã€é›¢ã‚Œã‚‹ã¨æ·±åˆ»ãªã‚¹ãƒˆãƒ¬ã‚¹ã‚’æ„Ÿã˜ã€æ³£ãã“ã¨ã‚‚ã‚ã‚Šã¾ã™ã€‚',
-    'CRITICAL DIAGNOSTIC ERROR': 'é‡å¤§ãªè¨ºæ–­ã‚¨ãƒ©ãƒ¼',
-    'Crows don’t just recognize human faces; they can remember people who treated them badly for years—and even warn other crows.': 'ã‚«ãƒ©ã‚¹ã¯äººé–“ã®é¡”ã‚’èªè­˜ã™ã‚‹ã ã‘ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚',
+    'Ants don’t have lungs—and they never truly “sleep”; they operate nonstop like tiny workaholics.': 'アリには肺がありません。そして、アリは本当に「çœ る」ことはありません。',
+    'Auth Probe': '認証プローブ',
+    'Bananas are botanically berries, but strawberries aren’t—botany can be weird.': 'バナナは植物学的には果実ですが、イチゴはそうではありません。植物学は奇妙なå ´合があります。',
+    'Butterflies taste with their feet—when they land on a leaf, they’re basically sampling dinner.': '蝶は足で味を感じます。葉に止まるとき、彼らは基本的に夕食を試食しているのです。',
+    'Cashews grow outside the cashew apple, hanging at the very end—an oddly surprising design.': 'カシューナッツはカシューアップルの外側に生え、最後にぶら下がっています。奇妙に驚くべきデザインです。',
+    'Cats spend about 70% of their lives asleep—so a 10-year-old cat has been awake for only about 3 years.': '猫は一生の約 70% をçœ って過ごします。つまり、10 歳の猫が起きているのはわずか 3 年ほどです。',
+    'Clear Firebase logs': 'Firebase ログをクリアする',
+    'Clear store logs': 'ストアログをクリアする',
+    'Close': '近い',
+    'Connection error. Please try again.': '接続エラー。',
+    'Consent update failed. Please try again.': '同意の更新に失敗しました。',
+    'COPY': 'コピー',
+    'Copy all': 'すべてコピー',
+    'Could not open the link.': 'リンクを開けませんでした。',
+    'Cows have “best friends,” and they can get seriously stressed—and even cry—when separated.': '牛には「親友」がおり、離れると深刻なストレスを感じ、泣くこともあります。',
+    'CRITICAL DIAGNOSTIC ERROR': '重大な診断エラー',
+    'Crows don’t just recognize human faces; they can remember people who treated them badly for years—and even warn other crows.': 'カラスは人間の顔を認識するã けではありません。',
     'DID YOU KNOW?': '知っていましたか？',
-    'Exception: \$e': 'ä¾‹å¤–: \$e',
-    'Firebase': 'ãƒ•ã‚¡ã‚¤ã‚¢ãƒ™ãƒ¼ã‚¹',
-    'Firebase + Purchase Logs': 'Firebase + è³¼å…¥ãƒ­ã‚°',
-    'Firebase auth error: user verification failed.': 'Firebase èªè¨¼ã‚¨ãƒ©ãƒ¼: ãƒ¦ãƒ¼ã‚¶ãƒ¼èªè¨¼ã«å¤±æ•—ã—ã¾ã—ãŸã€‚',
-    'Firebase Auth probe failed.': 'Firebase èªè¨¼ãƒ—ãƒ­ãƒ¼ãƒ–ãŒå¤±æ•—ã—ã¾ã—ãŸã€‚',
-    'Firebase Auth probe success.': 'Firebase Auth ãƒ—ãƒ­ãƒ¼ãƒ–ãŒæˆåŠŸã—ã¾ã—ãŸã€‚',
-    'Firebase token probe failed.': 'Firebase ãƒˆãƒ¼ã‚¯ãƒ³ ãƒ—ãƒ­ãƒ¼ãƒ–ãŒå¤±æ•—ã—ã¾ã—ãŸã€‚',
-    'Firestore auth error: user verification failed.': 'Firestore èªè¨¼ã‚¨ãƒ©ãƒ¼: ãƒ¦ãƒ¼ã‚¶ãƒ¼èªè¨¼ã«å¤±æ•—ã—ã¾ã—ãŸã€‚',
-    'Firestore auth missing: ig_users write blocked.': 'Firestore èªè¨¼ãŒã‚ã‚Šã¾ã›ã‚“: ig_users ã®æ›¸ãè¾¼ã¿ãŒãƒ–ãƒ­ãƒƒã‚¯ã•ã‚Œã¾ã—ãŸã€‚',
-    'Firestore counter write failed.': 'Firestore ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼ã®æ›¸ãè¾¼ã¿ã«å¤±æ•—ã—ã¾ã—ãŸã€‚',
-    'Firestore ig_users write failed.': 'Firestore ig_users ã®æ›¸ãè¾¼ã¿ã«å¤±æ•—ã—ã¾ã—ãŸã€‚',
-    'Firestore test failed.': 'Firestore ãƒ†ã‚¹ãƒˆãŒå¤±æ•—ã—ã¾ã—ãŸã€‚',
-    'Firestore test write successful.': 'Firestore ãƒ†ã‚¹ãƒˆæ›¸ãè¾¼ã¿ãŒæˆåŠŸã—ã¾ã—ãŸã€‚',
-    'Flamingos are born gray; their famous pink comes from pigments in shrimp and algae they eat.': 'ãƒ•ãƒ©ãƒŸãƒ³ã‚´ã¯ç”Ÿã¾ã‚Œã¤ãç°è‰²ã§ã™ã€‚',
-    'Follower data was incomplete.': 'ãƒ•ã‚©ãƒ­ãƒ¯ãƒ¼ãƒ‡ãƒ¼ã‚¿ãŒä¸å®Œå…¨ã§ã—ãŸã€‚',
-    'Following data was incomplete.': 'ä»¥ä¸‹ã®ãƒ‡ãƒ¼ã‚¿ãŒä¸å®Œå…¨ã§ã—ãŸã€‚',
-    'GPS is free to use worldwide, but the U.S. government reportedly spends around \\\$2 million a day to keep it running.': 'GPS ã¯ä¸–ç•Œä¸­ã§ç„¡æ–™ã§ä½¿ç”¨ã§ãã¾ã™ãŒã€ç±³å›½æ”¿åºœã¯ãã‚Œã‚’ç¶­æŒã™ã‚‹ãŸã‚ã« 1 æ—¥ã‚ãŸã‚Šç´„ 200 ä¸‡å††ã‚’è²»ã‚„ã—ã¦ã„ã‚‹ã¨ä¼ãˆã‚‰ã‚Œã¦ã„ã¾ã™ã€‚',
-    'Hippo “sweat” can look pink and acts like both sunscreen and an antibacterial shield.': 'ã‚«ãƒã®ã€Œæ±—ã€ã¯ãƒ”ãƒ³ã‚¯è‰²ã«è¦‹ãˆã€æ—¥ç„¼ã‘æ­¢ã‚ã¨æŠ—èŒã‚·ãƒ¼ãƒ«ãƒ‰ã®ä¸¡æ–¹ã®å½¹å‰²ã‚’æœãŸã—ã¾ã™ã€‚',
-    'Honey never spoils; archaeologists have found 3,000-year-old jars of honey in Egyptian pyramids that were still edible.': 'èœ‚èœœã¯è…ã‚‹ã“ã¨ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚',
-    'Honeybees can recognize human faces and remember them individually.': 'ãƒŸãƒ„ãƒãƒã¯äººé–“ã®é¡”ã‚’èªè­˜ã—ã€å€‹åˆ¥ã«è¨˜æ†¶ã™ã‚‹ã“ã¨ãŒã§ãã¾ã™ã€‚',
-    'Human DNA is about 50% similar to banana DNA—so calling a banana “my sibling” tomorrow morning isn’t totally unfair.': 'äººé–“ã® DNA ã¯ãƒãƒŠãƒŠã® DNA ã¨ç´„ 50% ä¼¼ã¦ã„ã‚‹ãŸã‚ã€æ˜æ—¥ã®æœãƒãƒŠãƒŠã‚’ã€Œç§ã®å…„å¼Ÿã€ã¨å‘¼ã¶ã®ã¯å®Œå…¨ã«ä¸å…¬å¹³ã¨ã„ã†ã‚ã‘ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚',
-    'Instagram message:\\n\$cleanIg': 'Instagram ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸:\\n\$cleanIg',
+    'Exception: \$e': '例外: \$e',
+    'Firebase': 'ファイアベース',
+    'Firebase + Purchase Logs': 'Firebase + 購入ログ',
+    'Firebase auth error: user verification failed.': 'Firebase 認証エラー: ユーザー認証に失敗しました。',
+    'Firebase Auth probe failed.': 'Firebase 認証プローブが失敗しました。',
+    'Firebase Auth probe success.': 'Firebase Auth プローブが成功しました。',
+    'Firebase token probe failed.': 'Firebase トークン プローブが失敗しました。',
+    'Firestore auth error: user verification failed.': 'Firestore 認証エラー: ユーザー認証に失敗しました。',
+    'Firestore auth missing: ig_users write blocked.': 'Firestore 認証がありません: ig_users の書き込みがブロックされました。',
+    'Firestore counter write failed.': 'Firestore カウンターの書き込みに失敗しました。',
+    'Firestore ig_users write failed.': 'Firestore ig_users の書き込みに失敗しました。',
+    'Firestore test failed.': 'Firestore テストが失敗しました。',
+    'Firestore test write successful.': 'Firestore テスト書き込みが成功しました。',
+    'Flamingos are born gray; their famous pink comes from pigments in shrimp and algae they eat.': 'フラミンゴは生まれつき灰色です。',
+    'Follower data was incomplete.': 'フォロワーデータが不完全でした。',
+    'Following data was incomplete.': '以下のデータが不完全でした。',
+    'GPS is free to use worldwide, but the U.S. government reportedly spends around \\\$2 million a day to keep it running.': 'GPS は世界中で無料で使用できますが、米国政府はそれを維持するために 1 日あたり約 200 万円を費やしていると伝えられています。',
+    'Hippo “sweat” can look pink and acts like both sunscreen and an antibacterial shield.': 'カバの「汗」はピンク色に見え、日焼け止めと抗菌シールドの両方の役割を果たします。',
+    'Honey never spoils; archaeologists have found 3,000-year-old jars of honey in Egyptian pyramids that were still edible.': '蜂蜜は腐ることはありません。',
+    'Honeybees can recognize human faces and remember them individually.': 'ミツバチは人間の顔を認識し、個別に記憶することができます。',
+    'Human DNA is about 50% similar to banana DNA—so calling a banana “my sibling” tomorrow morning isn’t totally unfair.': '人間の DNA はバナナの DNA と約 50% 似ているため、明日の朝バナナを「私の兄弟」と呼ぶのは完全に不公平というわけではありません。',
+    'Instagram message:\\n\$cleanIg': 'Instagram メッセージ:\\n\$cleanIg',
     'Instagram requires a security verification (suspicious login / account lock). Verify in the Instagram app and try again.': 'Instagramではセキュリティ認証（不審なログイン/アカウントロック）が必要です。 ',
     'Instagram requires a security verification for your account (suspicious login / temporary lock). We can’t fetch data until it’s verified.': 'Instagramではアカウントのセキュリティ検証（不審なログイン/一時ロック）が必要です。',
-    'Instagram returned an error.': 'Instagram ãŒã‚¨ãƒ©ãƒ¼ã‚’è¿”ã—ã¾ã—ãŸã€‚',
-    'Instagram returned an unexpected response.': 'Instagramã‹ã‚‰ã¯äºˆæƒ³å¤–ã®åå¿œãŒè¿”ã£ã¦ããŸã€‚',
-    'Instagram returned no data.': 'Instagram ã¯ãƒ‡ãƒ¼ã‚¿ã‚’è¿”ã—ã¾ã›ã‚“ã§ã—ãŸã€‚',
-    'Instagram session is invalid or pending verification.': 'Instagram ã‚»ãƒƒã‚·ãƒ§ãƒ³ãŒç„¡åŠ¹ã§ã‚ã‚‹ã‹ã€æ¤œè¨¼å¾…ã¡ã§ã™ã€‚',
-    'Instagram temporarily restricted this action. Please wait a bit and try again.': 'Instagram ã¯ã“ã®è¡Œç‚ºã‚’ä¸€æ™‚çš„ã«åˆ¶é™ã—ã¾ã—ãŸã€‚',
-    'Instagram temporarily restricted this action. This can happen when requests are too frequent or activity looks automated. We stopped fetching data.': 'Instagram ã¯ã“ã®è¡Œç‚ºã‚’ä¸€æ™‚çš„ã«åˆ¶é™ã—ã¾ã—ãŸã€‚',
-    'Instagram Temporary Restriction': 'Instagramã®ä¸€æ™‚åˆ¶é™ã«ã¤ã„ã¦',
-    'Instagram Verification Required': 'Instagramèªè¨¼ãŒå¿…è¦ã§ã™',
-    'Invalid store link.': 'ã‚¹ãƒˆã‚¢ãƒªãƒ³ã‚¯ãŒç„¡åŠ¹ã§ã™ã€‚',
-    'Load error: \${err.message} (Code: \${err.code})': 'ãƒ­ãƒ¼ãƒ‰ ã‚¨ãƒ©ãƒ¼: \${err.message} (ã‚³ãƒ¼ãƒ‰: \${err.code})',
-    'Loading stories...': 'ã‚¹ãƒˆãƒ¼ãƒªãƒ¼ã‚’èª­ã¿è¾¼ã‚“ã§ã„ã¾ã™...',
-    'Loading...': 'èª­ã¿è¾¼ã¿ä¸­...',
-    'Login': 'ãƒ­ã‚°ã‚¤ãƒ³',
-    'Mount Everest keeps growing by about 4 millimeters each year—Earth is still changing.': 'ã‚¨ãƒ™ãƒ¬ã‚¹ãƒˆå±±ã¯æ¯å¹´ç´„ 4 ãƒŸãƒªãƒ¡ãƒ¼ãƒˆãƒ«æˆé•·ã—ç¶šã‘ã¦ãŠã‚Šã€åœ°çƒã¯ä¾ç„¶ã¨ã—ã¦å¤‰åŒ–ã—ã¦ã„ã¾ã™ã€‚',
-    'NEW': 'æ–°ã—ã„',
-    'No data': 'ãƒ‡ãƒ¼ã‚¿ãªã—',
-    'No Firebase logs yet.': 'Firebase ãƒ­ã‚°ã¯ã¾ã ã‚ã‚Šã¾ã›ã‚“ã€‚',
-    'No store logs yet.': 'ã‚¹ãƒˆã‚¢ãƒ­ã‚°ã¯ã¾ã ã‚ã‚Šã¾ã›ã‚“ã€‚',
+    'Instagram returned an error.': 'Instagram がエラーを返しました。',
+    'Instagram returned an unexpected response.': 'Instagramからは予想外の反応が返ってきた。',
+    'Instagram returned no data.': 'Instagram はデータを返しませんでした。',
+    'Instagram session is invalid or pending verification.': 'Instagram セッションが無効であるか、検証待ちです。',
+    'Instagram temporarily restricted this action. Please wait a bit and try again.': 'Instagram はこの行為を一時的に制限しました。',
+    'Instagram temporarily restricted this action. This can happen when requests are too frequent or activity looks automated. We stopped fetching data.': 'Instagram はこの行為を一時的に制限しました。',
+    'Instagram Temporary Restriction': 'Instagramの一時制限について',
+    'Instagram Verification Required': 'Instagram認証が必要です',
+    'Invalid store link.': 'ストアリンクが無効です。',
+    'Load error: \${err.message} (Code: \${err.code})': 'ロード エラー: \${err.message} (コード: \${err.code})',
+    'Loading stories...': 'ストーリーを読み込んでいます...',
+    'Loading...': '読み込み中...',
+    'Login': 'ログイン',
+    'Mount Everest keeps growing by about 4 millimeters each year—Earth is still changing.': 'エベレスト山は毎年約 4 ミリメートル成長し続けており、地球は依然として変化しています。',
+    'NEW': '新しい',
+    'No data': 'データなし',
+    'No Firebase logs yet.': 'Firebase ログはまã ありません。',
+    'No store logs yet.': 'ストアログはまã ありません。',
     'Note: After verification, you may need to wait 1–2 minutes.': '注: 確認後、1 ～ 2 分間待つ必要がある場合があります。',
-    'Note: Running analyses back-to-back can trigger this.': 'æ³¨: åˆ†æã‚’é€£ç¶šã—ã¦å®Ÿè¡Œã™ã‚‹ã¨ã€ã“ã‚ŒãŒå¼•ãèµ·ã“ã•ã‚Œã‚‹å¯èƒ½æ€§ãŒã‚ã‚Šã¾ã™ã€‚',
-    'Octopuses have three hearts and nine brains—forgetting things isn’t really an option.': 'ã‚¿ã‚³ã«ã¯ 3 ã¤ã®å¿ƒè‡“ã¨ 9 ã¤ã®è„³ãŒã‚ã‚Šã€ç‰©ã‚’å¿˜ã‚Œã‚‹ã“ã¨ã¯å®Ÿéš›ã«ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚',
-    'On Saturn and Jupiter, it can literally rain diamonds—apparently we’re living on the wrong planet.': 'åœŸæ˜Ÿã¨æœ¨æ˜Ÿã§ã¯ã€æ–‡å­—é€šã‚Šãƒ€ã‚¤ãƒ¤ãƒ¢ãƒ³ãƒ‰ã®é›¨ãŒé™ã‚‹ã“ã¨ãŒã‚ã‚Šã¾ã™ã€‚ã©ã†ã‚„ã‚‰ã€ç§ãŸã¡ã¯é–“é•ã£ãŸæƒ‘æ˜Ÿã«ä½ã‚“ã§ã„ã‚‹ã‚ˆã†ã§ã™ã€‚',
-    'On Venus, a day is longer than a year—it rotates on its axis more slowly than it orbits the Sun.': 'é‡‘æ˜Ÿã§ã¯ã€1 æ—¥ãŒ 1 å¹´ã‚ˆã‚Šã‚‚é•·ãã€é‡‘æ˜Ÿã¯å¤ªé™½ã®å‘¨ã‚Šã‚’å›ã‚‹ã‚ˆã‚Šã‚‚ã‚†ã£ãã‚Šã¨è‡ªè»¢ã—ã¾ã™ã€‚',
-    'OPEN LOGS': 'ãƒ­ã‚°ã‚’é–‹ã',
-    'Opening consent form...': 'åŒæ„ãƒ•ã‚©ãƒ¼ãƒ ã‚’é–‹ã...',
-    'Pigeons can tell the difference between paintings by Picasso and Monet—turns out they’re more art-savvy than we think.': 'ãƒãƒˆã¯ãƒ”ã‚«ã‚½ã¨ãƒ¢ãƒã®çµµã®é•ã„ã‚’è¦‹åˆ†ã‘ã‚‹ã“ã¨ãŒã§ãã€ãƒãƒˆã¯ç§ãŸã¡ãŒæ€ã£ã¦ã„ã‚‹ã‚ˆã‚Šã‚‚èŠ¸è¡“ã«ç²¾é€šã—ã¦ã„ã‚‹ã“ã¨ãŒåˆ¤æ˜ã—ã¾ã—ãŸã€‚',
-    'Platypuses don’t have stomachs—food goes from the esophagus straight to the intestines.': 'ã‚«ãƒ¢ãƒãƒã‚·ã«ã¯èƒƒãŒã‚ã‚Šã¾ã›ã‚“ã€‚é£Ÿã¹ç‰©ã¯é£Ÿé“ã‹ã‚‰ç›´æ¥è…¸ã«é€ã‚‰ã‚Œã¾ã™ã€‚',
-    'Please try again.': 'ã‚‚ã†ä¸€åº¦è©¦ã—ã¦ãã ã•ã„ã€‚',
-    'Polar bears actually have black skin, and their fur is transparent; they look white because of how light scatters.': 'ãƒ›ãƒƒã‚­ãƒ§ã‚¯ã‚°ãƒã®è‚Œã¯å®Ÿéš›ã«ã¯é»’ãã€æ¯›çš®ã¯é€æ˜ã§ã™ã€‚',
+    'Note: Running analyses back-to-back can trigger this.': '注: 分析を連続して実行すると、これが引き起こされる可能性があります。',
+    'Octopuses have three hearts and nine brains—forgetting things isn’t really an option.': 'タコには 3 つの心臓と 9 つの脳があり、物を忘れることは実際にはありません。',
+    'On Saturn and Jupiter, it can literally rain diamonds—apparently we’re living on the wrong planet.': '土星と木星では、文字通りダイヤモンドの雨が降ることがあります。どうやら、私たちは間違った惑星に住んでいるようです。',
+    'On Venus, a day is longer than a year—it rotates on its axis more slowly than it orbits the Sun.': '金星では、1 日が 1 年よりも長く、金星は太陽の周りを回るよりもゆっくりと自転します。',
+    'OPEN LOGS': 'ログを開く',
+    'Opening consent form...': '同意フォーãƒ を開く...',
+    'Pigeons can tell the difference between paintings by Picasso and Monet—turns out they’re more art-savvy than we think.': 'ハトはピカソとモネの絵の違いを見分けることができ、ハトは私たちが思っているよりも芸術に精通していることが判明しました。',
+    'Platypuses don’t have stomachs—food goes from the esophagus straight to the intestines.': 'カモノハシには胃がありません。食べ物は食道から直接腸に送られます。',
+    'Please try again.': 'もう一度試してくã さい。',
+    'Polar bears actually have black skin, and their fur is transparent; they look white because of how light scatters.': 'ホッキョクグマの肌は実際には黒く、毛皮は透明です。',
     'Premium active ✅ Ads and wait times are disabled.': 'プレミアムがアクティブです ✅ 広告と待機時間は無効になっています。',
-    'Privacy Policy': 'ãƒ—ãƒ©ã‚¤ãƒã‚·ãƒ¼ãƒãƒªã‚·ãƒ¼',
-    'Purchase cancelled.': 'è³¼å…¥ã¯ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚',
-    'Purchase failed.': 'è³¼å…¥ã«å¤±æ•—ã—ã¾ã—ãŸã€‚',
-    'Purchase failed. Please try again.': 'è³¼å…¥ã«å¤±æ•—ã—ã¾ã—ãŸã€‚',
-    'Purchase successful.': 'è³¼å…¥æˆåŠŸã—ã¾ã—ãŸã€‚',
-    'Purchase Test': 'ãƒ†ã‚¹ãƒˆè³¼å…¥',
-    'REST Probe': 'RESTãƒ—ãƒ­ãƒ¼ãƒ–',
-    'REST probe failed (check logs).': 'REST ãƒ—ãƒ­ãƒ¼ãƒ–ãŒå¤±æ•—ã—ã¾ã—ãŸ (ãƒ­ã‚°ã‚’ç¢ºèªã—ã¦ãã ã•ã„)ã€‚',
-    'REST probe failed: missing auth.': 'REST ãƒ—ãƒ­ãƒ¼ãƒ–ãŒå¤±æ•—ã—ã¾ã—ãŸ: èªè¨¼ãŒã‚ã‚Šã¾ã›ã‚“ã€‚',
-    'REST probe success (Firestore endpoint reachable).': 'REST ãƒ—ãƒ­ãƒ¼ãƒ–ãŒæˆåŠŸã—ã¾ã—ãŸ (Firestore ã‚¨ãƒ³ãƒ‰ãƒã‚¤ãƒ³ãƒˆã«åˆ°é”å¯èƒ½)ã€‚',
-    'Restore Test': 'å¾©å…ƒãƒ†ã‚¹ãƒˆ',
-    'Sea otters hold hands while they sleep so they don’t drift apart in the current.': 'ãƒ©ãƒƒã‚³ã¯æµã‚Œã®ä¸­ã§é›¢ã‚Œé›¢ã‚Œã«ãªã‚‰ãªã„ã‚ˆã†ã«æ‰‹ã‚’ã¤ãªã„ã§å¯ã¾ã™ã€‚',
-    'Secret Mode': 'ã‚·ãƒ¼ã‚¯ãƒ¬ãƒƒãƒˆãƒ¢ãƒ¼ãƒ‰',
-    'Session expired or verification required.': 'ã‚»ãƒƒã‚·ãƒ§ãƒ³ã®æœ‰åŠ¹æœŸé™ãŒåˆ‡ã‚ŒãŸã‹ã€æ¤œè¨¼ãŒå¿…è¦ã§ã™ã€‚',
-    'Session is invalid. Please log in again.': 'ã‚»ãƒƒã‚·ãƒ§ãƒ³ãŒç„¡åŠ¹ã§ã™ã€‚',
-    'Session verification failed. Please log in again.': 'ã‚»ãƒƒã‚·ãƒ§ãƒ³ã®æ¤œè¨¼ã«å¤±æ•—ã—ã¾ã—ãŸã€‚',
-    'Session verified, redirecting...': 'ã‚»ãƒƒã‚·ãƒ§ãƒ³ãŒç¢ºèªã•ã‚Œã¾ã—ãŸã€ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆä¸­...',
-    'Sharks are older than Saturn’s rings—they were around millions of years before Saturn got its famous bling.': 'ã‚µãƒ¡ã¯åœŸæ˜Ÿã®è¼ªã‚ˆã‚Šã‚‚å¤ãã€åœŸæ˜ŸãŒæœ‰åãªè¼ãã‚’æŒã¤ã‚ˆã†ã«ãªã‚‹æ•°ç™¾ä¸‡å¹´å‰ã«å­˜åœ¨ã—ã¾ã—ãŸã€‚',
-    'Sharks are older than trees—sharks have been around for about 400 million years, trees for about 350 million.': 'ã‚µãƒ¡ã¯æœ¨ã‚ˆã‚Šã‚‚å¤ãã€ã‚µãƒ¡ã¯ç´„ 4 å„„å¹´å‰ã‹ã‚‰å­˜åœ¨ã—ã€æœ¨ã¯ç´„ 3 å„„ 5,000 ä¸‡å¹´å‰ã‹ã‚‰å­˜åœ¨ã—ã¦ã„ã¾ã™ã€‚',
-    'Show error: \${err.message}': 'ã‚¨ãƒ©ãƒ¼ã‚’è¡¨ç¤º: \${err.message}',
+    'Privacy Policy': 'プライバシーポリシー',
+    'Purchase cancelled.': '購入はキャンセルされました。',
+    'Purchase failed.': '購入に失敗しました。',
+    'Purchase failed. Please try again.': '購入に失敗しました。',
+    'Purchase successful.': '購入成功しました。',
+    'Purchase Test': 'テスト購入',
+    'REST Probe': 'RESTプローブ',
+    'REST probe failed (check logs).': 'REST プローブが失敗しました (ログを確認してくã さい)。',
+    'REST probe failed: missing auth.': 'REST プローブが失敗しました: 認証がありません。',
+    'REST probe success (Firestore endpoint reachable).': 'REST プローブが成功しました (Firestore エンドポイントに到達可能)。',
+    'Restore Test': '復元テスト',
+    'Sea otters hold hands while they sleep so they don’t drift apart in the current.': 'ラッコは流れの中で離れ離れにならないように手をつないで寝ます。',
+    'Secret Mode': 'シークレットモード',
+    'Session expired or verification required.': 'セッションの有効期限が切れたか、検証が必要です。',
+    'Session is invalid. Please log in again.': 'セッションが無効です。',
+    'Session verification failed. Please log in again.': 'セッションの検証に失敗しました。',
+    'Session verified, redirecting...': 'セッションが確認されました、リダイレクト中...',
+    'Sharks are older than Saturn’s rings—they were around millions of years before Saturn got its famous bling.': 'サメは土星の輪よりも古く、土星が有名な輝きを持つようになる数百万年前に存在しました。',
+    'Sharks are older than trees—sharks have been around for about 400 million years, trees for about 350 million.': 'サメは木よりも古く、サメは約 4 億年前から存在し、木は約 3 億 5,000 万年前から存在しています。',
+    'Show error: \${err.message}': 'エラーを表示: \${err.message}',
     'Sloths can hold their breath underwater longer than dolphins—up to about 40 minutes.': 'ナマケモノはイルカよりも長く水中で息を止めることができます（最長約 40 分）。',
-    'Squirrels help grow thousands of new trees each year because they forget where they buried nuts.': 'ãƒªã‚¹ã¯æœ¨ã®å®Ÿã‚’åŸ‹ã‚ãŸå ´æ‰€ã‚’å¿˜ã‚Œã¦ã—ã¾ã†ãŸã‚ã€æ¯å¹´ä½•åƒæœ¬ã‚‚ã®æ–°ã—ã„æœ¨ã‚’è‚²ã¦ã‚‹ã®ã«å½¹ç«‹ã£ã¦ã„ã¾ã™ã€‚',
-    'Starting purchase...': 'è³¼å…¥ã‚’é–‹å§‹ã—ã¦ã„ã¾ã™...',
-    'Store': 'åº—',
-    'Store link not set.': 'ã‚¹ãƒˆã‚¢ãƒªãƒ³ã‚¯ãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚',
-    'The Eiffel Tower can grow by about 15 centimeters in summer due to thermal expansion.': 'ã‚¨ãƒƒãƒ•ã‚§ãƒ«å¡”ã¯å¤ã«ã¯ç†±è†¨å¼µã«ã‚ˆã‚Šç´„15ã‚»ãƒ³ãƒä¼¸ã³ã‚‹ã“ã¨ãŒã‚ã‚Šã¾ã™ã€‚',
-    'The first video game played in space was Tetris—played on a Game Boy by a cosmonaut in 1993.': 'å®‡å®™ã§ãƒ—ãƒ¬ã‚¤ã•ã‚ŒãŸæœ€åˆã®ãƒ“ãƒ‡ã‚ª ã‚²ãƒ¼ãƒ ã¯ãƒ†ãƒˆãƒªã‚¹ã§ã€1993 å¹´ã«å®‡å®™é£›è¡Œå£«ãŒã‚²ãƒ¼ãƒ ãƒœãƒ¼ã‚¤ã§ãƒ—ãƒ¬ã‚¤ã—ã¾ã—ãŸã€‚',
-    'The lighter was invented before the match—sometimes “old” tech is older than we think.': 'ãƒ©ã‚¤ã‚¿ãƒ¼ã¯è©¦åˆå‰ã«ç™ºæ˜ã•ã‚Œã¾ã—ãŸã€‚ã€Œå¤ã„ã€æŠ€è¡“ã¯ç§ãŸã¡ãŒæ€ã£ã¦ã„ã‚‹ã‚ˆã‚Šã‚‚å¤ã„å ´åˆãŒã‚ã‚Šã¾ã™ã€‚',
-    'The total weight of all humans on Earth is roughly comparable to the total weight of all ants.': 'åœ°çƒä¸Šã®å…¨äººé¡ã®ç·é‡é‡ã¯ã€ã™ã¹ã¦ã®ã‚¢ãƒªã®ç·é‡é‡ã«ã»ã¼åŒ¹æ•µã—ã¾ã™ã€‚',
-    'The world’s first computer virus was called “Creeper,” and it displayed: “I’m the creeper, catch me if you can!”': 'ä¸–ç•Œåˆã®ã‚³ãƒ³ãƒ”ãƒ¥ãƒ¼ã‚¿ãƒ¼ ã‚¦ã‚¤ãƒ«ã‚¹ã¯ã€Œã‚¯ãƒªãƒ¼ãƒ‘ãƒ¼ã€ã¨å‘¼ã°ã‚Œã€ã€Œç§ã¯ã‚¯ãƒªãƒ¼ãƒ‘ãƒ¼ã§ã™ã€ã§ãã‚Œã°æ•ã¾ãˆã¦ãã ã•ã„!ã€ã¨è¡¨ç¤ºã•ã‚Œã¾ã—ãŸã€‚',
-    'Time to update data! Analyze now to see changes in your follower list.': 'ãƒ‡ãƒ¼ã‚¿ã‚’æ›´æ–°ã™ã‚‹æ™‚é–“ã§ã™!',
-    'Timeout': 'ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆ',
-    'Too many requests were sent.': 'é€ä¿¡ã•ã‚ŒãŸãƒªã‚¯ã‚¨ã‚¹ãƒˆãŒå¤šã™ãã¾ã™ã€‚',
-    'User': 'ãƒ¦ãƒ¼ã‚¶ãƒ¼',
-    'William Shakespeare is credited with the first recorded use of the word “swagger”—even in the 16th century, he had style.': 'ã‚¦ã‚£ãƒªã‚¢ãƒ ãƒ»ã‚·ã‚§ã‚¤ã‚¯ã‚¹ãƒ”ã‚¢ã¯ã€ã€Œé—Šæ­©ã™ã‚‹ã€ã¨ã„ã†è¨€è‘‰ã‚’åˆã‚ã¦è¨˜éŒ²ã«åŸºã¥ã„ã¦ä½¿ç”¨ã—ãŸã¨ã•ã‚Œã¦ãŠã‚Šã€16 ä¸–ç´€ã§ã‚ã£ã¦ã‚‚ã€å½¼ã«ã¯ã‚¹ã‚¿ã‚¤ãƒ«ãŒã‚ã‚Šã¾ã—ãŸã€‚',
-    'Wombat poop is cube-shaped, so it doesn’t roll away and can mark territory more effectively.': 'ã‚¦ã‚©ãƒ³ãƒãƒƒãƒˆã®ç³ã¯ç«‹æ–¹ä½“ã®å½¢ã‚’ã—ã¦ã„ã‚‹ãŸã‚ã€è»¢ãŒã‚‹ã“ã¨ãŒãªãã€ã‚ˆã‚ŠåŠ¹æœçš„ã«ç¸„å¼µã‚Šã‚’ãƒãƒ¼ã‚¯ã™ã‚‹ã“ã¨ãŒã§ãã¾ã™ã€‚',
-    'Woodpeckers wrap their tongues around their brains to help avoid concussions—using your tongue as a helmet is a wild solution.': 'ã‚­ãƒ„ãƒ„ã‚­ã¯è„³éœ‡ç›ªã‚’é¿ã‘ã‚‹ãŸã‚ã«èˆŒã‚’è„³ã«å·»ãä»˜ã‘ã¾ã™ã€‚èˆŒã‚’ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã¨ã—ã¦ä½¿ã†ã®ã¯ã€æ€ã„ãŒã‘ãªã„è§£æ±ºç­–ã§ã™ã€‚',
-    'Write Test': 'æ›¸ãè¾¼ã¿ãƒ†ã‚¹ãƒˆ',
-    'You can’t really cry in space: without gravity, tears don’t run down your face—they form a blob in your eye.': 'å®‡å®™ã§ã¯æœ¬å½“ã«æ³£ãã“ã¨ã¯ã§ãã¾ã›ã‚“ã€‚é‡åŠ›ãŒãªã‘ã‚Œã°ã€æ¶™ã¯é¡”ã«æµã‚Œè½ã¡ãšã€ç›®ã«å¡ŠãŒã§ãã¾ã™ã€‚',
-    'Your account is blocked': 'ã‚ãªãŸã®ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã¯ãƒ–ãƒ­ãƒƒã‚¯ã•ã‚Œã¦ã„ã¾ã™',
-    'Your consent preference was updated.': 'åŒæ„è¨­å®šãŒæ›´æ–°ã•ã‚Œã¾ã—ãŸã€‚',
+    'Squirrels help grow thousands of new trees each year because they forget where they buried nuts.': 'リスは木の実を埋めたå ´所を忘れてしまうため、毎年何千本もの新しい木を育てるのに役立っています。',
+    'Starting purchase...': '購入を開始しています...',
+    'Store': '店',
+    'Store link not set.': 'ストアリンクが設定されていません。',
+    'The Eiffel Tower can grow by about 15 centimeters in summer due to thermal expansion.': 'エッフェル塔は夏には熱膨張により約15センチ伸びることがあります。',
+    'The first video game played in space was Tetris—played on a Game Boy by a cosmonaut in 1993.': '宇宙でプレイされた最初のビデオ ゲーãƒ はテトリスで、1993 年に宇宙飛行士がゲーãƒ ボーイでプレイしました。',
+    'The lighter was invented before the match—sometimes “old” tech is older than we think.': 'ライターは試合前に発明されました。「古い」技術は私たちが思っているよりも古いå ´合があります。',
+    'The total weight of all humans on Earth is roughly comparable to the total weight of all ants.': '地球上の全人類の総重量は、すべてのアリの総重量にほぼ匹敵します。',
+    'The world’s first computer virus was called “Creeper,” and it displayed: “I’m the creeper, catch me if you can!”': '世界初のコンピューター ウイルスは「クリーパー」と呼ばれ、「私はクリーパーです、できれば捕まえてくã さい!」と表示されました。',
+    'Time to update data! Analyze now to see changes in your follower list.': 'データを更新する時間です!',
+    'Timeout': 'タイãƒ アウト',
+    'Too many requests were sent.': '送信されたリクエストが多すぎます。',
+    'User': 'ユーザー',
+    'William Shakespeare is credited with the first recorded use of the word “swagger”—even in the 16th century, he had style.': 'ウィリアãƒ ・シェイクスピアは、「闊歩する」という言葉を初めて記録に基づいて使用したとされており、16 世紀であっても、彼にはスタイルがありました。',
+    'Wombat poop is cube-shaped, so it doesn’t roll away and can mark territory more effectively.': 'ウォンバットの糞は立方体の形をしているため、転がることがなく、より効果的に縄張りをマークすることができます。',
+    'Woodpeckers wrap their tongues around their brains to help avoid concussions—using your tongue as a helmet is a wild solution.': 'キツツキは脳震盪を避けるために舌を脳に巻き付けます。舌をヘルメットとして使うのは、思いがけない解決策です。',
+    'Write Test': '書き込みテスト',
+    'You can’t really cry in space: without gravity, tears don’t run down your face—they form a blob in your eye.': '宇宙では本当に泣くことはできません。重力がなければ、涙は顔に流れ落ちず、目に塊ができます。',
+    'Your account is blocked': 'あなたのアカウントはブロックされています',
+    'Your consent preference was updated.': '同意設定が更新されました。',
   },
   'ru': {
     'Bio Planner': 'Планировщик био',
@@ -821,141 +925,141 @@ const Map<String, Map<String, String>> _trEnPhraseLocalizations = {
     'Your consent preference was updated.': 'Sua preferência de consentimento foi atualizada.',
   },
   'ar': {
-    'Bio Planner': 'Ù…Ø®Ø·Ø· Ø§Ù„Ø¨Ø§ÙŠÙˆ',
-    'CLOSE': 'Ø¥ØºÙ„Ø§Ù‚',
-    'Code': 'Ø§Ù„Ø±Ù…Ø²',
-    'Exception': 'Ø§Ø³ØªØ«Ù†Ø§Ø¡',
-    'Instagram message': 'Ø±Ø³Ø§Ù„Ø© Ø§Ù†Ø³ØªØºØ±Ø§Ù…',
-    'Load error': 'Ø®Ø·Ø£ ÙÙŠ Ø§Ù„ØªØ­Ù…ÙŠÙ„',
-    'Open Instagram': 'Ø§ÙØªØ­ Ø§Ù†Ø³ØªÙ‚Ø±Ø§Ù…',
-    'Show error': 'Ø¥Ø¸Ù‡Ø§Ø± Ø§Ù„Ø®Ø·Ø£',
-    'SYSTEM UNDER MAINTENANCE': 'Ø§Ù„Ù†Ø¸Ø§Ù… ØªØ­Øª Ø§Ù„ØµÙŠØ§Ù†Ø©',
-    'user': 'Ù…Ø³ØªØ®Ø¯Ù…',
-    '“Whistling” mice are essentially singing to each other, but at frequencies too high for humans to hear.': 'ØªÙ‚ÙˆÙ… Ø§Ù„ÙØ¦Ø±Ø§Ù† "Ø¨Ø§Ù„ØªØµÙÙŠØ±" Ø¨Ø´ÙƒÙ„ Ø£Ø³Ø§Ø³ÙŠ Ø¨Ø§Ù„ØºÙ†Ø§Ø¡ Ù„Ø¨Ø¹Ø¶Ù‡Ø§ Ø§Ù„Ø¨Ø¹Ø¶ØŒ ÙˆÙ„ÙƒÙ† Ø¨ØªØ±Ø¯Ø¯Ø§Øª Ø¹Ø§Ù„ÙŠØ© Ø¬Ø¯Ù‹Ø§ Ø¨Ø­ÙŠØ« Ù„Ø§ ÙŠØ³ØªØ·ÙŠØ¹ Ø§Ù„Ø¨Ø´Ø± Ø³Ù…Ø§Ø¹Ù‡Ø§.',
-    'A blue whale’s heart is so large that a human could swim through its main arteries.': 'Ù‚Ù„Ø¨ Ø§Ù„Ø­ÙˆØª Ø§Ù„Ø£Ø²Ø±Ù‚ ÙƒØ¨ÙŠØ± Ø¬Ø¯Ù‹Ø§ Ù„Ø¯Ø±Ø¬Ø© Ø£Ù† Ø§Ù„Ø¥Ù†Ø³Ø§Ù† ÙŠØ³ØªØ·ÙŠØ¹ Ø§Ù„Ø³Ø¨Ø§Ø­Ø© Ø¹Ø¨Ø± Ø´Ø±Ø§ÙŠÙŠÙ†Ù‡ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©.',
-    'A new update is available. Please check the store.': 'ØªØ­Ø¯ÙŠØ« Ø¬Ø¯ÙŠØ¯ Ù…ØªØ§Ø­. ',
-    'A snail can sleep for up to three years without waking up—honestly, relatable.': 'ÙŠÙ…ÙƒÙ† Ù„Ù„Ø­Ù„Ø²ÙˆÙ† Ø£Ù† ÙŠÙ†Ø§Ù… Ù„Ù…Ø¯Ø© ØªØµÙ„ Ø¥Ù„Ù‰ Ø«Ù„Ø§Ø« Ø³Ù†ÙˆØ§Øª Ø¯ÙˆÙ† Ø£Ù† ÙŠØ³ØªÙŠÙ‚Ø¸ - Ø¨ØµØ±Ø§Ø­Ø©ØŒ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªÙˆØ§ØµÙ„ Ù…Ø¹Ù‡.',
-    'Access is restricted for this account.': 'Ø§Ù„ÙˆØµÙˆÙ„ Ù…Ù‚ÙŠØ¯ Ù„Ù‡Ø°Ø§ Ø§Ù„Ø­Ø³Ø§Ø¨.',
-    'Ad could not be shown. Please try again.': 'Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø¹Ø±Ø¶ Ø§Ù„Ø¥Ø¹Ù„Ø§Ù†. ',
-    'Ad could not be shown. Results cannot be displayed.': 'Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø¹Ø±Ø¶ Ø§Ù„Ø¥Ø¹Ù„Ø§Ù†. ',
-    'An ant can lift up to 50 times its own weight—if you were an ant, you could lift a car by yourself.': 'ÙŠÙ…ÙƒÙ† Ù„Ù„Ù†Ù…Ù„Ø© Ø£Ù† ØªØ±ÙØ¹ Ù…Ø§ ÙŠØµÙ„ Ø¥Ù„Ù‰ 50 Ø¶Ø¹Ù ÙˆØ²Ù†Ù‡Ø§ØŒ ÙˆØ¥Ø°Ø§ ÙƒÙ†Øª Ù†Ù…Ù„Ø©ØŒ ÙÙŠÙ…ÙƒÙ†Ùƒ Ø±ÙØ¹ Ø³ÙŠØ§Ø±Ø© Ø¨Ù†ÙØ³Ùƒ.',
-    'An average cloud can weigh around 500,000 kg—like a massive herd of elephants floating overhead.': 'ÙŠÙ…ÙƒÙ† Ø£Ù† ØªØ²Ù† Ø§Ù„Ø³Ø­Ø§Ø¨Ø© Ø§Ù„Ù…ØªÙˆØ³Ø·Ø© Ø­ÙˆØ§Ù„ÙŠ 500000 ÙƒØ¬Ù…ØŒ Ù…Ø«Ù„ Ù‚Ø·ÙŠØ¹ Ø¶Ø®Ù… Ù…Ù† Ø§Ù„Ø£ÙÙŠØ§Ù„ Ø§Ù„ØªÙŠ ØªØ·ÙÙˆ ÙÙˆÙ‚Ù‡Ø§.',
-    'An ostrich’s eyes are bigger than its brain—living on the fine line between looking and thinking.': 'Ø¹ÙŠÙˆÙ† Ø§Ù„Ù†Ø¹Ø§Ù…Ø© Ø£ÙƒØ¨Ø± Ù…Ù† Ø¯Ù…Ø§ØºÙ‡Ø§ØŒ ÙˆØªØ¹ÙŠØ´ Ø¹Ù„Ù‰ Ø§Ù„Ø®Ø· Ø§Ù„Ø±ÙÙŠØ¹ Ø¨ÙŠÙ† Ø§Ù„Ù†Ø¸Ø± ÙˆØ§Ù„ØªÙÙƒÙŠØ±.',
-    'An unexpected error occurred.': 'Ø­Ø¯Ø« Ø®Ø·Ø£ ØºÙŠØ± Ù…ØªÙˆÙ‚Ø¹.',
-    'Analysis Time!': 'ÙˆÙ‚Øª Ø§Ù„ØªØ­Ù„ÙŠÙ„!',
-    'Ants don’t have lungs—and they never truly “sleep”; they operate nonstop like tiny workaholics.': 'Ù„Ø§ ÙŠÙ…ØªÙ„Ùƒ Ø§Ù„Ù†Ù…Ù„ Ø±Ø¦ØªÙŠÙ†ØŒ ÙˆÙ„Ø§ "ÙŠÙ†Ø§Ù…" Ø£Ø¨Ø¯Ù‹Ø§Ø› ',
-    'Auth Probe': 'Ù…Ø³Ø¨Ø§Ø± Ø§Ù„Ù…ØµØ§Ø¯Ù‚Ø©',
-    'Bananas are botanically berries, but strawberries aren’t—botany can be weird.': 'Ø§Ù„Ù…ÙˆØ² Ø¹Ø¨Ø§Ø±Ø© Ø¹Ù† ØªÙˆØª Ù…Ù† Ø§Ù„Ù†Ø§Ø­ÙŠØ© Ø§Ù„Ù†Ø¨Ø§ØªÙŠØ©ØŒ Ù„ÙƒÙ† Ø§Ù„ÙØ±Ø§ÙˆÙ„Ø© Ù„ÙŠØ³Øª ÙƒØ°Ù„ÙƒØŒ ÙÙ‚Ø¯ ÙŠÙƒÙˆÙ† Ø¹Ù„Ù… Ø§Ù„Ù†Ø¨Ø§Øª ØºØ±ÙŠØ¨Ù‹Ø§.',
-    'Butterflies taste with their feet—when they land on a leaf, they’re basically sampling dinner.': 'ØªØªØ°ÙˆÙ‚ Ø§Ù„ÙØ±Ø§Ø´Ø§Øª Ø¨Ø£Ù‚Ø¯Ø§Ù…Ù‡Ø§ØŒ ÙØ¹Ù†Ø¯Ù…Ø§ ØªÙ‡Ø¨Ø· Ø¹Ù„Ù‰ ÙˆØ±Ù‚Ø© Ø´Ø¬Ø±ØŒ ÙØ¥Ù†Ù‡Ø§ ÙÙŠ Ø§Ù„Ø£Ø³Ø§Ø³ ØªØªÙ†Ø§ÙˆÙ„ Ø§Ù„Ø¹Ø´Ø§Ø¡.',
-    'Cashews grow outside the cashew apple, hanging at the very end—an oddly surprising design.': 'ÙŠÙ†Ù…Ùˆ Ø§Ù„ÙƒØ§Ø¬Ùˆ Ø®Ø§Ø±Ø¬ Ø«Ù…Ø±Ø© Ø§Ù„ÙƒØ§Ø¬ÙˆØŒ ÙˆÙŠØªØ¯Ù„Ù‰ ÙÙŠ Ù†Ù‡Ø§ÙŠØªÙ‡Ø§ØŒ ÙˆÙ‡Ùˆ ØªØµÙ…ÙŠÙ… Ù…Ø«ÙŠØ± Ù„Ù„Ø¯Ù‡Ø´Ø© Ø¨Ø´ÙƒÙ„ ØºØ±ÙŠØ¨.',
-    'Cats spend about 70% of their lives asleep—so a 10-year-old cat has been awake for only about 3 years.': 'ØªÙ‚Ø¶ÙŠ Ø§Ù„Ù‚Ø·Ø· Ø­ÙˆØ§Ù„ÙŠ 70% Ù…Ù† Ø­ÙŠØ§ØªÙ‡Ø§ Ù†Ø§Ø¦Ù…Ø©ØŒ Ø£ÙŠ Ø£Ù† Ø§Ù„Ù‚Ø·Ø© Ø§Ù„Ø¨Ø§Ù„ØºØ© Ù…Ù† Ø§Ù„Ø¹Ù…Ø± 10 Ø³Ù†ÙˆØ§Øª ØªØ¸Ù„ Ù…Ø³ØªÙŠÙ‚Ø¸Ø© Ù„Ù…Ø¯Ø© 3 Ø³Ù†ÙˆØ§Øª ÙÙ‚Ø·.',
-    'Clear Firebase logs': 'Ù…Ø³Ø­ Ø³Ø¬Ù„Ø§Øª Firebase',
-    'Clear store logs': 'Ù…Ø³Ø­ Ø³Ø¬Ù„Ø§Øª Ø§Ù„Ù…ØªØ¬Ø±',
-    'Close': 'ÙŠØºÙ„Ù‚',
-    'Connection error. Please try again.': 'Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø§ØªØµØ§Ù„. ',
-    'Consent update failed. Please try again.': 'ÙØ´Ù„ ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø©. ',
-    'COPY': 'ÙŠÙ†Ø³Ø®',
-    'Copy all': 'Ø§Ù†Ø³Ø® Ø§Ù„ÙƒÙ„',
-    'Could not open the link.': 'Ù„Ø§ ÙŠÙ…ÙƒÙ† ÙØªØ­ Ø§Ù„Ø±Ø§Ø¨Ø·.',
-    'Cows have “best friends,” and they can get seriously stressed—and even cry—when separated.': 'Ø§Ù„Ø£Ø¨Ù‚Ø§Ø± Ù„Ø¯ÙŠÙ‡Ø§ "Ø£ÙØ¶Ù„ Ø§Ù„Ø£ØµØ¯Ù‚Ø§Ø¡"ØŒ ÙˆÙŠÙ…ÙƒÙ† Ø£Ù† ØªØªØ¹Ø±Ø¶ Ù„Ø¶ØºÙˆØ· Ø´Ø¯ÙŠØ¯Ø© - ÙˆØ­ØªÙ‰ Ø§Ù„Ø¨ÙƒØ§Ø¡ - Ø¹Ù†Ø¯ Ø§Ù„Ø§Ù†ÙØµØ§Ù„.',
-    'CRITICAL DIAGNOSTIC ERROR': 'Ø®Ø·Ø£ ØªØ´Ø®ÙŠØµÙŠ ÙØ§Ø¯Ø­',
-    'Crows don’t just recognize human faces; they can remember people who treated them badly for years—and even warn other crows.': 'Ù„Ø§ ØªØªØ¹Ø±Ù Ø§Ù„ØºØ±Ø¨Ø§Ù† Ø¹Ù„Ù‰ Ø§Ù„ÙˆØ¬ÙˆÙ‡ Ø§Ù„Ø¨Ø´Ø±ÙŠØ© ÙØ­Ø³Ø¨Ø› ',
-    'DID YOU KNOW?': 'Ù‡Ù„ ØªØ¹Ù„Ù…ØŸ',
-    'Exception: \$e': 'Ø§Ù„Ø§Ø³ØªØ«Ù†Ø§Ø¡: \$e',
+    'Bio Planner': 'مخطط البايو',
+    'CLOSE': 'إغلاق',
+    'Code': 'الرمز',
+    'Exception': 'استثناء',
+    'Instagram message': 'رسالة انستغرام',
+    'Load error': 'خطأ في التحميل',
+    'Open Instagram': 'افتح انستقرام',
+    'Show error': 'إظهار الخطأ',
+    'SYSTEM UNDER MAINTENANCE': 'النظام تحت الصيانة',
+    'user': 'مستخدم',
+    '“Whistling” mice are essentially singing to each other, but at frequencies too high for humans to hear.': 'تقوم الفئران "بالتصفير" بشكل أساسي بالغناء لبعضها البعض، ولكن بترددات عالية جدًا بحيث لا يستطيع البشر سماعها.',
+    'A blue whale’s heart is so large that a human could swim through its main arteries.': 'قلب الحوت الأزرق كبير جدًا لدرجة أن الإنسان يستطيع السباحة عبر شرايينه الرئيسية.',
+    'A new update is available. Please check the store.': 'تحديث جديد متاح. ',
+    'A snail can sleep for up to three years without waking up—honestly, relatable.': 'يمكن للحلزون أن ينام لمدة تصل إلى ثلاث سنوات دون أن يستيقظ - بصراحة، يمكن التواصل معه.',
+    'Access is restricted for this account.': 'الوصول مقيد لهذا الحساب.',
+    'Ad could not be shown. Please try again.': 'لا يمكن عرض الإعلان. ',
+    'Ad could not be shown. Results cannot be displayed.': 'لا يمكن عرض الإعلان. ',
+    'An ant can lift up to 50 times its own weight—if you were an ant, you could lift a car by yourself.': 'يمكن للنملة أن ترفع ما يصل إلى 50 ضعف وزنها، وإذا كنت نملة، فيمكنك رفع سيارة بنفسك.',
+    'An average cloud can weigh around 500,000 kg—like a massive herd of elephants floating overhead.': 'يمكن أن تزن السحابة المتوسطة حوالي 500000 كجم، مثل قطيع ضخم من الأفيال التي تطفو فوقها.',
+    'An ostrich’s eyes are bigger than its brain—living on the fine line between looking and thinking.': 'عيون النعامة أكبر من دماغها، وتعيش على الخط الرفيع بين النظر والتفكير.',
+    'An unexpected error occurred.': 'حدث خطأ غير متوقع.',
+    'Analysis Time!': 'وقت التحليل!',
+    'Ants don’t have lungs—and they never truly “sleep”; they operate nonstop like tiny workaholics.': 'لا يمتلك النمل رئتين، ولا "ينام" أبدًا؛ ',
+    'Auth Probe': 'مسبار المصادقة',
+    'Bananas are botanically berries, but strawberries aren’t—botany can be weird.': 'الموز عبارة عن توت من الناحية النباتية، لكن الفراولة ليست كذلك، فقد يكون علم النبات غريبًا.',
+    'Butterflies taste with their feet—when they land on a leaf, they’re basically sampling dinner.': 'تتذوق الفراشات بأقدامها، فعندما تهبط على ورقة شجر، فإنها في الأساس تتناول العشاء.',
+    'Cashews grow outside the cashew apple, hanging at the very end—an oddly surprising design.': 'ينمو الكاجو خارج ثمرة الكاجو، ويتدلى في نهايتها، وهو تصميم مثير للدهشة بشكل غريب.',
+    'Cats spend about 70% of their lives asleep—so a 10-year-old cat has been awake for only about 3 years.': 'تقضي القطط حوالي 70% من حياتها نائمة، أي أن القطة البالغة من العمر 10 سنوات تظل مستيقظة لمدة 3 سنوات فقط.',
+    'Clear Firebase logs': 'مسح سجلات Firebase',
+    'Clear store logs': 'مسح سجلات المتجر',
+    'Close': 'يغلق',
+    'Connection error. Please try again.': 'خطأ في الاتصال. ',
+    'Consent update failed. Please try again.': 'فشل تحديث الموافقة. ',
+    'COPY': 'ينسخ',
+    'Copy all': 'انسخ الكل',
+    'Could not open the link.': 'لا يمكن فتح الرابط.',
+    'Cows have “best friends,” and they can get seriously stressed—and even cry—when separated.': 'الأبقار لديها "أفضل الأصدقاء"، ويمكن أن تتعرض لضغوط شديدة - وحتى البكاء - عند الانفصال.',
+    'CRITICAL DIAGNOSTIC ERROR': 'خطأ تشخيصي فادح',
+    'Crows don’t just recognize human faces; they can remember people who treated them badly for years—and even warn other crows.': 'لا تتعرف الغربان على الوجوه البشرية فحسب؛ ',
+    'DID YOU KNOW?': 'هل تعلم؟',
+    'Exception: \$e': 'الاستثناء: \$e',
     'Firebase': 'Firebase',
-    'Firebase + Purchase Logs': 'Firebase + Ø³Ø¬Ù„Ø§Øª Ø§Ù„Ø´Ø±Ø§Ø¡',
-    'Firebase auth error: user verification failed.': 'Ø®Ø·Ø£ ÙÙŠ Ù…ØµØ§Ø¯Ù‚Ø© Firebase: ÙØ´Ù„ Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù….',
-    'Firebase Auth probe failed.': 'ÙØ´Ù„ Ø§Ù„ØªØ­Ù‚ÙŠÙ‚ ÙÙŠ Ù…ØµØ§Ø¯Ù‚Ø© Firebase.',
-    'Firebase Auth probe success.': 'Ù†Ø¬Ø§Ø­ Ø§Ù„ØªØ­Ù‚ÙŠÙ‚ ÙÙŠ Ù…ØµØ§Ø¯Ù‚Ø© Firebase.',
-    'Firebase token probe failed.': 'ÙØ´Ù„ Ø§Ù„ØªØ­Ù‚ÙŠÙ‚ ÙÙŠ Ø±Ù…Ø² Firebase.',
-    'Firestore auth error: user verification failed.': 'Ø®Ø·Ø£ ÙÙŠ Ù…ØµØ§Ø¯Ù‚Ø© Firestore: ÙØ´Ù„ Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù….',
-    'Firestore auth missing: ig_users write blocked.': 'Ù…ØµØ§Ø¯Ù‚Ø© Firestore Ù…ÙÙ‚ÙˆØ¯Ø©: ØªÙ… Ø­Ø¸Ø± ÙƒØªØ§Ø¨Ø© ig_users.',
-    'Firestore counter write failed.': 'ÙØ´Ù„Øª ÙƒØªØ§Ø¨Ø© Ø¹Ø¯Ø§Ø¯ Firestore.',
-    'Firestore ig_users write failed.': 'ÙØ´Ù„Øª Ø¹Ù…Ù„ÙŠØ© Ø§Ù„ÙƒØªØ§Ø¨Ø© ÙÙŠ Firestore ig_users.',
-    'Firestore test failed.': 'ÙØ´Ù„ Ø§Ø®ØªØ¨Ø§Ø± Firestore.',
-    'Firestore test write successful.': 'Ù†Ø¬Ø­ Ø§Ø®ØªØ¨Ø§Ø± Firestore ÙÙŠ Ø§Ù„ÙƒØªØ§Ø¨Ø©.',
-    'Flamingos are born gray; their famous pink comes from pigments in shrimp and algae they eat.': 'ØªÙˆÙ„Ø¯ Ø·ÙŠÙˆØ± Ø§Ù„Ù†Ø­Ø§Ù… Ø¨Ø§Ù„Ù„ÙˆÙ† Ø§Ù„Ø±Ù…Ø§Ø¯ÙŠØ› ',
-    'Follower data was incomplete.': 'Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…ØªØ§Ø¨Ø¹ÙŠÙ† ÙƒØ§Ù†Øª ØºÙŠØ± Ù…ÙƒØªÙ…Ù„Ø©.',
-    'Following data was incomplete.': 'Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„ØªØ§Ù„ÙŠØ© ÙƒØ§Ù†Øª ØºÙŠØ± Ù…ÙƒØªÙ…Ù„Ø©.',
-    'GPS is free to use worldwide, but the U.S. government reportedly spends around \\\$2 million a day to keep it running.': 'Ø¥Ù† Ø§Ø³ØªØ®Ø¯Ø§Ù… Ù†Ø¸Ø§Ù… ØªØ­Ø¯ÙŠØ¯ Ø§Ù„Ù…ÙˆØ§Ù‚Ø¹ Ø§Ù„Ø¹Ø§Ù„Ù…ÙŠ (GPS) Ù…Ø¬Ø§Ù†ÙŠ ÙÙŠ Ø¬Ù…ÙŠØ¹ Ø£Ù†Ø­Ø§Ø¡ Ø§Ù„Ø¹Ø§Ù„Ù…ØŒ Ù„ÙƒÙ† ÙŠÙ‚Ø§Ù„ Ø¥Ù† Ø­ÙƒÙˆÙ…Ø© Ø§Ù„ÙˆÙ„Ø§ÙŠØ§Øª Ø§Ù„Ù…ØªØ­Ø¯Ø© ØªÙ†ÙÙ‚ Ø­ÙˆØ§Ù„ÙŠ 2 Ù…Ù„ÙŠÙˆÙ† Ø¯ÙˆÙ„Ø§Ø± ÙŠÙˆÙ…ÙŠÙ‹Ø§ Ù„Ø§Ø³ØªÙ…Ø±Ø§Ø± ØªØ´ØºÙŠÙ„Ù‡.',
-    'Hippo “sweat” can look pink and acts like both sunscreen and an antibacterial shield.': 'ÙŠÙ…ÙƒÙ† Ø£Ù† ÙŠØ¨Ø¯Ùˆ "Ø¹Ø±Ù‚" ÙØ±Ø³ Ø§Ù„Ù†Ù‡Ø± ÙˆØ±Ø¯ÙŠÙ‹Ø§ ÙˆÙŠØ¹Ù…Ù„ Ø¨Ù…Ø«Ø§Ø¨Ø© ÙˆØ§Ù‚ÙŠ Ù…Ù† Ø§Ù„Ø´Ù…Ø³ ÙˆØ¯Ø±Ø¹ Ù…Ø¶Ø§Ø¯ Ù„Ù„Ø¨ÙƒØªÙŠØ±ÙŠØ§.',
-    'Honey never spoils; archaeologists have found 3,000-year-old jars of honey in Egyptian pyramids that were still edible.': 'Ø§Ù„Ø¹Ø³Ù„ Ù„Ø§ ÙŠÙØ³Ø¯ Ø£Ø¨Ø¯Ù‹Ø§Ø› ',
-    'Honeybees can recognize human faces and remember them individually.': 'ÙŠÙ…ÙƒÙ† Ù„Ù†Ø­Ù„ Ø§Ù„Ø¹Ø³Ù„ Ø§Ù„ØªØ¹Ø±Ù Ø¹Ù„Ù‰ Ø§Ù„ÙˆØ¬ÙˆÙ‡ Ø§Ù„Ø¨Ø´Ø±ÙŠØ© ÙˆØªØ°ÙƒØ±Ù‡Ø§ Ø¨Ø´ÙƒÙ„ ÙØ±Ø¯ÙŠ.',
-    'Human DNA is about 50% similar to banana DNA—so calling a banana “my sibling” tomorrow morning isn’t totally unfair.': 'ÙŠØªØ´Ø§Ø¨Ù‡ Ø§Ù„Ø­Ù…Ø¶ Ø§Ù„Ù†ÙˆÙˆÙŠ Ø§Ù„Ø¨Ø´Ø±ÙŠ Ù…Ø¹ Ø§Ù„Ø­Ù…Ø¶ Ø§Ù„Ù†ÙˆÙˆÙŠ Ù„Ù„Ù…ÙˆØ² Ø¨Ù†Ø³Ø¨Ø© 50% ØªÙ‚Ø±ÙŠØ¨Ù‹Ø§ØŒ Ù„Ø°Ø§ ÙØ¥Ù† ØªØ³Ù…ÙŠØ© Ø§Ù„Ù…ÙˆØ² Ø¨Ù€ "Ø£Ø®ÙŠ" ØµØ¨Ø§Ø­ Ø§Ù„ØºØ¯ Ù„ÙŠØ³ Ø¸Ù„Ù…Ù‹Ø§ ØªÙ…Ø§Ù…Ù‹Ø§.',
-    'Instagram message:\\n\$cleanIg': 'Ø±Ø³Ø§Ù„Ø© Ø§Ù„Ø§Ù†Ø³ØªÙ‚Ø±Ø§Ù…:\\n\$cleanIg',
+    'Firebase + Purchase Logs': 'Firebase + سجلات الشراء',
+    'Firebase auth error: user verification failed.': 'خطأ في مصادقة Firebase: فشل التحقق من المستخدم.',
+    'Firebase Auth probe failed.': 'فشل التحقيق في مصادقة Firebase.',
+    'Firebase Auth probe success.': 'نجاح التحقيق في مصادقة Firebase.',
+    'Firebase token probe failed.': 'فشل التحقيق في رمز Firebase.',
+    'Firestore auth error: user verification failed.': 'خطأ في مصادقة Firestore: فشل التحقق من المستخدم.',
+    'Firestore auth missing: ig_users write blocked.': 'مصادقة Firestore مفقودة: تم حظر كتابة ig_users.',
+    'Firestore counter write failed.': 'فشلت كتابة عداد Firestore.',
+    'Firestore ig_users write failed.': 'فشلت عملية الكتابة في Firestore ig_users.',
+    'Firestore test failed.': 'فشل اختبار Firestore.',
+    'Firestore test write successful.': 'نجح اختبار Firestore في الكتابة.',
+    'Flamingos are born gray; their famous pink comes from pigments in shrimp and algae they eat.': 'تولد طيور النحام باللون الرمادي؛ ',
+    'Follower data was incomplete.': 'بيانات المتابعين كانت غير مكتملة.',
+    'Following data was incomplete.': 'البيانات التالية كانت غير مكتملة.',
+    'GPS is free to use worldwide, but the U.S. government reportedly spends around \\\$2 million a day to keep it running.': 'إن استخدام نظام تحديد المواقع العالمي (GPS) مجاني في جميع أنحاء العالم، لكن يقال إن حكومة الولايات المتحدة تنفق حوالي 2 مليون دولار يوميًا لاستمرار تشغيله.',
+    'Hippo “sweat” can look pink and acts like both sunscreen and an antibacterial shield.': 'يمكن أن يبدو "عرق" فرس النهر ورديًا ويعمل بمثابة واقي من الشمس ودرع مضاد للبكتيريا.',
+    'Honey never spoils; archaeologists have found 3,000-year-old jars of honey in Egyptian pyramids that were still edible.': 'العسل لا يفسد أبدًا؛ ',
+    'Honeybees can recognize human faces and remember them individually.': 'يمكن لنحل العسل التعرف على الوجوه البشرية وتذكرها بشكل فردي.',
+    'Human DNA is about 50% similar to banana DNA—so calling a banana “my sibling” tomorrow morning isn’t totally unfair.': 'يتشابه الحمض النووي البشري مع الحمض النووي للموز بنسبة 50% تقريبًا، لذا فإن تسمية الموز بـ "أخي" صباح الغد ليس ظلمًا تمامًا.',
+    'Instagram message:\\n\$cleanIg': 'رسالة الانستقرام:\\n\$cleanIg',
     'Instagram requires a security verification (suspicious login / account lock). Verify in the Instagram app and try again.': 'يتطلب Instagram التحقق الأمني ​​(تسجيل دخول / قفل حساب مريب). ',
     'Instagram requires a security verification for your account (suspicious login / temporary lock). We can’t fetch data until it’s verified.': 'يتطلب Instagram التحقق الأمني ​​لحسابك (تسجيل دخول مريب / قفل مؤقت). ',
-    'Instagram returned an error.': 'Ø£Ø¹Ø§Ø¯ Instagram Ø®Ø·Ø£.',
-    'Instagram returned an unexpected response.': 'Ø£Ø¹Ø§Ø¯ Instagram Ø§Ø³ØªØ¬Ø§Ø¨Ø© ØºÙŠØ± Ù…ØªÙˆÙ‚Ø¹Ø©.',
-    'Instagram returned no data.': 'Ù„Ù… ÙŠÙØ±Ø¬Ø¹ Instagram Ø£ÙŠ Ø¨ÙŠØ§Ù†Ø§Øª.',
-    'Instagram session is invalid or pending verification.': 'Ø¬Ù„Ø³Ø© Instagram ØºÙŠØ± ØµØ§Ù„Ø­Ø© Ø£Ùˆ ÙÙŠ Ø§Ù†ØªØ¸Ø§Ø± Ø§Ù„ØªØ­Ù‚Ù‚.',
-    'Instagram temporarily restricted this action. Please wait a bit and try again.': 'Ù‚Ø§Ù… Instagram Ø¨ØªÙ‚ÙŠÙŠØ¯ Ù‡Ø°Ø§ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡ Ù…Ø¤Ù‚ØªÙ‹Ø§. ',
-    'Instagram temporarily restricted this action. This can happen when requests are too frequent or activity looks automated. We stopped fetching data.': 'Ù‚Ø§Ù… Instagram Ø¨ØªÙ‚ÙŠÙŠØ¯ Ù‡Ø°Ø§ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡ Ù…Ø¤Ù‚ØªÙ‹Ø§. ',
-    'Instagram Temporary Restriction': 'Ù‚ÙŠÙˆØ¯ Ù…Ø¤Ù‚ØªØ© Ø¹Ù„Ù‰ Ø¥Ù†Ø³ØªØºØ±Ø§Ù…',
-    'Instagram Verification Required': 'Ù…Ø·Ù„ÙˆØ¨ Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Instagram',
-    'Invalid store link.': 'Ø±Ø§Ø¨Ø· Ø§Ù„Ù…ØªØ¬Ø± ØºÙŠØ± ØµØ§Ù„Ø­.',
-    'Load error: \${err.message} (Code: \${err.code})': 'Ø®Ø·Ø£ ÙÙŠ Ø§Ù„ØªØ­Ù…ÙŠÙ„: \${err.message} (Ø§Ù„Ø±Ù…Ø²: \${err.code})',
-    'Loading stories...': 'Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù‚ØµØµ...',
-    'Loading...': 'ØªØ­Ù…ÙŠÙ„...',
-    'Login': 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„',
-    'Mount Everest keeps growing by about 4 millimeters each year—Earth is still changing.': 'ÙŠØ³ØªÙ…Ø± Ø¬Ø¨Ù„ Ø¥ÙŠÙØ±Ø³Øª ÙÙŠ Ø§Ù„Ù†Ù…Ùˆ Ø¨Ù†Ø­Ùˆ 4 Ù…Ù„Ù„ÙŠÙ…ØªØ±Ø§Øª ÙƒÙ„ Ø¹Ø§Ù…ØŒ ÙˆÙ„Ø§ ØªØ²Ø§Ù„ Ø§Ù„Ø£Ø±Ø¶ ØªØªØºÙŠØ±.',
-    'NEW': 'Ø¬Ø¯ÙŠØ¯',
-    'No data': 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¨ÙŠØ§Ù†Ø§Øª',
-    'No Firebase logs yet.': 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø³Ø¬Ù„Ø§Øª Firebase Ø­ØªÙ‰ Ø§Ù„Ø¢Ù†.',
-    'No store logs yet.': 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø³Ø¬Ù„Ø§Øª Ù…Ø®Ø²Ù† Ø­ØªÙ‰ Ø§Ù„Ø¢Ù†.',
-    'Note: After verification, you may need to wait 1–2 minutes.': 'Ù…Ù„Ø­ÙˆØ¸Ø©: Ø¨Ø¹Ø¯ Ø§Ù„ØªØ­Ù‚Ù‚ØŒ Ù‚Ø¯ ØªØ­ØªØ§Ø¬ Ø¥Ù„Ù‰ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø± Ù„Ù…Ø¯Ø© 1-2 Ø¯Ù‚ÙŠÙ‚Ø©.',
-    'Note: Running analyses back-to-back can trigger this.': 'Ù…Ù„Ø§Ø­Ø¸Ø©: ÙŠÙ…ÙƒÙ† Ø£Ù† ÙŠØ¤Ø¯ÙŠ ØªØ´ØºÙŠÙ„ Ø§Ù„ØªØ­Ù„ÙŠÙ„Ø§Øª Ø¨Ø´ÙƒÙ„ Ù…ØªØªØ§Ù„ÙŠ Ø¥Ù„Ù‰ Ø­Ø¯ÙˆØ« Ø°Ù„Ùƒ.',
-    'Octopuses have three hearts and nine brains—forgetting things isn’t really an option.': 'ÙŠÙ…ØªÙ„Ùƒ Ø§Ù„Ø£Ø®Ø·Ø¨ÙˆØ· Ø«Ù„Ø§Ø«Ø© Ù‚Ù„ÙˆØ¨ ÙˆØªØ³Ø¹Ø© Ø£Ø¯Ù…ØºØ©ØŒ ÙˆÙ†Ø³ÙŠØ§Ù† Ø§Ù„Ø£Ø´ÙŠØ§Ø¡ Ù„ÙŠØ³ Ø®ÙŠØ§Ø±Ù‹Ø§ ÙÙŠ Ø§Ù„Ø­Ù‚ÙŠÙ‚Ø©.',
-    'On Saturn and Jupiter, it can literally rain diamonds—apparently we’re living on the wrong planet.': 'ÙÙŠ Ø²Ø­Ù„ ÙˆØ§Ù„Ù…Ø´ØªØ±ÙŠØŒ ÙŠÙ…ÙƒÙ† Ø£Ù† ØªÙ…Ø·Ø± Ø§Ù„Ù…Ø§Ø³ ÙØ¹Ù„ÙŠÙ‹Ø§ØŒ ÙˆÙŠØ¨Ø¯Ùˆ Ø£Ù†Ù†Ø§ Ù†Ø¹ÙŠØ´ Ø¹Ù„Ù‰ Ø§Ù„ÙƒÙˆÙƒØ¨ Ø§Ù„Ø®Ø·Ø£.',
-    'On Venus, a day is longer than a year—it rotates on its axis more slowly than it orbits the Sun.': 'Ø¹Ù„Ù‰ ÙƒÙˆÙƒØ¨ Ø§Ù„Ø²Ù‡Ø±Ø©ØŒ ÙŠÙƒÙˆÙ† Ø§Ù„ÙŠÙˆÙ… Ø£Ø·ÙˆÙ„ Ù…Ù† Ø§Ù„Ø³Ù†Ø©ØŒ ÙÙ‡Ùˆ ÙŠØ¯ÙˆØ± Ø­ÙˆÙ„ Ù…Ø­ÙˆØ±Ù‡ Ø¨Ø´ÙƒÙ„ Ø£Ø¨Ø·Ø£ Ù…Ù† Ø¯ÙˆØ±Ø§Ù†Ù‡ Ø­ÙˆÙ„ Ø§Ù„Ø´Ù…Ø³.',
-    'OPEN LOGS': 'Ø§Ù„Ø³Ø¬Ù„Ø§Øª Ø§Ù„Ù…ÙØªÙˆØ­Ø©',
-    'Opening consent form...': 'Ø¬Ø§Ø±Ù ÙØªØ­ Ù†Ù…ÙˆØ°Ø¬ Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø©...',
-    'Pigeons can tell the difference between paintings by Picasso and Monet—turns out they’re more art-savvy than we think.': 'ÙŠØ³ØªØ·ÙŠØ¹ Ø§Ù„Ø­Ù…Ø§Ù… Ø§Ù„ØªÙ…ÙŠÙŠØ² Ø¨ÙŠÙ† Ù„ÙˆØ­Ø§Øª Ø¨ÙŠÙƒØ§Ø³Ùˆ ÙˆÙ…ÙˆÙ†ÙŠÙ‡ØŒ ÙˆÙ‚Ø¯ ØªØ¨ÙŠÙ† Ø£Ù†Ù‡Ù… Ø£ÙƒØ«Ø± Ø°ÙƒØ§Ø¡Ù‹ ÙÙŠ Ø§Ù„ÙÙ† Ù…Ù…Ø§ Ù†Ø¹ØªÙ‚Ø¯.',
-    'Platypuses don’t have stomachs—food goes from the esophagus straight to the intestines.': 'Ø®Ù„Ø¯ Ø§Ù„Ù…Ø§Ø¡ Ù„ÙŠØ³ Ù„Ø¯ÙŠÙ‡ Ù…Ø¹Ø¯Ø©ØŒ ÙØ§Ù„Ø·Ø¹Ø§Ù… ÙŠÙ†ØªÙ‚Ù„ Ù…Ù† Ø§Ù„Ù…Ø±ÙŠØ¡ Ù…Ø¨Ø§Ø´Ø±Ø© Ø¥Ù„Ù‰ Ø§Ù„Ø£Ù…Ø¹Ø§Ø¡.',
-    'Please try again.': 'ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.',
-    'Polar bears actually have black skin, and their fur is transparent; they look white because of how light scatters.': 'ÙÙŠ Ø§Ù„ÙˆØ§Ù‚Ø¹ØŒ ØªØªÙ…ØªØ¹ Ø§Ù„Ø¯Ø¨Ø¨Ø© Ø§Ù„Ù‚Ø·Ø¨ÙŠØ© Ø¨Ø¬Ù„Ø¯ Ø£Ø³ÙˆØ¯ØŒ ÙˆÙØ±Ø§Ø¦Ù‡Ø§ Ø´ÙØ§ÙØ› ',
+    'Instagram returned an error.': 'أعاد Instagram خطأ.',
+    'Instagram returned an unexpected response.': 'أعاد Instagram استجابة غير متوقعة.',
+    'Instagram returned no data.': 'لم يُرجع Instagram أي بيانات.',
+    'Instagram session is invalid or pending verification.': 'جلسة Instagram غير صالحة أو في انتظار التحقق.',
+    'Instagram temporarily restricted this action. Please wait a bit and try again.': 'قام Instagram بتقييد هذا الإجراء مؤقتًا. ',
+    'Instagram temporarily restricted this action. This can happen when requests are too frequent or activity looks automated. We stopped fetching data.': 'قام Instagram بتقييد هذا الإجراء مؤقتًا. ',
+    'Instagram Temporary Restriction': 'قيود مؤقتة على إنستغرام',
+    'Instagram Verification Required': 'مطلوب التحقق من Instagram',
+    'Invalid store link.': 'رابط المتجر غير صالح.',
+    'Load error: \${err.message} (Code: \${err.code})': 'خطأ في التحميل: \${err.message} (الرمز: \${err.code})',
+    'Loading stories...': 'جارٍ تحميل القصص...',
+    'Loading...': 'تحميل...',
+    'Login': 'تسجيل الدخول',
+    'Mount Everest keeps growing by about 4 millimeters each year—Earth is still changing.': 'يستمر جبل إيفرست في النمو بنحو 4 ملليمترات كل عام، ولا تزال الأرض تتغير.',
+    'NEW': 'جديد',
+    'No data': 'لا توجد بيانات',
+    'No Firebase logs yet.': 'لا توجد سجلات Firebase حتى الآن.',
+    'No store logs yet.': 'لا توجد سجلات مخزن حتى الآن.',
+    'Note: After verification, you may need to wait 1–2 minutes.': 'ملحوظة: بعد التحقق، قد تحتاج إلى الانتظار لمدة 1-2 دقيقة.',
+    'Note: Running analyses back-to-back can trigger this.': 'ملاحظة: يمكن أن يؤدي تشغيل التحليلات بشكل متتالي إلى حدوث ذلك.',
+    'Octopuses have three hearts and nine brains—forgetting things isn’t really an option.': 'يمتلك الأخطبوط ثلاثة قلوب وتسعة أدمغة، ونسيان الأشياء ليس خيارًا في الحقيقة.',
+    'On Saturn and Jupiter, it can literally rain diamonds—apparently we’re living on the wrong planet.': 'في زحل والمشتري، يمكن أن تمطر الماس فعليًا، ويبدو أننا نعيش على الكوكب الخطأ.',
+    'On Venus, a day is longer than a year—it rotates on its axis more slowly than it orbits the Sun.': 'على كوكب الزهرة، يكون اليوم أطول من السنة، فهو يدور حول محوره بشكل أبطأ من دورانه حول الشمس.',
+    'OPEN LOGS': 'السجلات المفتوحة',
+    'Opening consent form...': 'جارٍ فتح نموذج الموافقة...',
+    'Pigeons can tell the difference between paintings by Picasso and Monet—turns out they’re more art-savvy than we think.': 'يستطيع الحمام التمييز بين لوحات بيكاسو ومونيه، وقد تبين أنهم أكثر ذكاءً في الفن مما نعتقد.',
+    'Platypuses don’t have stomachs—food goes from the esophagus straight to the intestines.': 'خلد الماء ليس لديه معدة، فالطعام ينتقل من المريء مباشرة إلى الأمعاء.',
+    'Please try again.': 'يرجى المحاولة مرة أخرى.',
+    'Polar bears actually have black skin, and their fur is transparent; they look white because of how light scatters.': 'في الواقع، تتمتع الدببة القطبية بجلد أسود، وفرائها شفاف؛ ',
     'Premium active ✅ Ads and wait times are disabled.': 'Premium نشط ✅ تم تعطيل الإعلانات وأوقات الانتظار.',
-    'Privacy Policy': 'Ø³ÙŠØ§Ø³Ø© Ø§Ù„Ø®ØµÙˆØµÙŠØ©',
-    'Purchase cancelled.': 'ØªÙ… Ø¥Ù„ØºØ§Ø¡ Ø§Ù„Ø´Ø±Ø§Ø¡.',
-    'Purchase failed.': 'ÙØ´Ù„ Ø§Ù„Ø´Ø±Ø§Ø¡.',
-    'Purchase failed. Please try again.': 'ÙØ´Ù„ Ø§Ù„Ø´Ø±Ø§Ø¡. ',
-    'Purchase successful.': 'ØªÙ… Ø§Ù„Ø´Ø±Ø§Ø¡ Ø¨Ù†Ø¬Ø§Ø­.',
-    'Purchase Test': 'Ø§Ø®ØªØ¨Ø§Ø± Ø§Ù„Ø´Ø±Ø§Ø¡',
-    'REST Probe': 'Ù…Ø³Ø¨Ø§Ø± Ø§Ù„Ø±Ø§Ø­Ø©',
-    'REST probe failed (check logs).': 'ÙØ´Ù„ Ù…Ø³Ø¨Ø§Ø± REST (ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„Ø³Ø¬Ù„Ø§Øª).',
-    'REST probe failed: missing auth.': 'ÙØ´Ù„ Ù…Ø³Ø¨Ø§Ø± REST: Ø§Ù„Ù…ØµØ§Ø¯Ù‚Ø© Ù…ÙÙ‚ÙˆØ¯Ø©.',
-    'REST probe success (Firestore endpoint reachable).': 'Ù†Ø¬Ø§Ø­ Ù…Ø³Ø¨Ø§Ø± REST (ÙŠÙ…ÙƒÙ† Ø§Ù„ÙˆØµÙˆÙ„ Ø¥Ù„Ù‰ Ù†Ù‚Ø·Ø© Ù†Ù‡Ø§ÙŠØ© Firestore).',
-    'Restore Test': 'Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ø§Ù„Ø§Ø®ØªØ¨Ø§Ø±',
-    'Sea otters hold hands while they sleep so they don’t drift apart in the current.': 'Ø«Ø¹Ø§Ù„Ø¨ Ø§Ù„Ø¨Ø­Ø± ØªÙ…Ø³Ùƒ Ø£ÙŠØ¯ÙŠÙ‡Ø§ Ø£Ø«Ù†Ø§Ø¡ Ù†ÙˆÙ…Ù‡Ø§ Ø­ØªÙ‰ Ù„Ø§ ØªÙ†Ø¬Ø±Ù Ø¨Ø¹ÙŠØ¯Ù‹Ø§ ÙÙŠ Ø§Ù„ØªÙŠØ§Ø±.',
-    'Secret Mode': 'Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„Ø³Ø±ÙŠ',
-    'Session expired or verification required.': 'Ø§Ù†ØªÙ‡Øª ØµÙ„Ø§Ø­ÙŠØ© Ø§Ù„Ø¬Ù„Ø³Ø© Ø£Ùˆ ÙŠÙ„Ø²Ù… Ø§Ù„ØªØ­Ù‚Ù‚.',
-    'Session is invalid. Please log in again.': 'Ø§Ù„Ø¬Ù„Ø³Ø© ØºÙŠØ± ØµØ§Ù„Ø­Ø©. ',
-    'Session verification failed. Please log in again.': 'ÙØ´Ù„ Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„Ø¬Ù„Ø³Ø©. ',
-    'Session verified, redirecting...': 'ØªÙ… Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„Ø¬Ù„Ø³Ø©ØŒ Ø¬Ø§Ø±Ù Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„ØªÙˆØ¬ÙŠÙ‡...',
-    'Sharks are older than Saturn’s rings—they were around millions of years before Saturn got its famous bling.': 'ØªØ¹Ø¯ Ø£Ø³Ù…Ø§Ùƒ Ø§Ù„Ù‚Ø±Ø´ Ø£Ù‚Ø¯Ù… Ù…Ù† Ø­Ù„Ù‚Ø§Øª Ø²Ø­Ù„ØŒ ÙÙ‚Ø¯ ÙƒØ§Ù†Øª Ù…ÙˆØ¬ÙˆØ¯Ø© Ù‚Ø¨Ù„ Ù…Ù„Ø§ÙŠÙŠÙ† Ø§Ù„Ø³Ù†ÙŠÙ† Ù…Ù† Ø­ØµÙˆÙ„ Ø²Ø­Ù„ Ø¹Ù„Ù‰ Ø¨Ø±ÙŠÙ‚Ù‡ Ø§Ù„Ø´Ù‡ÙŠØ±.',
-    'Sharks are older than trees—sharks have been around for about 400 million years, trees for about 350 million.': 'Ø£Ø³Ù…Ø§Ùƒ Ø§Ù„Ù‚Ø±Ø´ Ø£Ù‚Ø¯Ù… Ù…Ù† Ø§Ù„Ø£Ø´Ø¬Ø§Ø±ØŒ Ø¥Ø° ÙƒØ§Ù†Øª Ø£Ø³Ù…Ø§Ùƒ Ø§Ù„Ù‚Ø±Ø´ Ù…ÙˆØ¬ÙˆØ¯Ø© Ù…Ù†Ø° Ø­ÙˆØ§Ù„ÙŠ 400 Ù…Ù„ÙŠÙˆÙ† Ø³Ù†Ø©ØŒ ÙˆØ§Ù„Ø£Ø´Ø¬Ø§Ø± Ù…Ù†Ø° Ø­ÙˆØ§Ù„ÙŠ 350 Ù…Ù„ÙŠÙˆÙ† Ø³Ù†Ø©.',
-    'Show error: \${err.message}': 'Ø¥Ø¸Ù‡Ø§Ø± Ø§Ù„Ø®Ø·Ø£: \${err.message}',
-    'Sloths can hold their breath underwater longer than dolphins—up to about 40 minutes.': 'ÙŠÙ…ÙƒÙ† Ù„Ø­ÙŠÙˆØ§Ù†Ø§Øª Ø§Ù„ÙƒØ³Ù„Ø§Ù† Ø­Ø¨Ø³ Ø£Ù†ÙØ§Ø³Ù‡Ø§ ØªØ­Øª Ø§Ù„Ù…Ø§Ø¡ Ù„ÙØªØ±Ø© Ø£Ø·ÙˆÙ„ Ù…Ù† Ø§Ù„Ø¯Ù„Ø§ÙÙŠÙ†ØŒ ØªØµÙ„ Ø¥Ù„Ù‰ Ø­ÙˆØ§Ù„ÙŠ 40 Ø¯Ù‚ÙŠÙ‚Ø©.',
-    'Squirrels help grow thousands of new trees each year because they forget where they buried nuts.': 'ØªØ³Ø§Ø¹Ø¯ Ø§Ù„Ø³Ù†Ø§Ø¬Ø¨ ÙÙŠ Ø²Ø±Ø§Ø¹Ø© Ø¢Ù„Ø§Ù Ø§Ù„Ø£Ø´Ø¬Ø§Ø± Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø© ÙƒÙ„ Ø¹Ø§Ù… Ù„Ø£Ù†Ù‡Ø§ ØªÙ†Ø³Ù‰ Ø§Ù„Ù…ÙƒØ§Ù† Ø§Ù„Ø°ÙŠ Ø¯ÙÙ†Øª ÙÙŠÙ‡ Ø§Ù„Ø¬ÙˆØ².',
-    'Starting purchase...': 'Ø¨Ø¯Ø¡ Ø§Ù„Ø´Ø±Ø§Ø¡...',
-    'Store': 'Ù…Ø­Ù„',
-    'Store link not set.': 'Ù„Ù… ÙŠØªÙ… Ø¶Ø¨Ø· Ø±Ø§Ø¨Ø· Ø§Ù„Ù…ØªØ¬Ø±.',
-    'The Eiffel Tower can grow by about 15 centimeters in summer due to thermal expansion.': 'ÙŠÙ…ÙƒÙ† Ø£Ù† ÙŠÙ†Ù…Ùˆ Ø¨Ø±Ø¬ Ø¥ÙŠÙÙ„ Ø¨Ø­ÙˆØ§Ù„ÙŠ 15 Ø³Ù… ÙÙŠ Ø§Ù„ØµÙŠÙ Ø¨Ø³Ø¨Ø¨ Ø§Ù„ØªÙ…Ø¯Ø¯ Ø§Ù„Ø­Ø±Ø§Ø±ÙŠ.',
-    'The first video game played in space was Tetris—played on a Game Boy by a cosmonaut in 1993.': 'Ø£ÙˆÙ„ Ù„Ø¹Ø¨Ø© ÙÙŠØ¯ÙŠÙˆ ØªÙ… Ù„Ø¹Ø¨Ù‡Ø§ ÙÙŠ Ø§Ù„ÙØ¶Ø§Ø¡ ÙƒØ§Ù†Øª TetrisØŒ ÙˆØ§Ù„ØªÙŠ Ù„Ø¹Ø¨Ù‡Ø§ Ø±Ø§Ø¦Ø¯ ÙØ¶Ø§Ø¡ Ø¹Ù„Ù‰ Ø¬Ù‡Ø§Ø² Game Boy ÙÙŠ Ø¹Ø§Ù… 1993.',
-    'The lighter was invented before the match—sometimes “old” tech is older than we think.': 'ØªÙ… Ø§Ø®ØªØ±Ø§Ø¹ Ø§Ù„ÙˆÙ„Ø§Ø¹Ø© Ù‚Ø¨Ù„ Ø§Ù„Ù…Ø¨Ø§Ø±Ø§Ø©ØŒ ÙˆÙÙŠ Ø¨Ø¹Ø¶ Ø§Ù„Ø£Ø­ÙŠØ§Ù† ØªÙƒÙˆÙ† Ø§Ù„ØªÙƒÙ†ÙˆÙ„ÙˆØ¬ÙŠØ§ "Ø§Ù„Ù‚Ø¯ÙŠÙ…Ø©" Ø£Ù‚Ø¯Ù… Ù…Ù…Ø§ Ù†Ø¹ØªÙ‚Ø¯.',
-    'The total weight of all humans on Earth is roughly comparable to the total weight of all ants.': 'Ø§Ù„ÙˆØ²Ù† Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ù„Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø¨Ø´Ø± Ø¹Ù„Ù‰ Ø§Ù„Ø£Ø±Ø¶ ÙŠÙ…ÙƒÙ† Ù…Ù‚Ø§Ø±Ù†ØªÙ‡ ØªÙ‚Ø±ÙŠØ¨Ù‹Ø§ Ø¨Ø§Ù„ÙˆØ²Ù† Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ù„Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù†Ù…Ù„.',
-    'The world’s first computer virus was called “Creeper,” and it displayed: “I’m the creeper, catch me if you can!”': 'Ø£ÙˆÙ„ ÙÙŠØ±ÙˆØ³ ÙƒÙ…Ø¨ÙŠÙˆØªØ± ÙÙŠ Ø§Ù„Ø¹Ø§Ù„Ù… ÙƒØ§Ù† ÙŠØ³Ù…Ù‰ "Ø§Ù„Ø²Ø§Ø­Ù"ØŒ ÙˆÙƒØ§Ù† ÙŠØ¸Ù‡Ø±: "Ø£Ù†Ø§ Ø§Ù„Ø²Ø§Ø­ÙØŒ Ø£Ù…Ø³Ùƒ Ø¨ÙŠ Ø¥Ø°Ø§ Ø§Ø³ØªØ·Ø¹Øª!"',
-    'Time to update data! Analyze now to see changes in your follower list.': 'Ø­Ø§Ù† Ø§Ù„ÙˆÙ‚Øª Ù„ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª! ',
-    'Timeout': 'Ù†ÙØ° Ø§Ù„ÙˆÙ‚Øª',
-    'Too many requests were sent.': 'ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø¹Ø¯Ø¯ ÙƒØ¨ÙŠØ± Ø¬Ø¯Ù‹Ø§ Ù…Ù† Ø§Ù„Ø·Ù„Ø¨Ø§Øª.',
-    'User': 'Ù…Ø³ØªØ®Ø¯Ù…',
-    'William Shakespeare is credited with the first recorded use of the word “swagger”—even in the 16th century, he had style.': 'ÙŠØ¹ÙˆØ¯ Ø§Ù„ÙØ¶Ù„ Ø¥Ù„Ù‰ ÙˆÙŠÙ„ÙŠØ§Ù… Ø´ÙƒØ³Ø¨ÙŠØ± ÙÙŠ Ø£ÙˆÙ„ Ø§Ø³ØªØ®Ø¯Ø§Ù… Ù…Ø³Ø¬Ù„ Ù„ÙƒÙ„Ù…Ø© "Ø§Ø®ØªÙŠØ§Ù„" - Ø­ØªÙ‰ ÙÙŠ Ø§Ù„Ù‚Ø±Ù† Ø§Ù„Ø³Ø§Ø¯Ø³ Ø¹Ø´Ø±ØŒ ÙƒØ§Ù† Ù„Ø¯ÙŠÙ‡ Ø£Ø³Ù„ÙˆØ¨.',
-    'Wombat poop is cube-shaped, so it doesn’t roll away and can mark territory more effectively.': 'ÙŠÙƒÙˆÙ† Ø¨Ø±Ø§Ø² Ø§Ù„ÙˆÙ…Ø¨Øª Ø¹Ù„Ù‰ Ø´ÙƒÙ„ Ù…ÙƒØ¹Ø¨ØŒ Ù„Ø°Ø§ ÙÙ‡Ùˆ Ù„Ø§ ÙŠØªØ¯Ø­Ø±Ø¬ ÙˆÙŠÙ…ÙƒÙ†Ù‡ ØªØ­Ø¯ÙŠØ¯ Ø§Ù„Ù…Ù†Ø·Ù‚Ø© Ø¨Ø´ÙƒÙ„ Ø£ÙƒØ«Ø± ÙØ¹Ø§Ù„ÙŠØ©.',
-    'Woodpeckers wrap their tongues around their brains to help avoid concussions—using your tongue as a helmet is a wild solution.': 'ÙŠÙ„Ù Ù†Ù‚Ø§Ø± Ø§Ù„Ø®Ø´Ø¨ Ø£Ù„Ø³Ù†ØªÙ‡Ù… Ø­ÙˆÙ„ Ø£Ø¯Ù…ØºØªÙ‡Ù… Ù„Ù„Ù…Ø³Ø§Ø¹Ø¯Ø© ÙÙŠ ØªØ¬Ù†Ø¨ Ø§Ù„Ø§Ø±ØªØ¬Ø§Ø¬Ø§ØªØŒ ÙˆÙŠØ¹ØªØ¨Ø± Ø§Ø³ØªØ®Ø¯Ø§Ù… Ù„Ø³Ø§Ù†Ùƒ ÙƒØ®ÙˆØ°Ø© Ø­Ù„Ø§Ù‹ Ø¬Ø°Ø±ÙŠÙ‹Ø§.',
-    'Write Test': 'Ø§Ø®ØªØ¨Ø§Ø± Ø§Ù„ÙƒØªØ§Ø¨Ø©',
-    'You can’t really cry in space: without gravity, tears don’t run down your face—they form a blob in your eye.': 'Ù„Ø§ ÙŠÙ…ÙƒÙ†Ùƒ Ø§Ù„Ø¨ÙƒØ§Ø¡ Ø­Ù‚Ù‹Ø§ ÙÙŠ Ø§Ù„ÙØ¶Ø§Ø¡: ÙØ¨Ø¯ÙˆÙ† Ø§Ù„Ø¬Ø§Ø°Ø¨ÙŠØ©ØŒ Ù„Ù† ØªØ³ÙŠÙ„ Ø§Ù„Ø¯Ù…ÙˆØ¹ Ø¹Ù„Ù‰ ÙˆØ¬Ù‡ÙƒØŒ Ø¨Ù„ Ø³ØªØ´ÙƒÙ„ Ù†Ù‚Ø·Ø© ÙÙŠ Ø¹ÙŠÙ†Ùƒ.',
-    'Your account is blocked': 'ØªÙ… Ø­Ø¸Ø± Ø­Ø³Ø§Ø¨Ùƒ',
-    'Your consent preference was updated.': 'ØªÙ… ØªØ­Ø¯ÙŠØ« ØªÙØ¶ÙŠÙ„ Ù…ÙˆØ§ÙÙ‚ØªÙƒ.',
+    'Privacy Policy': 'سياسة الخصوصية',
+    'Purchase cancelled.': 'تم إلغاء الشراء.',
+    'Purchase failed.': 'فشل الشراء.',
+    'Purchase failed. Please try again.': 'فشل الشراء. ',
+    'Purchase successful.': 'تم الشراء بنجاح.',
+    'Purchase Test': 'اختبار الشراء',
+    'REST Probe': 'مسبار الراحة',
+    'REST probe failed (check logs).': 'فشل مسبار REST (تحقق من السجلات).',
+    'REST probe failed: missing auth.': 'فشل مسبار REST: المصادقة مفقودة.',
+    'REST probe success (Firestore endpoint reachable).': 'نجاح مسبار REST (يمكن الوصول إلى نقطة نهاية Firestore).',
+    'Restore Test': 'استعادة الاختبار',
+    'Sea otters hold hands while they sleep so they don’t drift apart in the current.': 'ثعالب البحر تمسك أيديها أثناء نومها حتى لا تنجرف بعيدًا في التيار.',
+    'Secret Mode': 'الوضع السري',
+    'Session expired or verification required.': 'انتهت صلاحية الجلسة أو يلزم التحقق.',
+    'Session is invalid. Please log in again.': 'الجلسة غير صالحة. ',
+    'Session verification failed. Please log in again.': 'فشل التحقق من الجلسة. ',
+    'Session verified, redirecting...': 'تم التحقق من الجلسة، جارٍ إعادة التوجيه...',
+    'Sharks are older than Saturn’s rings—they were around millions of years before Saturn got its famous bling.': 'تعد أسماك القرش أقدم من حلقات زحل، فقد كانت موجودة قبل ملايين السنين من حصول زحل على بريقه الشهير.',
+    'Sharks are older than trees—sharks have been around for about 400 million years, trees for about 350 million.': 'أسماك القرش أقدم من الأشجار، إذ كانت أسماك القرش موجودة منذ حوالي 400 مليون سنة، والأشجار منذ حوالي 350 مليون سنة.',
+    'Show error: \${err.message}': 'إظهار الخطأ: \${err.message}',
+    'Sloths can hold their breath underwater longer than dolphins—up to about 40 minutes.': 'يمكن لحيوانات الكسلان حبس أنفاسها تحت الماء لفترة أطول من الدلافين، تصل إلى حوالي 40 دقيقة.',
+    'Squirrels help grow thousands of new trees each year because they forget where they buried nuts.': 'تساعد السناجب في زراعة آلاف الأشجار الجديدة كل عام لأنها تنسى المكان الذي دفنت فيه الجوز.',
+    'Starting purchase...': 'بدء الشراء...',
+    'Store': 'محل',
+    'Store link not set.': 'لم يتم ضبط رابط المتجر.',
+    'The Eiffel Tower can grow by about 15 centimeters in summer due to thermal expansion.': 'يمكن أن ينمو برج إيفل بحوالي 15 سم في الصيف بسبب التمدد الحراري.',
+    'The first video game played in space was Tetris—played on a Game Boy by a cosmonaut in 1993.': 'أول لعبة فيديو تم لعبها في الفضاء كانت Tetris، والتي لعبها رائد فضاء على جهاز Game Boy في عام 1993.',
+    'The lighter was invented before the match—sometimes “old” tech is older than we think.': 'تم اختراع الولاعة قبل المباراة، وفي بعض الأحيان تكون التكنولوجيا "القديمة" أقدم مما نعتقد.',
+    'The total weight of all humans on Earth is roughly comparable to the total weight of all ants.': 'الوزن الإجمالي لجميع البشر على الأرض يمكن مقارنته تقريبًا بالوزن الإجمالي لجميع النمل.',
+    'The world’s first computer virus was called “Creeper,” and it displayed: “I’m the creeper, catch me if you can!”': 'أول فيروس كمبيوتر في العالم كان يسمى "الزاحف"، وكان يظهر: "أنا الزاحف، أمسك بي إذا استطعت!"',
+    'Time to update data! Analyze now to see changes in your follower list.': 'حان الوقت لتحديث البيانات! ',
+    'Timeout': 'نفذ الوقت',
+    'Too many requests were sent.': 'تم إرسال عدد كبير جدًا من الطلبات.',
+    'User': 'مستخدم',
+    'William Shakespeare is credited with the first recorded use of the word “swagger”—even in the 16th century, he had style.': 'يعود الفضل إلى ويليام شكسبير في أول استخدام مسجل لكلمة "اختيال" - حتى في القرن السادس عشر، كان لديه أسلوب.',
+    'Wombat poop is cube-shaped, so it doesn’t roll away and can mark territory more effectively.': 'يكون براز الومبت على شكل مكعب، لذا فهو لا يتدحرج ويمكنه تحديد المنطقة بشكل أكثر فعالية.',
+    'Woodpeckers wrap their tongues around their brains to help avoid concussions—using your tongue as a helmet is a wild solution.': 'يلف نقار الخشب ألسنتهم حول أدمغتهم للمساعدة في تجنب الارتجاجات، ويعتبر استخدام لسانك كخوذة حلاً جذريًا.',
+    'Write Test': 'اختبار الكتابة',
+    'You can’t really cry in space: without gravity, tears don’t run down your face—they form a blob in your eye.': 'لا يمكنك البكاء حقًا في الفضاء: فبدون الجاذبية، لن تسيل الدموع على وجهك، بل ستشكل نقطة في عينك.',
+    'Your account is blocked': 'تم حظر حسابك',
+    'Your consent preference was updated.': 'تم تحديث تفضيل موافقتك.',
   },
 
 
@@ -2651,4 +2755,3 @@ const Map<String, Map<String, String>> _trEnPhraseLocalizations = {
     "Your consent preference was updated.": "Twoje preferencje dotycz\u0105ce zgody zosta\u0142y zaktualizowane.",
   },
 };
-
