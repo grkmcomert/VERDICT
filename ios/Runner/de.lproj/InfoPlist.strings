@@ -1,0 +1,5 @@
+﻿/* App Tracking Transparency permission prompt */
+"NSUserTrackingUsageDescription" = "Wir benötigen Ihre Erlaubnis, um Ihnen relevantere Inhalte und Werbung zu zeigen.";
+"CFBundleDisplayName" = "VERDICT Follower Analyzer";
+"CFBundleName" = "VERDICT Follower Analyzer";
+

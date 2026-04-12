@@ -1,0 +1,5 @@
+﻿/* App Tracking Transparency permission prompt */
+"NSUserTrackingUsageDescription" = "Vi trenger tillatelsen din for å vise deg mer relevant innhold og annonser.";
+"CFBundleDisplayName" = "VERDICT Follower Analyzer";
+"CFBundleName" = "VERDICT Follower Analyzer";
+
