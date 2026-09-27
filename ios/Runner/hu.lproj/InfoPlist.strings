@@ -1,0 +1,5 @@
+﻿/* App Tracking Transparency permission prompt */
+"NSUserTrackingUsageDescription" = "Engedélyére van szükségünk ahhoz, hogy relevánsabb tartalmakat és hirdetéseket jelenítsünk meg Önnek.";
+"CFBundleDisplayName" = "VERDICT Follower Analyzer";
+"CFBundleName" = "VERDICT Follower Analyzer";
+

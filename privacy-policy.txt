@@ -1,0 +1,89 @@
+English:
+
+PRIVACY POLICY FOR VERDICT
+
+Thank you for using VERDICT. This policy explains in plain language how data is handled while you use the app. If anything is unclear, you can contact us anytime.
+
+1. VERDICT and Instagram relationship
+VERDICT is an independent third-party app. It is not affiliated with, sponsored by, or managed by Instagram, Facebook, or Meta Platforms, Inc. "Instagram" is a trademark of Meta Platforms, Inc.
+
+2. Data we process to provide the service
+VERDICT is designed with privacy-first, on-device processing in mind. Most analysis runs locally on your phone.
+A. Login session (authentication): To run follower analysis, you log in through Instagram's official login page inside a secure WebView.
+Our access: We do not see or store your password. Session cookies and auth tokens stay in secure local storage on your device (e.g., Android SharedPreferences, iOS Keychain).
+Server approach: We do not upload your password or follower lists to servers we own.
+B. Limited device and usage data: Our service partners (Google AdMob and Firebase) may process limited technical identifiers (device model, OS version, network type, ad ID, crash/performance logs) to keep the app stable and show relevant ads.
+
+3. Why this data is used
+To provide follower analysis features, maintain the app (updates, maintenance mode, feature flags), and support free usage through ads.
+
+4. Third-party services
+We do not sell personal data. We use trusted third-party services for ads and analytics:
+Google AdMob: Privacy Policy
+Google Firebase: Privacy Policy
+
+5. Your control and deletion options
+Because session and analysis data are stored locally, you remain in control.
+You can delete data anytime by logging out, clearing app storage/cache, or uninstalling the app.
+
+6. Security
+We apply standard security practices to protect local data on your device and continue improving these safeguards.
+
+7. Children's privacy
+VERDICT is not intended for children under 13. We do not knowingly collect personal data from children under 13.
+
+8. Policy updates
+We may update this policy from time to time. The latest version will be published on this page.
+
+9. Contact
+If you have questions or suggestions, please contact us.
+
+Developer: Görkem Ali Cömert
+Contact: via Instagram @grkmcomert
+
+
+---------------------------------------------------------------------------------------------------------
+
+
+Turkish:
+
+VERDICT GİZLİLİK POLİTİKASI
+
+VERDICT'i kullandığınız için teşekkür ederiz. Bu metin, uygulamayı kullanırken bilgilerinizin nasıl işlendiğini sade bir dille açıklar. Aklınıza takılan bir nokta olursa dilediğiniz zaman bize ulaşabilirsiniz.
+
+1. VERDICT ve Instagram ilişkisi
+VERDICT bağımsız bir üçüncü taraf uygulamasıdır. Instagram, Facebook veya Meta Platforms, Inc. ile resmi bir ortaklığı yoktur. "Instagram", Meta Platforms, Inc. şirketinin ticari markasıdır.
+
+2. Hizmeti sunmak için işlediğimiz bilgiler
+Uygulama, gizlilik önceliğiyle ve cihaz içi çalışma mantığıyla tasarlanmıştır. Analizlerin büyük bölümü telefonunuzda yerel olarak yapılır.
+A. Giriş oturumu (kimlik doğrulama): Takipçi analizini çalıştırabilmek için Instagram hesabınıza, Instagram'ın resmi giriş ekranı üzerinden giriş yaparsınız.
+Erişimimiz: Şifrenizi görmeyiz ve saklamayız. Oturum çerezleri ve kimlik doğrulama belirteçleri yalnızca cihazınızdaki güvenli yerel alanda tutulur (ör. Android SharedPreferences, iOS Keychain).
+Sunucu yaklaşımımız: Şifreniz veya takipçi listeleriniz bize ait harici bir sunucuya yüklenmez.
+B. Sınırlı cihaz/kullanım verileri: Google AdMob ve Firebase gibi hizmet ortaklarımız, uygulamanın stabil çalışması ve uygun reklamların gösterilmesi için sınırlı teknik verileri işleyebilir (cihaz modeli, işletim sistemi sürümü, ağ türü, reklam kimliği, çökme/performance kayıtları).
+
+3. Bu bilgileri neden kullanıyoruz
+Takipçi analiz özelliklerini sunmak, uygulamayı güncel tutmak (bakım, güncelleme, özellik geçişleri) ve uygulamanın ücretsiz kalabilmesi için reklam gösterebilmek.
+
+4. Üçüncü taraf hizmetleri
+Kişisel verilerinizi satmayız. Reklam ve analiz altyapısı için güvenilir üçüncü taraf hizmetleri kullanırız:
+Google AdMob: Gizlilik Politikası
+Google Firebase: Gizlilik Politikası
+
+5. Kontrol sizde ve silme seçenekleri
+Oturum ve analiz verileri cihazınızda tutulduğu için kontrol sizdedir.
+İsterseniz istediğiniz an çıkış yaparak, uygulama depolamasını/önbelleğini temizleyerek veya uygulamayı kaldırarak verileri silebilirsiniz.
+
+6. Güvenlik
+Cihazınızdaki verileri korumak için standart güvenlik yöntemleri kullanıyor ve korumaları düzenli olarak geliştiriyoruz.
+
+7. Çocukların gizliliği
+VERDICT, 13 yaş altı çocuklara yönelik değildir. 13 yaş altındaki çocuklardan bilerek kişisel veri toplamıyoruz.
+
+8. Politika güncellemeleri
+Bu politikayı zaman zaman güncelleyebiliriz. Güncel sürümü bu sayfada yayınlarız.
+
+9. İletişim
+Sorularınız veya önerileriniz için bizimle iletişime geçebilirsiniz.
+
+Geliştirici: Görkem Ali Cömert
+İletişim: Instagram üzerinden @grkmcomert

@@ -1,0 +1,205 @@
+name: VERDICT Shorebird Release - App Store Upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: 'New App Store build number (greater than previous builds)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verdict-shorebird-ios
+  cancel-in-progress: false
+
+jobs:
+  build_and_upload:
+    name: FINAL BUILD - Build & Upload to App Store
+    runs-on: macos-latest
+    env:
+      SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+      BUILD_NUMBER: ${{ inputs.build_number }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Validate Shorebird configuration
+        run: |
+          bash tool/check_shorebird.sh
+          [[ "$BUILD_NUMBER" =~ ^[1-9][0-9]*$ ]] || { echo 'Invalid build number'; exit 1; }
+
+      - name: Set Latest Xcode Version
+        run: |
+          XCODE_PATH=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "Seçilen Xcode yolu: $XCODE_PATH"
+          sudo xcode-select -s "$XCODE_PATH/Contents/Developer"
+
+      - name: Install Apple Certificate and Profile
+        env:
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.VERDICT_PROFIL_KODU }}
+          P12_BASE64: ${{ secrets.P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: "temporary_password"
+        run: |
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          echo -n "$P12_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+
+      - name: Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+
+      - name: Validate RevenueCat iOS Key
+        env:
+          REVENUECAT_IOS_API_KEY: ${{ secrets.REVENUECAT_IOS_API_KEY }}
+        run: |
+          if [ -z "$REVENUECAT_IOS_API_KEY" ]; then
+            echo "REVENUECAT_IOS_API_KEY secret is missing."
+            exit 1
+          fi
+
+      - name: Build IPA (FINAL BUILD 38.0.0)
+        env:
+          REVENUECAT_ANDROID_API_KEY: ${{ secrets.REVENUECAT_ANDROID_API_KEY }}
+          REVENUECAT_IOS_API_KEY: ${{ secrets.REVENUECAT_IOS_API_KEY }}
+        run: |
+          shorebird release ios --no-codesign \
+            --build-name=38.0.0 \
+            --build-number="$BUILD_NUMBER" -- \
+            --dart-define="REVENUECAT_ANDROID_API_KEY=$REVENUECAT_ANDROID_API_KEY" \
+            --dart-define="REVENUECAT_IOS_API_KEY=$REVENUECAT_IOS_API_KEY"
+
+      - name: Save release dependency locks
+        uses: actions/upload-artifact@v4
+        with:
+          name: shorebird-release-locks
+          path: |
+            pubspec.lock
+            ios/Podfile.lock
+            shorebird.yaml
+          if-no-files-found: error
+
+      - name: Record release version
+        run: |
+          echo "Shorebird release: 38.0.0+$BUILD_NUMBER" >> "$GITHUB_STEP_SUMMARY"
+          echo "Release source commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          xcodebuild -version >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Sign & Fix IPA
+        env:
+          KEYCHAIN_PATH: ${{ runner.temp }}/app-signing.keychain-db
+        run: |
+          APP_PATH=build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app
+          PLIST_PATH="$APP_PATH/Info.plist"
+          
+          IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep "Apple Distribution" | head -1 | awk -F '"' '{print $2}')
+          
+          echo "✅ Kullanılacak İmzalama Kimliği: '$IDENTITY'"
+          
+          if [ -z "$IDENTITY" ]; then
+            echo "❌ HATA: Keychain içinde geçerli bir Apple Distribution sertifikası bulunamadı!"
+            exit 1
+          fi
+
+          # --- DİL AYARLARI (20 DİL OTOMATİK DÖNGÜ) ---
+          echo "🌐 20 dil ayarı enjekte ediliyor..."
+          /usr/libexec/PlistBuddy -c "Delete :CFBundleLocalizations" "$PLIST_PATH" || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations array" "$PLIST_PATH"
+
+          # Senin listedeki 20 dilin tam listesi
+          LANGS=("en" "tr" "de" "ko" "ja" "ru" "pt" "ar" "es" "es-MX" "hi" "hu" "zh-Hans" "id" "nl" "fr" "it" "vi" "th" "pl")
+
+          idx=0
+          for lang in "${LANGS[@]}"; do
+            echo "📁 Klasör ve Plist hazırlanıyor: $lang"
+            # Info.plist'e ekle
+            /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations:$idx string $lang" "$PLIST_PATH"
+            
+            # IPA içinde fiziksel klasörü oluştur (App Store tespiti için zorunludur)
+            mkdir -p "$APP_PATH/$lang.lproj"
+            
+            # InfoPlist.strings dosyasını kopyala veya oluştur
+            if [ -f "ios/Runner/$lang.lproj/InfoPlist.strings" ]; then
+              cp "ios/Runner/$lang.lproj/InfoPlist.strings" "$APP_PATH/$lang.lproj/InfoPlist.strings"
+            else
+              touch "$APP_PATH/$lang.lproj/InfoPlist.strings"
+            fi
+            
+            idx=$((idx+1))
+          done
+
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDevelopmentRegion en" "$PLIST_PATH" || /usr/libexec/PlistBuddy -c "Add :CFBundleDevelopmentRegion string en" "$PLIST_PATH"
+
+          # --- DİĞER AYARLAR ---
+          /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations" "$PLIST_PATH" || true
+          /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations array" "$PLIST_PATH"
+          /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations:0 string UIInterfaceOrientationPortrait" "$PLIST_PATH"
+          
+          security cms -D -i "$RUNNER_TEMP/build_pp.mobileprovision" > profile.plist
+          /usr/libexec/PlistBuddy -x -c 'Print :Entitlements' profile.plist > entitlements.plist
+          cp "$RUNNER_TEMP/build_pp.mobileprovision" "$APP_PATH/embedded.mobileprovision"
+          
+          find "$APP_PATH/Frameworks" -name "*.framework" -type d | while read framework; do
+              /usr/bin/codesign --force --sign "$IDENTITY" --preserve-metadata=identifier,entitlements "$framework"
+          done
+          
+          find "$APP_PATH/Frameworks" -name "*.dylib" -type f | while read dylib; do
+              /usr/bin/codesign --force --sign "$IDENTITY" --preserve-metadata=identifier,entitlements "$dylib"
+          done
+          
+          /usr/bin/codesign --force --sign "$IDENTITY" --entitlements entitlements.plist "$APP_PATH"
+          
+          mkdir -p Payload
+          cp -r "$APP_PATH" Payload/
+          zip -r VERDICT.ipa Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: verdict-final-build-ipa
+          path: VERDICT.ipa
+
+      - name: Upload to App Store Connect
+        env:
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$APPSTORE_PRIVATE_KEY" > ~/.appstoreconnect/private_keys/AuthKey_$APPSTORE_KEY_ID.p8
+          
+          APP_PATH=build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app
+          PLIST_PATH="$APP_PATH/Info.plist"
+          
+          BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" "$PLIST_PATH")
+          VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$PLIST_PATH")
+          BUILD_NUM=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$PLIST_PATH")
+          APPLE_ID="6758860189"
+          
+          xcrun altool --upload-package VERDICT.ipa \
+            --type ios \
+            --apiKey "$APPSTORE_KEY_ID" \
+            --apiIssuer "$APPSTORE_ISSUER_ID" \
+            --apple-id "$APPLE_ID" \
+            --bundle-id "$BUNDLE_ID" \
+            --bundle-version "$BUILD_NUM" \
+            --bundle-short-version-string "$VERSION"

@@ -1,0 +1,161 @@
+# VERDICT Shorebird releases and over-the-air patches.
+workflows:
+  verdict-release-workflow:
+    name: VERDICT Shorebird Release - App Store Upload
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    integrations:
+      app_store_connect: verdict-ios-release
+
+    inputs:
+      build_number:
+        description: "Derleme numarası: yalnızca tam sayı (örnek 38). Uygulama sürümü dosyadan alınır; buraya 38.0.0 yazma. Önceki derlemelerden büyük olmalı."
+        type: number
+      xcode_version: &xcode_input
+        description: Xcode sürümü (sonraki yamalarda aynı sürümü kullan)
+        type: string
+        default: "26.4.1"
+
+    environment:
+      groups:
+        - shorebird
+        - "1"
+      xcode: ${{ inputs.xcode_version }}
+      cocoapods: "1.16.2"
+
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.grkmcomert.unfollowerscurrent
+
+      vars:
+        BUILD_NAME: "38.0.0"
+        SHOREBIRD_BUILD_NUMBER: "${{ inputs.build_number }}"
+        BUNDLE_ID: "com.grkmcomert.unfollowerscurrent"
+
+    scripts:
+      - name: Sürüm ve derleme numarasını kontrol et
+        script: bash tool/shorebird_codemagic.sh validate-release
+      - &shorebird_install
+        name: Shorebird kurulumu
+        script: |
+          set -euo pipefail
+          bash tool/check_shorebird.sh
+          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
+          echo "PATH=$HOME/.shorebird/bin:$PATH" >> "$CM_ENV"
+
+      - name: Bundle ID Kontrol
+        script: |
+          echo "Kullanılacak Bundle ID: $BUNDLE_ID"
+          echo "Projede görünen PRODUCT_BUNDLE_IDENTIFIER değerleri:"
+          grep -n "PRODUCT_BUNDLE_IDENTIFIER" ios/Runner.xcodeproj/project.pbxproj || true
+
+      - &prepare_ios
+        name: iOS 20 Dil Ayarlarını Hazırla
+        script: |
+          set -euo pipefail
+          PLIST_PATH="ios/Runner/Info.plist"
+
+          echo "20 dil Info.plist içine ekleniyor..."
+
+          /usr/libexec/PlistBuddy -c "Delete :CFBundleLocalizations" "$PLIST_PATH" || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations array" "$PLIST_PATH"
+
+          LANGS=("en" "tr" "de" "ko" "ja" "ru" "pt" "ar" "es" "es-MX" "hi" "hu" "zh-Hans" "id" "nl" "fr" "it" "vi" "th" "pl")
+
+          idx=0
+          for lang in "${LANGS[@]}"; do
+            echo "Dil hazırlanıyor: $lang"
+
+            /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations:$idx string $lang" "$PLIST_PATH"
+
+            mkdir -p "ios/Runner/$lang.lproj"
+
+            if [ ! -f "ios/Runner/$lang.lproj/InfoPlist.strings" ]; then
+              touch "ios/Runner/$lang.lproj/InfoPlist.strings"
+            fi
+
+            idx=$((idx+1))
+          done
+
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDevelopmentRegion en" "$PLIST_PATH" || \
+          /usr/libexec/PlistBuddy -c "Add :CFBundleDevelopmentRegion string en" "$PLIST_PATH"
+
+          /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations" "$PLIST_PATH" || true
+          /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations array" "$PLIST_PATH"
+          /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations:0 string UIInterfaceOrientationPortrait" "$PLIST_PATH"
+
+      - &ios_signing
+        name: iOS Code Signing Ayarla
+        script: |
+          xcode-project use-profiles
+
+      - name: Shorebird Signed IPA Release
+        script: bash tool/shorebird_codemagic.sh release
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
+      - shorebird-build-info/**
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+
+      email:
+        recipients:
+          - gkmncng@hotmail.com
+
+  verdict-patch-workflow:
+    name: VERDICT Shorebird Patch - Internetten Kod Guncelle
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: verdict-ios-release
+    inputs:
+      release_version:
+        description: Kullanıcıdaki tam Shorebird sürümü (mevcut sürüm 38.0.0+38)
+        type: string
+        default: "38.0.0+38"
+      track:
+        description: staging test içindir; stable kullanıcıya gönderir
+        type: choice
+        default: staging
+        options:
+          - staging
+          - stable
+      dry_run:
+        description: Yayımlamadan yalnızca derleme kontrolü yap
+        # Keep a literal string when Codemagic exports this input to the shell.
+        type: choice
+        default: "true"
+        options:
+          - "true"
+          - "false"
+      xcode_version: *xcode_input
+    environment:
+      groups:
+        - shorebird
+        - "1"
+      xcode: ${{ inputs.xcode_version }}
+      cocoapods: "1.16.2"
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.grkmcomert.unfollowerscurrent
+      vars:
+        RELEASE_VERSION: ${{ inputs.release_version }}
+        PATCH_TRACK: ${{ inputs.track }}
+        PATCH_DRY_RUN: "${{ inputs.dry_run }}"
+    scripts:
+      - name: Yama hedefini kontrol et
+        script: bash tool/shorebird_codemagic.sh validate-patch
+      - *shorebird_install
+      - *prepare_ios
+      - *ios_signing
+      - name: Tum Dart kodundan yama olustur
+        script: bash tool/shorebird_codemagic.sh patch
+    artifacts:
+      - shorebird-build-info/**
+      - /tmp/xcodebuild_logs/*.log

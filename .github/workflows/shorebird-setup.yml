@@ -1,0 +1,37 @@
+name: Shorebird Setup
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verdict-shorebird-setup
+  cancel-in-progress: false
+
+jobs:
+  setup:
+    runs-on: macos-latest
+    env:
+      SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check setup prerequisites
+        run: |
+          test -n "$SHOREBIRD_TOKEN" || { echo 'Add the SHOREBIRD_TOKEN repository secret first.'; exit 1; }
+          test ! -f shorebird.yaml || { echo 'Shorebird is already configured; use the release workflow.'; exit 1; }
+      - uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+      - name: Register application
+        run: shorebird init --display-name VERDICT
+      - name: Check generated configuration
+        run: bash tool/check_shorebird.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shorebird-configuration
+          path: |
+            shorebird.yaml
+            pubspec.yaml
+          if-no-files-found: error

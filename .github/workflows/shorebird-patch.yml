@@ -1,0 +1,69 @@
+name: VERDICT Shorebird Patch - iOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Exact installed Shorebird release, e.g. 38.0.0+123'
+        required: true
+        type: string
+      track:
+        description: 'staging for device testing; stable delivers to users'
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - stable
+      dry_run:
+        description: 'Build and validate without publishing a patch'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verdict-shorebird-ios
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: macos-latest
+    env:
+      SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+      RELEASE_VERSION: ${{ inputs.release_version }}
+      PATCH_TRACK: ${{ inputs.track }}
+      DRY_RUN: ${{ inputs.dry_run }}
+      REVENUECAT_ANDROID_API_KEY: ${{ secrets.REVENUECAT_ANDROID_API_KEY }}
+      REVENUECAT_IOS_API_KEY: ${{ secrets.REVENUECAT_IOS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate patch inputs
+        run: |
+          bash tool/check_shorebird.sh
+          [[ "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$ ]] || { echo 'Enter an exact release version including build number.'; exit 1; }
+          test -n "$REVENUECAT_IOS_API_KEY" || { echo 'Missing REVENUECAT_IOS_API_KEY secret.'; exit 1; }
+          test -f ios/Podfile.lock || { echo 'Commit the dependency locks from the release artifact before patching.'; exit 1; }
+      - name: Set Latest Xcode Version
+        run: |
+          XCODE_PATH=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          sudo xcode-select -s "$XCODE_PATH/Contents/Developer"
+      - uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+      - name: Build patch from all application Dart code
+        run: |
+          extra_args=()
+          if [[ "$DRY_RUN" == 'true' ]]; then
+            extra_args+=(--dry-run)
+          fi
+          shorebird patch ios --no-codesign \
+            --release-version="$RELEASE_VERSION" \
+            --track="$PATCH_TRACK" "${extra_args[@]}" -- \
+            --dart-define="REVENUECAT_ANDROID_API_KEY=$REVENUECAT_ANDROID_API_KEY" \
+            --dart-define="REVENUECAT_IOS_API_KEY=$REVENUECAT_IOS_API_KEY"
+      - name: Record patch target
+        run: |
+          echo "Release: $RELEASE_VERSION; track: $PATCH_TRACK; dry run: $DRY_RUN" >> "$GITHUB_STEP_SUMMARY"
+          echo "Source commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"

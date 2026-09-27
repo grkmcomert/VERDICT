@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>API_KEY</key>
+  <string>AIzaSyC7wRwMzF8a_6SdJjice6aprJ2kdedBmL4</string>
+  <key>GCM_SENDER_ID</key>
+  <string>313253439679</string>
+  <key>PLIST_VERSION</key>
+  <string>1</string>
+  <key>BUNDLE_ID</key>
+  <string>com.grkmcomert.unfollowerscurrent</string>
+  <key>PROJECT_ID</key>
+  <string>unfollowerscurrent</string>
+  <key>STORAGE_BUCKET</key>
+  <string>unfollowerscurrent.firebasestorage.app</string>
+  <key>IS_ADS_ENABLED</key>
+  <false/>
+  <key>IS_ANALYTICS_ENABLED</key>
+  <false/>
+  <key>IS_APPINVITE_ENABLED</key>
+  <true/>
+  <key>IS_GCM_ENABLED</key>
+  <true/>
+  <key>IS_SIGNIN_ENABLED</key>
+  <true/>
+  <key>GOOGLE_APP_ID</key>
+  <string>1:313253439679:ios:9304d42e9e2b0c9a943e0a</string>
+  <key>ADMOB_APP_ID</key>
+  <string>ca-app-pub-7480771330660307~7735660682</string>
+</dict>
+</plist>

@@ -1,0 +1,3 @@
+# Public application identifier. API credentials belong in CI secrets.
+app_id: 7166add0-5cdd-49a6-9eb1-8532dc19776b
+auto_update: true
