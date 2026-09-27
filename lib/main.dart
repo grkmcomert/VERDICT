@@ -13418,14 +13418,13 @@ class _DashboardScreenState extends State<DashboardScreen>
         );
       }
 
-      final String fallback = localizeTrEn(_lang, 'Kullanıcı', 'User');
       if (mounted) {
         setState(() {
           isLoggedIn = true;
           _hasAnalyzed = false;
           savedCookie = cookie;
           savedUserId = userId;
-          currentUsername = username ?? fallback;
+          currentUsername = username ?? '';
           savedUserAgent = restoredUa;
           _syncCountsForUi();
         });
@@ -13434,7 +13433,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         _hasAnalyzed = false;
         savedCookie = cookie;
         savedUserId = userId;
-        currentUsername = username ?? fallback;
+       currentUsername = username ?? ''; 
         savedUserAgent = restoredUa;
       }
       _logFirebaseDiagnostic(
@@ -16165,10 +16164,7 @@ if (response.statusCode == 429) {
       }
       return;
     }
-    final bool hasRealUsername = usernameRaw.isNotEmpty;
-    final String username = hasRealUsername
-        ? usernameRaw
-        : (localizeTrEn(_lang, 'Kullanıcı', 'User'));
+    final String username = usernameRaw;
 
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -16180,7 +16176,7 @@ if (response.statusCode == 429) {
         // kaydetme; boş bırakılırsa bir sonraki açılışta
         // _isPlaceholderUsername / _refreshUsernameForBanCheckIfNeeded
         // gerçek adı tekrar çekmeyi dener.
-        username: hasRealUsername ? username : null,
+        username: username.isNotEmpty ? username : null,
         userAgent: userAgent,
       );
     } catch (_) {}
@@ -19881,9 +19877,7 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
       "status": "success",
       "cookie": cookie,
       "user_id": userId.trim(),
-      "username": username.trim().isNotEmpty
-          ? username.trim()
-          : localizeTrEn(widget.lang, "Kullanici", "User"),
+      "username": username.trim(),
       "user_agent": userAgent,
     });
   }
