@@ -168,71 +168,71 @@ void _logIgDiagnosticEntry(
 }
 
 const Map<String, String> _startupLoadingLabels = <String, String>{
-  'tr': 'VERDICT baÃ…Å¸latÃ„Â±lÃ„Â±yor...',
+  'tr': 'VERDICT başlatılıyor...',
   'en': 'Starting VERDICT...',
   'de': 'VERDICT wird gestartet...',
-  'ko': 'VERDICTÃ«Â¥Â¼ Ã¬â€¹Å“Ã¬Ââ€˜Ã­â€¢ËœÃ«Å â€ Ã¬Â¤â€˜...',
-  'ja': 'VERDICTÃ£â€šâ€™Ã¨ÂµÂ·Ã¥â€¹â€¢Ã£Ââ€”Ã£ÂÂ¦Ã£Ââ€Ã£ÂÂ¾Ã£Ââ„¢...',
-  'ru': 'Äâ€”ÄÂ°ÄÂ¿Ã‘Æ’Ã‘ÂÄÂº VERDICT...',
+  'ko': 'VERDICT를 시작하는 중...',
+  'ja': 'VERDICTを起動しています...',
+  'ru': 'Запуск VERDICT...',
   'pt': 'Iniciando VERDICT...',
-  'ar': 'Ã˜Â¬Ã˜Â§Ã˜Â±Ã™Å  Ã˜ÂªÃ˜Â´Ã˜ÂºÃ™Å Ã™â€ VERDICT...',
+  'ar': 'جاري تشغيل VERDICT...',
   'es': 'Iniciando VERDICT...',
   'es-mx': 'Iniciando VERDICT...',
   'hi':
-      'VERDICT Ã Â¤Â¶Ã Â¥ÂÃ Â¤Â°Ã Â¥â€š Ã Â¤Â¹Ã Â¥â€¹ Ã Â¤Â°Ã Â¤Â¹Ã Â¤Â¾ Ã Â¤Â¹Ã Â¥Ë†...',
+      'VERDICT शुरू हो रहा है...',
   'hu': 'VERDICT indul...',
-  'zh-hans': 'Ã¦Â­Â£Ã¥Å“Â¨Ã¥ÂÂ¯Ã¥Å Â¨ VERDICT...',
+  'zh-hans': '正在启动 VERDICT...',
   'id': 'Memulai VERDICT...',
   'nl': 'VERDICT wordt gestart...',
-  'fr': 'DÃƒÂ©marrage de VERDICT...',
+  'fr': 'Démarrage de VERDICT...',
   'it': 'Avvio di VERDICT...',
-  'vi': 'Ã„Âang khÃ¡Â»Å¸i Ã„â€˜Ã¡Â»â„¢ng VERDICT...',
+  'vi': 'Đang khởi động VERDICT...',
   'th':
-      'Ã Â¸ÂÃ Â¸Â³Ã Â¸Â¥Ã Â¸Â±Ã Â¸â€¡Ã Â¹â‚¬Ã Â¸Â£Ã Â¸Â´Ã Â¹Ë†Ã Â¸Â¡ VERDICT...',
+      'กำลังเริ่ม VERDICT...',
   'pl': 'Uruchamianie VERDICT...',
 };
 
 const Map<String, String> _legalWarningSummaryLabels = <String, String>{
   'tr':
-      'Yasal bilgilendirme: Bu bÃƒÂ¶lÃƒÂ¼m kÃ„Â±sa bir ÃƒÂ¶zet gÃƒÂ¶sterir. Gizlilik PolitikasÃ„Â± dÃƒÂ¼Ã„Å¸mesine dokunarak tam metni dilinizde gÃƒÂ¶rÃƒÂ¼ntÃƒÂ¼leyebilirsiniz.',
+      'Yasal bilgilendirme: Bu bölüm kısa bir özet gösterir. Gizlilik Politikası düğmesine dokunarak tam metni dilinizde görüntüleyebilirsiniz.',
   'en':
       'Legal notice: This section shows a short summary. Tap Privacy Policy to view the full text in your language.',
   'de':
-      'Rechtlicher Hinweis: Dieser Abschnitt zeigt eine kurze Zusammenfassung. Tippen Sie auf Datenschutzrichtlinie, um den vollstÃƒÂ¤ndigen Text in Ihrer Sprache zu lesen.',
+      'Rechtlicher Hinweis: Dieser Abschnitt zeigt eine kurze Zusammenfassung. Tippen Sie auf Datenschutzrichtlinie, um den vollständigen Text in Ihrer Sprache zu lesen.',
   'ko':
-      'Ã«Â²â€¢Ã¬Â Â ÃªÂ³Â Ã¬Â§â‚¬: Ã¬ÂÂ´ Ã¬â€Â¹Ã¬â€¦ËœÃ¬Ââ‚¬ Ã¬Å¡â€Ã¬â€¢Â½Ã«Â§Å’ Ã­â€˜Å“Ã¬â€¹Å“Ã­â€¢Â©Ã«â€¹Ë†Ã«â€¹Â¤. ÃªÂ°Å“Ã¬ÂÂ¸Ã¬Â â€¢Ã«Â³Â´ Ã¬Â²ËœÃ«Â¦Â¬Ã«Â°Â©Ã¬Â¹Â¨ Ã«Â²â€Ã­Å Â¼Ã¬Ââ€ Ã«Ë†Å’Ã«Å¸Â¬ Ã¬Â â€Ã¬Â²Â´ Ã«â€šÂ´Ã¬Å¡Â©Ã¬Ââ€ Ã¬â€šÂ¬Ã¬Å¡Â©Ã¬ÂÂ Ã¬â€“Â¸Ã¬â€“Â´Ã«Â¡Å“ Ã­â„¢â€¢Ã¬ÂÂ¸Ã­â€¢ËœÃ¬â€Â¸Ã¬Å¡â€.',
+      '법적 고지: 이 섹션은 요약만 표시합니다. 개인정보 처리방침 버튼을 눌러 전체 내용을 사용자 언어로 확인하세요.',
   'ja':
-      'Ã¦Â³â€¢Ã§Å¡â€Ã©â‚¬Å¡Ã§Å¸Â¥: Ã£Ââ€œÃ£ÂÂ®Ã£â€šÂ»Ã£â€šÂ¯Ã£â€šÂ·Ã£Æ’Â§Ã£Æ’Â³Ã£ÂÂ«Ã£ÂÂ¯Ã¨Â¦ÂÃ§Â´â€Ã£ÂÂ®Ã£ÂÂ¿Ã¨Â¡Â¨Ã§Â¤ÂºÃ£Ââ€¢Ã£â€šÅ’Ã£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€šÃ£Æ’â€”Ã£Æ’Â©Ã£â€šÂ¤Ã£Æ’ÂÃ£â€šÂ·Ã£Æ’Â¼Ã£Æ’ÂÃ£Æ’ÂªÃ£â€šÂ·Ã£Æ’Â¼Ã£â€šâ€™Ã£â€šÂ¿Ã£Æ’Æ’Ã£Æ’â€”Ã£Ââ„¢Ã£â€šâ€¹Ã£ÂÂ¨Ã£â‚¬ÂÃ¥â€¦Â¨Ã¦â€“â€¡Ã£â€šâ€™Ã£ÂÅ Ã¤Â½Â¿Ã£Ââ€Ã£ÂÂ®Ã¨Â¨â‚¬Ã¨ÂªÂÃ£ÂÂ§Ã§Â¢ÂºÃ¨ÂªÂÃ£ÂÂ§Ã£ÂÂÃ£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€š',
+      '法的通知: このセクションには要約のみ表示されます。プライバシーポリシーをタップすると、全文をお使いの言語で確認できます。',
   'ru':
-      'ÄÂ®Ã‘â‚¬ÄÂ¸ÄÂ´ÄÂ¸Ã‘â€¡ÄÂµÃ‘ÂÄÂºÄÂ¾ÄÂµ Ã‘Æ’ÄÂ²ÄÂµÄÂ´ÄÂ¾ÄÂ¼ÄÂ»ÄÂµÄÂ½ÄÂ¸ÄÂµ: Äâ€™ Ã‘ÂÃ‘â€šÄÂ¾ÄÂ¼ Ã‘â‚¬ÄÂ°ÄÂ·ÄÂ´ÄÂµÄÂ»ÄÂµ ÄÂ¿ÄÂ¾ÄÂºÄÂ°ÄÂ·Ã‘â€¹ÄÂ²ÄÂ°ÄÂµÃ‘â€šÃ‘ÂÃ‘Â ÄÂºÃ‘â‚¬ÄÂ°Ã‘â€šÄÂºÄÂ¾ÄÂµ Ã‘ÂÄÂ¾ÄÂ´ÄÂµÃ‘â‚¬ÄÂ¶ÄÂ°ÄÂ½ÄÂ¸ÄÂµ. ÄÂÄÂ°ÄÂ¶ÄÂ¼ÄÂ¸Ã‘â€šÄÂµ Ã‚Â«ÄÅ¸ÄÂ¾ÄÂ»ÄÂ¸Ã‘â€šÄÂ¸ÄÂºÄÂ° ÄÂºÄÂ¾ÄÂ½Ã‘â€ÄÂ¸ÄÂ´ÄÂµÄÂ½Ã‘â€ ÄÂ¸ÄÂ°ÄÂ»Ã‘Å’ÄÂ½ÄÂ¾Ã‘ÂÃ‘â€šÄÂ¸Ã‚Â», Ã‘â€¡Ã‘â€šÄÂ¾ÄÂ±Ã‘â€¹ ÄÂ¾Ã‘â€šÄÂºÃ‘â‚¬Ã‘â€¹Ã‘â€šÃ‘Å’ ÄÂ¿ÄÂ¾ÄÂ»ÄÂ½Ã‘â€¹ÄÂ¹ Ã‘â€šÄÂµÄÂºÃ‘ÂÃ‘â€š ÄÂ½ÄÂ° ÄÂ²ÄÂ°Ã‘Ë†ÄÂµÄÂ¼ Ã‘ÂÄÂ·Ã‘â€¹ÄÂºÄÂµ.',
+      'Юридическое уведомление: В этом разделе показывается краткое содержание. Нажмите «Политика конфиденциальности», чтобы открыть полный текст на вашем языке.',
   'pt':
-      'Aviso legal: esta seÃƒÂ§ÃƒÂ£o mostra apenas um resumo. Toque em PolÃƒÂ­tica de Privacidade para ver o texto completo no seu idioma.',
+      'Aviso legal: esta seção mostra apenas um resumo. Toque em Política de Privacidade para ver o texto completo no seu idioma.',
   'ar':
-      'Ã˜Â¥Ã˜Â´Ã˜Â¹Ã˜Â§Ã˜Â± Ã™â€šÃ˜Â§Ã™â€ Ã™Ë†Ã™â€ Ã™Å : Ã™Å Ã˜Â¹Ã˜Â±Ã˜Â¶ Ã™â€¡Ã˜Â°Ã˜Â§ Ã˜Â§Ã™â€Ã™â€šÃ˜Â³Ã™â€¦ Ã™â€¦Ã™â€Ã˜Â®Ã˜ÂµÃ™â€¹Ã˜Â§ Ã™â€šÃ˜ÂµÃ™Å Ã˜Â±Ã™â€¹Ã˜Â§ Ã™ÂÃ™â€šÃ˜Â·. Ã˜Â§Ã˜Â¶Ã˜ÂºÃ˜Â· Ã˜Â¹Ã™â€Ã™â€° Ã˜Â³Ã™Å Ã˜Â§Ã˜Â³Ã˜Â© Ã˜Â§Ã™â€Ã˜Â®Ã˜ÂµÃ™Ë†Ã˜ÂµÃ™Å Ã˜Â© Ã™â€Ã˜Â¹Ã˜Â±Ã˜Â¶ Ã˜Â§Ã™â€Ã™â€ Ã˜Âµ Ã˜Â§Ã™â€Ã™Æ’Ã˜Â§Ã™â€¦Ã™â€ Ã˜Â¨Ã™â€Ã˜ÂºÃ˜ÂªÃ™Æ’.',
+      'إشعار قانوني: يعرض هذا القسم ملخصًا قصيرًا فقط. اضغط على سياسة الخصوصية لعرض النص الكامل بلغتك.',
   'es':
-      'Aviso legal: esta secciÃƒÂ³n muestra un resumen breve. Toca PolÃƒÂ­tica de privacidad para ver el texto completo en tu idioma.',
+      'Aviso legal: esta sección muestra un resumen breve. Toca Política de privacidad para ver el texto completo en tu idioma.',
   'es-mx':
-      'Aviso legal: esta secciÃƒÂ³n muestra un resumen breve. Toca PolÃƒÂ­tica de privacidad para ver el texto completo en tu idioma.',
+      'Aviso legal: esta sección muestra un resumen breve. Toca Política de privacidad para ver el texto completo en tu idioma.',
   'hi':
-      'Ã Â¤â€¢Ã Â¤Â¾Ã Â¤Â¨Ã Â¥â€šÃ Â¤Â¨Ã Â¥â‚¬ Ã Â¤Â¸Ã Â¥â€šÃ Â¤Å¡Ã Â¤Â¨Ã Â¤Â¾: Ã Â¤â€¡Ã Â¤Â¸ Ã Â¤Â­Ã Â¤Â¾Ã Â¤â€” Ã Â¤Â®Ã Â¥â€¡Ã Â¤â€š Ã Â¤â€¢Ã Â¥â€¡Ã Â¤ÂµÃ Â¤Â² Ã Â¤Â¸Ã Â¤â€šÃ Â¤â€¢Ã Â¥ÂÃ Â¤Â·Ã Â¤Â¿Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â¤ Ã Â¤Â¸Ã Â¤Â¾Ã Â¤Â° Ã Â¤Â¦Ã Â¤Â¿Ã Â¤â€“Ã Â¤Â¾Ã Â¤Â¯Ã Â¤Â¾ Ã Â¤Å“Ã Â¤Â¾Ã Â¤Â¤Ã Â¤Â¾ Ã Â¤Â¹Ã Â¥Ë†Ã Â¥Â¤ Ã Â¤â€¦Ã Â¤ÂªÃ Â¤Â¨Ã Â¥â‚¬ Ã Â¤Â­Ã Â¤Â¾Ã Â¤Â·Ã Â¤Â¾ Ã Â¤Â®Ã Â¥â€¡Ã Â¤â€š Ã Â¤ÂªÃ Â¥â€šÃ Â¤Â°Ã Â¤Â¾ Ã Â¤ÂªÃ Â¤Â¾Ã Â¤Â  Ã Â¤Â¦Ã Â¥â€¡Ã Â¤â€“Ã Â¤Â¨Ã Â¥â€¡ Ã Â¤â€¢Ã Â¥â€¡ Ã Â¤Â²Ã Â¤Â¿Ã Â¤Â Ã Â¤â€”Ã Â¥â€¹Ã Â¤ÂªÃ Â¤Â¨Ã Â¥â‚¬Ã Â¤Â¯Ã Â¤Â¤Ã Â¤Â¾ Ã Â¤Â¨Ã Â¥â‚¬Ã Â¤Â¤Ã Â¤Â¿ Ã Â¤ÂªÃ Â¤Â° Ã Â¤Å¸Ã Â¥Ë†Ã Â¤Âª Ã Â¤â€¢Ã Â¤Â°Ã Â¥â€¡Ã Â¤â€šÃ Â¥Â¤',
+      'कानूनी सूचना: इस भाग में केवल संक्षिप्त सार दिखाया जाता है। अपनी भाषा में पूरा पाठ देखने के लिए गोपनीयता नीति पर टैप करें।',
   'hu':
-      'Jogi tÃƒÂ¡jÃƒÂ©koztatÃƒÂ³: Ez a szakasz csak rÃƒÂ¶vid ÃƒÂ¶sszefoglalÃƒÂ³t mutat. A teljes szÃƒÂ¶veg nyelveden a Ã¢â‚¬ÂAdatvÃƒÂ©delmi tÃƒÂ¡jÃƒÂ©koztatÃƒÂ³Ã¢â‚¬Â gombbal ÃƒÂ©rhetÃ…â€˜ el.',
+      'Jogi tájékoztató: Ez a szakasz csak rövid összefoglalót mutat. A teljes szöveg nyelveden a „Adatvédelmi tájékoztató” gombbal érhető el.',
   'zh-hans':
-      'Ã¦Â³â€¢Ã¥Â¾â€¹Ã¦ÂÂÃ§Â¤ÂºÃ¯Â¼Å¡Ã¦Â­Â¤Ã¥Â¤â€Ã¤Â»â€¦Ã¦ËœÂ¾Ã§Â¤ÂºÃ§Â®â‚¬Ã¨Â¦ÂÃ¨Â¯Â´Ã¦ËœÂÃ£â‚¬â€šÃ§â€šÂ¹Ã¥â€¡Â»Ã¢â‚¬Å“Ã©Å¡ÂÃ§Â§ÂÃ¦â€Â¿Ã§Â­â€“Ã¢â‚¬ÂÃ¥ÂÂ¯Ã¦Å¸Â¥Ã§Å“â€¹Ã¤Â½Â Ã¦â€°â‚¬Ã§â€Â¨Ã¨Â¯Â­Ã¨Â¨â‚¬Ã§Å¡â€Ã¥Â®Å’Ã¦â€¢Â´Ã¥â€ â€¦Ã¥Â®Â¹Ã£â‚¬â€š',
+      '法律提示：此处仅显示简要说明。点击“隐私政策”可查看你所用语言的完整内容。',
   'id':
       'Pemberitahuan hukum: Bagian ini hanya menampilkan ringkasan singkat. Ketuk Kebijakan Privasi untuk melihat teks lengkap dalam bahasa Anda.',
   'nl':
       'Juridische melding: Dit onderdeel toont alleen een korte samenvatting. Tik op Privacybeleid om de volledige tekst in jouw taal te bekijken.',
   'fr':
-      'Mentions lÃƒÂ©gales : cette section affiche un court rÃƒÂ©sumÃƒÂ©. Appuyez sur Politique de confidentialitÃƒÂ© pour voir le texte complet dans votre langue.',
+      'Mentions légales : cette section affiche un court résumé. Appuyez sur Politique de confidentialité pour voir le texte complet dans votre langue.',
   'it':
       'Avviso legale: questa sezione mostra un breve riepilogo. Tocca Informativa sulla privacy per vedere il testo completo nella tua lingua.',
   'vi':
-      'ThÃƒÂ´ng bÃƒÂ¡o phÃƒÂ¡p lÃƒÂ½: MÃ¡Â»Â¥c nÃƒÂ y chÃ¡Â»â€° hiÃ¡Â»Æ’n thÃ¡Â»â€¹ phÃ¡ÂºÂ§n tÃƒÂ³m tÃ¡ÂºÂ¯t ngÃ¡ÂºÂ¯n. NhÃ¡ÂºÂ¥n ChÃƒÂ­nh sÃƒÂ¡ch bÃ¡ÂºÂ£o mÃ¡ÂºÂ­t Ã„â€˜Ã¡Â»Æ’ xem toÃƒÂ n vÃ„Æ’n bÃ¡ÂºÂ±ng ngÃƒÂ´n ngÃ¡Â»Â¯ cÃ¡Â»Â§a bÃ¡ÂºÂ¡n.',
+      'Thông báo pháp lý: Mục này chỉ hiển thị phần tóm tắt ngắn. Nhấn Chính sách bảo mật để xem toàn văn bằng ngôn ngữ của bạn.',
   'th':
-      'Ã Â¸â€ºÃ Â¸Â£Ã Â¸Â°Ã Â¸ÂÃ Â¸Â²Ã Â¸Â¨Ã Â¸â€”Ã Â¸Â²Ã Â¸â€¡Ã Â¸ÂÃ Â¸ÂÃ Â¸Â«Ã Â¸Â¡Ã Â¸Â²Ã Â¸Â¢: Ã Â¸ÂªÃ Â¹Ë†Ã Â¸Â§Ã Â¸â„¢Ã Â¸â„¢Ã Â¸ÂµÃ Â¹â€°Ã Â¸Ë†Ã Â¸Â°Ã Â¹ÂÃ Â¸ÂªÃ Â¸â€Ã Â¸â€¡Ã Â¹â‚¬Ã Â¸ÂÃ Â¸ÂµÃ Â¸Â¢Ã Â¸â€¡Ã Â¸ÂªÃ Â¸Â£Ã Â¸Â¸Ã Â¸â€ºÃ Â¸ÂªÃ Â¸Â±Ã Â¹â€°Ã Â¸â„¢Ã Â¹â€  Ã Â¹â‚¬Ã Â¸â€”Ã Â¹Ë†Ã Â¸Â²Ã Â¸â„¢Ã Â¸Â±Ã Â¹â€°Ã Â¸â„¢ Ã Â¹ÂÃ Â¸â€¢Ã Â¸Â°Ã Â¸â„¢Ã Â¹â€šÃ Â¸Â¢Ã Â¸Å¡Ã Â¸Â²Ã Â¸Â¢Ã Â¸â€Ã Â¸Â§Ã Â¸Â²Ã Â¸Â¡Ã Â¹â‚¬Ã Â¸â€ºÃ Â¹â€¡Ã Â¸â„¢Ã Â¸ÂªÃ Â¹Ë†Ã Â¸Â§Ã Â¸â„¢Ã Â¸â€¢Ã Â¸Â±Ã Â¸Â§Ã Â¹â‚¬Ã Â¸ÂÃ Â¸Â·Ã Â¹Ë†Ã Â¸Â­Ã Â¸â€Ã Â¸Â¹Ã Â¸â€šÃ Â¹â€°Ã Â¸Â­Ã Â¸â€Ã Â¸Â§Ã Â¸Â²Ã Â¸Â¡Ã Â¹â‚¬Ã Â¸â€¢Ã Â¹â€¡Ã Â¸Â¡Ã Â¸â€¢Ã Â¸Â²Ã Â¸Â¡Ã Â¸Â Ã Â¸Â²Ã Â¸Â©Ã Â¸Â²Ã Â¸â€šÃ Â¸Â­Ã Â¸â€¡Ã Â¸â€Ã Â¸Â¸Ã Â¸â€œ',
+      'ประกาศทางกฎหมาย: ส่วนนี้จะแสดงเพียงสรุปสั้นๆ เท่านั้น แตะนโยบายความเป็นส่วนตัวเพื่อดูข้อความเต็มตามภาษาของคุณ',
   'pl':
-      'Informacja prawna: Ta sekcja pokazuje krÃƒÂ³tkie podsumowanie. Dotknij Ã¢â‚¬ÂPolityka prywatnoÃ…â€ºciÃ¢â‚¬Â, aby wyÃ…â€ºwietliÃ„â€¡ peÃ…â€šny tekst w swoim jÃ„â„¢zyku.',
+      'Informacja prawna: Ta sekcja pokazuje krótkie podsumowanie. Dotknij „Polityka prywatności”, aby wyświetlić pełny tekst w swoim języku.',
 };
 
 const Set<String> _supportedLanguageCodesGlobal = <String>{
@@ -655,7 +655,7 @@ bool _looksLikeMojibakeText(String value) {
   // C1 control characters often appear when bytes were mis-decoded as Latin-1.
   if (_mojibakeC1Pattern.hasMatch(value)) return true;
 
-  // Common CP1252-decoded UTF-8 artifact prefix: "Ã¢â‚¬â€¦"
+  // Common CP1252-decoded UTF-8 artifact prefix: " "
   if (value.contains('\u00E2\u20AC')) return true;
 
   // Marker bytes (0xC2/0xC3/0xC4/0xC5/0xD0/0xD1) followed by likely UTF-8 continuation bytes or
@@ -892,7 +892,7 @@ void main() {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     runApp(const RootApp());
   }, (error, stack) {
-    debugPrint("Global Hata YakalandÃ„Â±: $error");
+    debugPrint("Global Hata Yakalandı: $error");
   });
 }
 
@@ -945,24 +945,24 @@ class _RootAppState extends State<RootApp> {
     try {
       tz.initializeTimeZones();
     } catch (e) {
-      debugPrint('Timezone hatasÃ„Â±: $e');
+      debugPrint('Timezone hatası: $e');
     }
 
     try {
       await _initNotifications();
     } catch (e) {
-      debugPrint('Bildirim baÃ…Å¸latma hatasÃ„Â±: $e');
+      debugPrint('Bildirim başlatma hatası: $e');
     }
 
     try {
       await _fetchConfig();
     } catch (e) {
-      debugPrint('Config hatasÃ„Â±: $e');
+      debugPrint('Config hatası: $e');
       final String langCode =
           Platform.localeName.toLowerCase().split(RegExp(r'[_-]')).first.trim();
       _debugError = localizeTrEn(
         langCode,
-        'BaÃ„Å¸lantÃ„Â± hatasÃ„Â±. LÃƒÂ¼tfen tekrar deneyin.',
+        'Bağlantı hatası. Lütfen tekrar deneyin.',
         'Connection error. Please try again.',
       );
     }
@@ -1097,7 +1097,7 @@ class _RootAppState extends State<RootApp> {
           );
         }
       } catch (e) {
-        debugPrint('ZonedSchedule hatasÃ„Â±: $e');
+        debugPrint('ZonedSchedule hatası: $e');
       }
     } catch (e) {
       debugPrint('Bildirim genel hata: $e');
@@ -1198,7 +1198,7 @@ class _RootAppState extends State<RootApp> {
           Platform.localeName.toLowerCase().split(RegExp(r'[_-]')).first.trim();
       _debugError = localizeTrEn(
         langCode,
-        'BaÃ„Å¸lantÃ„Â± hatasÃ„Â±. LÃƒÂ¼tfen tekrar deneyin.',
+        'Bağlantı hatası. Lütfen tekrar deneyin.',
         'Connection error. Please try again.',
       );
     }
@@ -1236,7 +1236,7 @@ class _RootAppState extends State<RootApp> {
             .trim();
         _updateMessage = localizeTrEn(
           langCode,
-          'Yeni gÃƒÂ¼ncelleme mevcut! LÃƒÂ¼tfen maÃ„Å¸azayÃ„Â± kontrol edin.',
+          'Yeni güncelleme mevcut! Lütfen mağazayı kontrol edin.',
           'A new update is available. Please check the store.',
         );
       }
@@ -1292,7 +1292,7 @@ class UpdateRequiredApp extends StatelessWidget {
         ? message
         : localizeTrEn(
             langCode,
-            'Ã„Â°yi haber! GÃƒÂ¼ncelleme mevcut. MaÃ„Å¸azamÃ„Â±zÃ„Â± kontrol edip yeni sÃƒÂ¼rÃƒÂ¼mÃƒÂ¼ indir!',
+            'İyi haber! Güncelleme mevcut. Mağazamızı kontrol edip yeni sürümü indir!',
             'Good news! An update is available. Check our store and download the latest version!',
           );
     return MaterialApp(
@@ -1335,7 +1335,7 @@ class UpdateRequiredApp extends StatelessWidget {
                       Text(
                         localizeTrEn(
                           langCode,
-                          'Ã„Â°yi haber! GÃƒÂ¼ncelleme mevcut',
+                          'İyi haber! Güncelleme mevcut',
                           'Good news! Update available',
                         ),
                         textAlign: TextAlign.center,
@@ -1403,7 +1403,7 @@ class MaintenanceApp extends StatelessWidget {
                   size: 80, color: Colors.blueGrey.shade700),
               const SizedBox(height: 20),
               Text(
-                  localizeTrEn(langCode, 'SÃ„Â°STEM BAKIMDA',
+                  localizeTrEn(langCode, 'SİSTEM BAKIMDA',
                       'SYSTEM UNDER MAINTENANCE'),
                   style: TextStyle(
                       fontSize: 22,
@@ -1439,24 +1439,24 @@ const Map<String, String> _didYouKnowLabels = <String, String>{
   'tr': 'BUNLARI BILIYOR MUYDUNUZ?',
   'en': 'DID YOU KNOW?',
   'de': 'WUSSTEN SIE?',
-  'ko': 'Ã¬â€¢Å’ÃªÂ³Â  ÃªÂ³â€Ã¬â€¦Â¨Ã«â€šËœÃ¬Å¡â€?',
-  'ja': 'Ã§Å¸Â¥Ã£ÂÂ£Ã£ÂÂ¦Ã£Ââ€Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸Ã£Ââ€¹Ã¯Â¼Å¸',
-  'ru': 'Äâ€”ÄÂÄÂÄâ€ºÄËœ Äâ€ºÄËœ Äâ€™ÄÂ«?',
-  'pt': 'VOCÃƒÅ  SABIA?',
-  'ar': 'Ã™â€¡Ã™â€ Ã˜ÂªÃ˜Â¹Ã™â€Ã™â€¦Ã˜Å¸',
-  'es': 'Ã‚Â¿SABÃƒÂAS QUE?',
-  'es-mx': 'Ã‚Â¿SABÃƒÂAS QUE?',
+  'ko': '알고 계셨나요?',
+  'ja': '知っていましたか？',
+  'ru': 'ЗНАЛИ ЛИ ВЫ?',
+  'pt': 'VOCÊ SABIA?',
+  'ar': 'هل تعلم؟',
+  'es': '¿SABÍAS QUE?',
+  'es-mx': '¿SABÍAS QUE?',
   'hi':
-      'Ã Â¤â€¢Ã Â¥ÂÃ Â¤Â¯Ã Â¤Â¾ Ã Â¤â€ Ã Â¤Âª Ã Â¤Å“Ã Â¤Â¾Ã Â¤Â¨Ã Â¤Â¤Ã Â¥â€¡ Ã Â¤Â¹Ã Â¥Ë†Ã Â¤â€š?',
+      'क्या आप जानते हैं?',
   'hu': 'TUDTAD?',
-  'zh-hans': 'Ã¤Â½Â Ã§Å¸Â¥Ã©Ââ€œÃ¥Ââ€”Ã¯Â¼Å¸',
+  'zh-hans': '你知道吗？',
   'id': 'TAHUKAH ANDA?',
   'nl': 'WIST JE DIT?',
   'fr': 'LE SAVIEZ-VOUS ?',
   'it': 'LO SAPEVI?',
-  'vi': 'BÃ¡ÂºÂ N CÃƒâ€œ BIÃ¡ÂºÂ¾T KHÃƒâ€NG?',
+  'vi': 'BẠN CÓ BIẾT KHÔNG?',
   'th':
-      'Ã Â¸â€Ã Â¸Â¸Ã Â¸â€œÃ Â¸Â£Ã Â¸Â¹Ã Â¹â€°Ã Â¸Â«Ã Â¸Â£Ã Â¸Â·Ã Â¸Â­Ã Â¹â€Ã Â¸Â¡Ã Â¹Ë†?',
+      'คุณรู้หรือไม่?',
   'pl': 'CZY WIESZ?',
 };
 
@@ -1478,104 +1478,104 @@ String _didYouKnowLabelForLang(String lang) {
 }
 
 const Map<String, String> _analysisRemainingTimeLabels = <String, String>{
-  'tr': 'Tahmini kalan sÃƒÂ¼re: {time}',
+  'tr': 'Tahmini kalan süre: {time}',
   'en': 'Estimated time left: {time}',
   'de': 'Geschatzte verbleibende Zeit: {time}',
-  'ko': 'Ã¬ËœË†Ã¬Æ’Â Ã«â€šÂ¨Ã¬Ââ‚¬ Ã¬â€¹Å“ÃªÂ°â€: {time}',
-  'ja': 'Ã¦ÂÂ¨Ã¥Â®Å¡Ã¦Â®â€¹Ã£â€šÅ Ã¦â„¢â€šÃ©â€“â€œ: {time}',
+  'ko': '예상 남은 시간: {time}',
+  'ja': '推定残り時間: {time}',
   'ru':
-      'ÄÅ¸Ã‘â‚¬ÄÂ¸ÄÂ¼ÄÂµÃ‘â‚¬ÄÂ½ÄÂ¾ÄÂµ ÄÂ¾Ã‘ÂÃ‘â€šÄÂ°ÄÂ²Ã‘Ë†ÄÂµÄÂµÃ‘ÂÃ‘Â ÄÂ²Ã‘â‚¬ÄÂµÄÂ¼Ã‘Â: {time}',
+      'Примерное оставшееся время: {time}',
   'pt': 'Tempo restante estimado: {time}',
   'ar':
-      'Ã˜Â§Ã™â€Ã™Ë†Ã™â€šÃ˜Âª Ã˜Â§Ã™â€Ã™â€¦Ã˜ÂªÃ˜Â¨Ã™â€šÃ™Å  Ã˜Â§Ã™â€Ã˜ÂªÃ™â€šÃ˜Â¯Ã™Å Ã˜Â±Ã™Å : {time}',
+      'الوقت المتبقي التقديري: {time}',
   'es': 'Tiempo restante estimado: {time}',
   'es-mx': 'Tiempo restante estimado: {time}',
   'hi':
-      'Ã Â¤â€¦Ã Â¤Â¨Ã Â¥ÂÃ Â¤Â®Ã Â¤Â¾Ã Â¤Â¨Ã Â¤Â¿Ã Â¤Â¤ Ã Â¤Â¶Ã Â¥â€¡Ã Â¤Â· Ã Â¤Â¸Ã Â¤Â®Ã Â¤Â¯: {time}',
+      'अनुमानित शेष समय: {time}',
   'hu': 'Becsult hatralevo ido: {time}',
-  'zh-hans': 'Ã©Â¢â€Ã¨Â®Â¡Ã¥â€°Â©Ã¤Â½â„¢Ã¦â€”Â¶Ã©â€”Â´Ã¯Â¼Å¡{time}',
+  'zh-hans': '预计剩余时间：{time}',
   'id': 'Perkiraan waktu tersisa: {time}',
   'nl': 'Geschatte resterende tijd: {time}',
   'fr': 'Temps restant estime : {time}',
   'it': 'Tempo rimanente stimato: {time}',
   'vi': 'Thoi gian con lai uoc tinh: {time}',
   'th':
-      'Ã Â¹â‚¬Ã Â¸Â§Ã Â¸Â¥Ã Â¸Â²Ã Â¸â€”Ã Â¸ÂµÃ Â¹Ë†Ã Â¹â‚¬Ã Â¸Â«Ã Â¸Â¥Ã Â¸Â·Ã Â¸Â­Ã Â¹â€šÃ Â¸â€Ã Â¸Â¢Ã Â¸â€ºÃ Â¸Â£Ã Â¸Â°Ã Â¸Â¡Ã Â¸Â²Ã Â¸â€œ: {time}',
+      'เวลาที่เหลือโดยประมาณ: {time}',
   'pl': 'Szacowany pozostaly czas: {time}',
 };
 
 const Map<String, String> _analysisRemainingPreparingLabels = <String, String>{
-  'tr': 'Kalan sÃƒÂ¼re hesaplanÃ„Â±yor...',
+  'tr': 'Kalan süre hesaplanıyor...',
   'en': 'Estimating remaining time...',
   'de': 'Verbleibende Zeit wird geschatzt...',
-  'ko': 'Ã«â€šÂ¨Ã¬Ââ‚¬ Ã¬â€¹Å“ÃªÂ°â€ ÃªÂ³â€Ã¬â€šÂ° Ã¬Â¤â€˜...',
-  'ja': 'Ã¦Â®â€¹Ã£â€šÅ Ã¦â„¢â€šÃ©â€“â€œÃ£â€šâ€™Ã¨Â¨Ë†Ã§Â®â€”Ã¤Â¸Â­...',
+  'ko': '남은 시간 계산 중...',
+  'ja': '残り時間を計算中...',
   'ru':
-      'ÄÂÃ‘â€ ÄÂµÄÂ½ÄÂºÄÂ° ÄÂ¾Ã‘ÂÃ‘â€šÄÂ°ÄÂ²Ã‘Ë†ÄÂµÄÂ³ÄÂ¾Ã‘ÂÃ‘Â ÄÂ²Ã‘â‚¬ÄÂµÄÂ¼ÄÂµÄÂ½ÄÂ¸...',
+      'Оценка оставшегося времени...',
   'pt': 'Estimando tempo restante...',
   'ar':
-      'Ã˜Â¬Ã˜Â§Ã˜Â±Ã™Â Ã˜ÂªÃ™â€šÃ˜Â¯Ã™Å Ã˜Â± Ã˜Â§Ã™â€Ã™Ë†Ã™â€šÃ˜Âª Ã˜Â§Ã™â€Ã™â€¦Ã˜ÂªÃ˜Â¨Ã™â€šÃ™Å ...',
+      'جارٍ تقدير الوقت المتبقي...',
   'es': 'Calculando el tiempo restante...',
   'es-mx': 'Calculando el tiempo restante...',
   'hi':
-      'Ã Â¤Â¶Ã Â¥â€¡Ã Â¤Â· Ã Â¤Â¸Ã Â¤Â®Ã Â¤Â¯ Ã Â¤â€¢Ã Â¤Â¾ Ã Â¤â€¦Ã Â¤Â¨Ã Â¥ÂÃ Â¤Â®Ã Â¤Â¾Ã Â¤Â¨ Ã Â¤Â²Ã Â¤â€”Ã Â¤Â¾Ã Â¤Â¯Ã Â¤Â¾ Ã Â¤Å“Ã Â¤Â¾ Ã Â¤Â°Ã Â¤Â¹Ã Â¤Â¾ Ã Â¤Â¹Ã Â¥Ë†...',
+      'शेष समय का अनुमान लगाया जा रहा है...',
   'hu': 'Hatralevo ido becslese...',
-  'zh-hans': 'Ã¦Â­Â£Ã¥Å“Â¨Ã¤Â¼Â°Ã§Â®â€”Ã¥â€°Â©Ã¤Â½â„¢Ã¦â€”Â¶Ã©â€”Â´...',
+  'zh-hans': '正在估算剩余时间...',
   'id': 'Sedang memperkirakan waktu tersisa...',
   'nl': 'Resterende tijd wordt geschat...',
   'fr': 'Estimation du temps restant...',
   'it': 'Stima del tempo rimanente...',
   'vi': 'Dang uoc tinh thoi gian con lai...',
   'th':
-      'Ã Â¸ÂÃ Â¸Â³Ã Â¸Â¥Ã Â¸Â±Ã Â¸â€¡Ã Â¸â€Ã Â¸Â³Ã Â¸â„¢Ã Â¸Â§Ã Â¸â€œÃ Â¹â‚¬Ã Â¸Â§Ã Â¸Â¥Ã Â¸Â²Ã Â¸â€”Ã Â¸ÂµÃ Â¹Ë†Ã Â¹â‚¬Ã Â¸Â«Ã Â¸Â¥Ã Â¸Â·Ã Â¸Â­...',
+      'กำลังคำนวณเวลาที่เหลือ...',
   'pl': 'Trwa szacowanie pozostalego czasu...',
 };
 
 const Map<String, String> _logoutButtonLabels = <String, String>{
-  'tr': 'Ãƒâ€¡IKIÃ…Â YAP',
+  'tr': 'ÇIKIŞ YAP',
   'en': 'LOG OUT',
   'de': 'ABMELDEN',
-  'ko': 'Ã«Â¡Å“ÃªÂ·Â¸Ã¬â€¢â€Ã¬â€ºÆ’',
-  'ja': 'Ã£Æ’Â­Ã£â€šÂ°Ã£â€šÂ¢Ã£â€šÂ¦Ã£Æ’Ë†',
-  'ru': 'Äâ€™ÄÂ«Äâ„¢ÄÂ¢ÄËœ',
+  'ko': '로그아웃',
+  'ja': 'ログアウト',
+  'ru': 'ВЫЙТИ',
   'pt': 'SAIR',
-  'ar': 'Ã˜ÂªÃ˜Â³Ã˜Â¬Ã™Å Ã™â€ Ã˜Â§Ã™â€Ã˜Â®Ã˜Â±Ã™Ë†Ã˜Â¬',
+  'ar': 'تسجيل الخروج',
   'es': 'CERRAR SESION',
   'es-mx': 'CERRAR SESION',
-  'hi': 'Ã Â¤Â²Ã Â¥â€°Ã Â¤â€” Ã Â¤â€ Ã Â¤â€°Ã Â¤Å¸',
+  'hi': 'लॉग आउट',
   'hu': 'KIJELENTKEZES',
-  'zh-hans': 'Ã©â‚¬â‚¬Ã¥â€¡ÂºÃ§â„¢Â»Ã¥Â½â€¢',
+  'zh-hans': '退出登录',
   'id': 'KELUAR',
   'nl': 'UITLOGGEN',
   'fr': 'SE DECONNECTER',
   'it': 'DISCONNETTITI',
   'vi': 'DANG XUAT',
-  'th': 'Ã Â¸Â­Ã Â¸Â­Ã Â¸ÂÃ Â¸Ë†Ã Â¸Â²Ã Â¸ÂÃ Â¸Â£Ã Â¸Â°Ã Â¸Å¡Ã Â¸Å¡',
+  'th': 'ออกจากระบบ',
   'pl': 'WYLOGUJ',
 };
 
 const Map<String, String> _detailOpenProfileLabels = <String, String>{
   'tr': 'Profile Git',
   'en': 'Open Profile',
-  'de': 'Profil ÃƒÂ¶ffnen',
-  'ko': 'Ã­â€â€Ã«Â¡Å“Ã­â€¢â€ Ã¬â€”Â´ÃªÂ¸Â°',
-  'ja': 'Ã£Æ’â€”Ã£Æ’Â­Ã£Æ’â€¢Ã£â€šÂ£Ã£Æ’Â¼Ã£Æ’Â«Ã£â€šâ€™Ã©â€“â€¹Ã£ÂÂ',
-  'ru': 'ÄÂÃ‘â€šÄÂºÃ‘â‚¬Ã‘â€¹Ã‘â€šÃ‘Å’ ÄÂ¿Ã‘â‚¬ÄÂ¾Ã‘â€ÄÂ¸ÄÂ»Ã‘Å’',
+  'de': 'Profil öffnen',
+  'ko': '프로필 열기',
+  'ja': 'プロフィールを開く',
+  'ru': 'Открыть профиль',
   'pt': 'Abrir perfil',
-  'ar': 'Ã™ÂÃ˜ÂªÃ˜Â­ Ã˜Â§Ã™â€Ã™â€¦Ã™â€Ã™Â Ã˜Â§Ã™â€Ã˜Â´Ã˜Â®Ã˜ÂµÃ™Å ',
+  'ar': 'فتح الملف الشخصي',
   'es': 'Abrir perfil',
   'es-mx': 'Abrir perfil',
   'hi':
-      'Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â°Ã Â¥â€¹Ã Â¤Â«Ã Â¤Â¼Ã Â¤Â¾Ã Â¤â€¡Ã Â¤Â² Ã Â¤â€“Ã Â¥â€¹Ã Â¤Â²Ã Â¥â€¡Ã Â¤â€š',
+      'प्रोफ़ाइल खोलें',
   'hu': 'Profil megnyitasa',
-  'zh-hans': 'Ã¦â€°â€œÃ¥Â¼â‚¬Ã¤Â¸ÂªÃ¤ÂºÂºÃ¨Âµâ€Ã¦â€“â„¢',
+  'zh-hans': '打开个人资料',
   'id': 'Buka profil',
   'nl': 'Profiel openen',
   'fr': 'Ouvrir le profil',
   'it': 'Apri profilo',
   'vi': 'Mo ho so',
   'th':
-      'Ã Â¹â‚¬Ã Â¸â€ºÃ Â¸Â´Ã Â¸â€Ã Â¹â€šÃ Â¸â€ºÃ Â¸Â£Ã Â¹â€Ã Â¸Å¸Ã Â¸Â¥Ã Â¹Å’',
+      'เปิดโปรไฟล์',
   'pl': 'Otworz profil',
 };
 
@@ -1636,242 +1636,242 @@ String _detailOpenProfileTextForLang(String lang) {
 const List<Map<String, String>> _analysisDidYouKnowFacts = [
   {
     'tr':
-        'Kargalar sadece insan yÃƒÂ¼zlerini tanÃ„Â±makla kalmaz, kendilerine kÃƒÂ¶tÃƒÂ¼ davrananlarÃ„Â± yÃ„Â±llarca unutmaz ve diÃ„Å¸er kargalara da bunu haber verirler.',
+        'Kargalar sadece insan yüzlerini tanımakla kalmaz, kendilerine kötü davrananları yıllarca unutmaz ve diğer kargalara da bunu haber verirler.',
     'en':
-        'Crows donÃ¢â‚¬â„¢t just recognize human faces; they can remember people who treated them badly for yearsÃ¢â‚¬â€and even warn other crows.',
+        'Crows don’t just recognize human faces; they can remember people who treated them badly for years—and even warn other crows.',
   },
   {
     'tr':
-        "Kediler hayatlarÃ„Â±nÃ„Â±n yaklaÃ…Å¸Ã„Â±k %70'ini uyuyarak geÃƒÂ§irirler; yani 10 yaÃ…Å¸Ã„Â±ndaki bir kedi aslÃ„Â±nda sadece 3 yÃ„Â±l uyanÃ„Â±k kalmÃ„Â±Ã…Å¸tÃ„Â±r.",
+        "Kediler hayatlarının yaklaşık %70'ini uyuyarak geçirirler; yani 10 yaşındaki bir kedi aslında sadece 3 yıl uyanık kalmıştır.",
     'en':
-        'Cats spend about 70% of their lives asleepÃ¢â‚¬â€so a 10-year-old cat has been awake for only about 3 years.',
+        'Cats spend about 70% of their lives asleep—so a 10-year-old cat has been awake for only about 3 years.',
   },
   {
     'tr':
-        'Bal asla bozulmaz; arkeologlar MÃ„Â±sÃ„Â±r piramitlerinde 3000 yÃ„Â±llÃ„Â±k bozulmamÃ„Â±Ã…Å¸ ve hala yenilebilir durumda olan bal kavanozlarÃ„Â± bulmuÃ…Å¸lardÃ„Â±r.',
+        'Bal asla bozulmaz; arkeologlar Mısır piramitlerinde 3000 yıllık bozulmamış ve hala yenilebilir durumda olan bal kavanozları bulmuşlardır.',
     'en':
         'Honey never spoils; archaeologists have found 3,000-year-old jars of honey in Egyptian pyramids that were still edible.',
   },
   {
     'tr':
-        'Su samurlarÃ„Â±, uyurken akÃ„Â±ntÃ„Â±ya kapÃ„Â±lÃ„Â±p birbirlerinden ayrÃ„Â±lmamak iÃƒÂ§in el ele tutuÃ…Å¸urlar.',
+        'Su samurları, uyurken akıntıya kapılıp birbirlerinden ayrılmamak için el ele tutuşurlar.',
     'en':
-        'Sea otters hold hands while they sleep so they donÃ¢â‚¬â„¢t drift apart in the current.',
+        'Sea otters hold hands while they sleep so they don’t drift apart in the current.',
   },
   {
     'tr':
-        "VenÃƒÂ¼s'te bir gÃƒÂ¼n, bir yÃ„Â±ldan daha uzun sÃƒÂ¼rer; yani kendi etrafÃ„Â±nda dÃƒÂ¶nmesi, GÃƒÂ¼neÃ…Å¸ etrafÃ„Â±nda dÃƒÂ¶nmesinden daha yavaÃ…Å¸tÃ„Â±r.",
+        "Venüs'te bir gün, bir yıldan daha uzun sürer; yani kendi etrafında dönmesi, Güneş etrafında dönmesinden daha yavaştır.",
     'en':
-        'On Venus, a day is longer than a yearÃ¢â‚¬â€it rotates on its axis more slowly than it orbits the Sun.',
+        'On Venus, a day is longer than a year—it rotates on its axis more slowly than it orbits the Sun.',
   },
   {
     'tr':
-        'Ãƒâ€¡akmak, kibritten ÃƒÂ¶nce icat edilmiÃ…Å¸tir; bazen teknoloji sandÃ„Â±Ã„Å¸Ã„Â±mÃ„Â±zdan daha eski kafalÃ„Â± olabiliyor.',
+        'Çakmak, kibritten önce icat edilmiştir; bazen teknoloji sandığımızdan daha eski kafalı olabiliyor.',
     'en':
-        'The lighter was invented before the matchÃ¢â‚¬â€sometimes Ã¢â‚¬Å“oldÃ¢â‚¬Â tech is older than we think.',
+        'The lighter was invented before the match—sometimes “old” tech is older than we think.',
   },
   {
     'tr':
-        'AhtapotlarÃ„Â±n ÃƒÂ¼ÃƒÂ§ tane kalbi ve tam dokuz tane beyni vardÃ„Â±r; bir Ã…Å¸eyi unutma lÃƒÂ¼ksleri pek yok gibi.',
+        'Ahtapotların üç tane kalbi ve tam dokuz tane beyni vardır; bir şeyi unutma lüksleri pek yok gibi.',
     'en':
-        'Octopuses have three hearts and nine brainsÃ¢â‚¬â€forgetting things isnÃ¢â‚¬â„¢t really an option.',
+        'Octopuses have three hearts and nine brains—forgetting things isn’t really an option.',
   },
   {
     'tr':
-        'Ã„Â°neklerin "en yakÃ„Â±n arkadaÃ…Å¸larÃ„Â±" vardÃ„Â±r ve onlardan ayrÃ„Â±ldÃ„Â±klarÃ„Â±nda ciddi Ã…Å¸ekilde strese girip aÃ„Å¸layabilirler.',
+        'İneklerin "en yakın arkadaşları" vardır ve onlardan ayrıldıklarında ciddi şekilde strese girip ağlayabilirler.',
     'en':
-        'Cows have Ã¢â‚¬Å“best friends,Ã¢â‚¬Â and they can get seriously stressedÃ¢â‚¬â€and even cryÃ¢â‚¬â€when separated.',
+        'Cows have “best friends,” and they can get seriously stressed—and even cry—when separated.',
   },
   {
     'tr':
-        'DÃƒÂ¼nyadaki ilk bilgisayar virÃƒÂ¼sÃƒÂ¼ "Creeper" adÃ„Â±ndaydÃ„Â± ve ekranda sadece "Ben bir sarmaÃ…Å¸Ã„Â±Ã„Å¸Ã„Â±m, yakalayabiliyorsan yakala!" yazÃ„Â±yordu.',
+        'Dünyadaki ilk bilgisayar virüsü "Creeper" adındaydı ve ekranda sadece "Ben bir sarmaşığım, yakalayabiliyorsan yakala!" yazıyordu.',
     'en':
-        'The worldÃ¢â‚¬â„¢s first computer virus was called Ã¢â‚¬Å“Creeper,Ã¢â‚¬Â and it displayed: Ã¢â‚¬Å“IÃ¢â‚¬â„¢m the creeper, catch me if you can!Ã¢â‚¬Â',
+        'The world’s first computer virus was called “Creeper,” and it displayed: “I’m the creeper, catch me if you can!”',
   },
   {
     'tr':
-        'Bir bulutun aÃ„Å¸Ã„Â±rlÃ„Â±Ã„Å¸Ã„Â± ortalama 500 bin kilogramdÃ„Â±r; yani tepemizde yÃƒÂ¼zen devasa bir fil sÃƒÂ¼rÃƒÂ¼sÃƒÂ¼ gibi dÃƒÂ¼Ã…Å¸ÃƒÂ¼nebilirsin.',
+        'Bir bulutun ağırlığı ortalama 500 bin kilogramdır; yani tepemizde yüzen devasa bir fil sürüsü gibi düşünebilirsin.',
     'en':
-        'An average cloud can weigh around 500,000 kgÃ¢â‚¬â€like a massive herd of elephants floating overhead.',
+        'An average cloud can weigh around 500,000 kg—like a massive herd of elephants floating overhead.',
   },
   {
     'tr':
-        'Ã„Â°nsan DNA\'sÃ„Â± ile bir muzun DNA\'sÃ„Â± %50 oranÃ„Â±nda benzerdir; yani yarÃ„Â±n sabah bir muza "kardeÃ…Å¸im" dersen pek de haksÃ„Â±z sayÃ„Â±lmazsÃ„Â±n.',
+        'İnsan DNA\'sı ile bir muzun DNA\'sı %50 oranında benzerdir; yani yarın sabah bir muza "kardeşim" dersen pek de haksız sayılmazsın.',
     'en':
-        'Human DNA is about 50% similar to banana DNAÃ¢â‚¬â€so calling a banana Ã¢â‚¬Å“my siblingÃ¢â‚¬Â tomorrow morning isnÃ¢â‚¬â„¢t totally unfair.',
+        'Human DNA is about 50% similar to banana DNA—so calling a banana “my sibling” tomorrow morning isn’t totally unfair.',
   },
   {
     'tr':
-        'Kutup ayÃ„Â±larÃ„Â±nÃ„Â±n derisi aslÃ„Â±nda siyahtÃ„Â±r, tÃƒÂ¼yleri ise Ã…Å¸effaftÃ„Â±r; beyaz gÃƒÂ¶rÃƒÂ¼nmesi sadece bir Ã„Â±Ã…Å¸Ã„Â±k yansÃ„Â±masÃ„Â± hilesidir.',
+        'Kutup ayılarının derisi aslında siyahtır, tüyleri ise şeffaftır; beyaz görünmesi sadece bir ışık yansıması hilesidir.',
     'en':
         'Polar bears actually have black skin, and their fur is transparent; they look white because of how light scatters.',
   },
   {
     'tr':
-        'Uzayda aÃ„Å¸layamazsÃ„Â±nÃ„Â±z ÃƒÂ§ÃƒÂ¼nkÃƒÂ¼ yerÃƒÂ§ekimi olmadÃ„Â±Ã„Å¸Ã„Â± iÃƒÂ§in gÃƒÂ¶zyaÃ…Å¸larÃ„Â±nÃ„Â±z yÃƒÂ¼zÃƒÂ¼nÃƒÂ¼zden aÃ…Å¸aÃ„Å¸Ã„Â± sÃƒÂ¼zÃƒÂ¼lmez, gÃƒÂ¶zÃƒÂ¼nÃƒÂ¼zde bir top gibi birikir.',
+        'Uzayda ağlayamazsınız çünkü yerçekimi olmadığı için gözyaşlarınız yüzünüzden aşağı süzülmez, gözünüzde bir top gibi birikir.',
     'en':
-        'You canÃ¢â‚¬â„¢t really cry in space: without gravity, tears donÃ¢â‚¬â„¢t run down your faceÃ¢â‚¬â€they form a blob in your eye.',
+        'You can’t really cry in space: without gravity, tears don’t run down your face—they form a blob in your eye.',
   },
   {
     'tr':
-        'Everest DaÃ„Å¸Ã„Â± her yÃ„Â±l yaklaÃ…Å¸Ã„Â±k 4 milimetre kadar uzamaya devam ediyor; yani dÃƒÂ¼nya hala bÃƒÂ¼yÃƒÂ¼yor.',
+        'Everest Dağı her yıl yaklaşık 4 milimetre kadar uzamaya devam ediyor; yani dünya hala büyüyor.',
     'en':
-        'Mount Everest keeps growing by about 4 millimeters each yearÃ¢â‚¬â€Earth is still changing.',
+        'Mount Everest keeps growing by about 4 millimeters each year—Earth is still changing.',
   },
   {
     'tr':
-        'IslÃ„Â±k ÃƒÂ§alan fareler aslÃ„Â±nda birbirlerine Ã…Å¸arkÃ„Â± sÃƒÂ¶ylerler ama bu sesler insan kulaÃ„Å¸Ã„Â±nÃ„Â±n duyamayacaÃ„Å¸Ã„Â± kadar yÃƒÂ¼ksek frekanstadÃ„Â±r.',
+        'Islık çalan fareler aslında birbirlerine şarkı söylerler ama bu sesler insan kulağının duyamayacağı kadar yüksek frekanstadır.',
     'en':
-        'Ã¢â‚¬Å“WhistlingÃ¢â‚¬Â mice are essentially singing to each other, but at frequencies too high for humans to hear.',
+        '“Whistling” mice are essentially singing to each other, but at frequencies too high for humans to hear.',
   },
   {
     'tr':
-        'KÃƒÂ¶pekbalÃ„Â±klarÃ„Â± aÃ„Å¸aÃƒÂ§lardan daha eskidir; dÃƒÂ¼nyada yaklaÃ…Å¸Ã„Â±k 400 milyon yÃ„Â±ldÃ„Â±r varlar, aÃ„Å¸aÃƒÂ§lar ise sadece 350 milyon yÃ„Â±ldÃ„Â±r.',
+        'Köpekbalıkları ağaçlardan daha eskidir; dünyada yaklaşık 400 milyon yıldır varlar, ağaçlar ise sadece 350 milyon yıldır.',
     'en':
-        'Sharks are older than treesÃ¢â‚¬â€sharks have been around for about 400 million years, trees for about 350 million.',
+        'Sharks are older than trees—sharks have been around for about 400 million years, trees for about 350 million.',
   },
   {
     'tr':
-        'Muzlar aslÃ„Â±nda botanik olarak meyve (berry) sayÃ„Â±lÃ„Â±rken, ÃƒÂ§ilekler bu gruba girmez; botanik dÃƒÂ¼nyasÃ„Â± biraz karÃ„Â±Ã…Å¸Ã„Â±k.',
+        'Muzlar aslında botanik olarak meyve (berry) sayılırken, çilekler bu gruba girmez; botanik dünyası biraz karışık.',
     'en':
-        'Bananas are botanically berries, but strawberries arenÃ¢â‚¬â„¢tÃ¢â‚¬â€botany can be weird.',
+        'Bananas are botanically berries, but strawberries aren’t—botany can be weird.',
   },
   {
     'tr':
-        'Bir karÃ„Â±nca kendi aÃ„Å¸Ã„Â±rlÃ„Â±Ã„Å¸Ã„Â±nÃ„Â±n 50 katÃ„Â±nÃ„Â± kaldÃ„Â±rabilir; eÃ„Å¸er sen bir karÃ„Â±nca olsaydÃ„Â±n, bir otomobili tek baÃ…Å¸Ã„Â±na kaldÃ„Â±rabilirdin.',
+        'Bir karınca kendi ağırlığının 50 katını kaldırabilir; eğer sen bir karınca olsaydın, bir otomobili tek başına kaldırabilirdin.',
     'en':
-        'An ant can lift up to 50 times its own weightÃ¢â‚¬â€if you were an ant, you could lift a car by yourself.',
+        'An ant can lift up to 50 times its own weight—if you were an ant, you could lift a car by yourself.',
   },
   {
     'tr':
-        "Eyfel Kulesi yaz aylarÃ„Â±nda genleÃ…Å¸me nedeniyle yaklaÃ…Å¸Ã„Â±k 15 santimetre kadar uzayabilir.",
+        "Eyfel Kulesi yaz aylarında genleşme nedeniyle yaklaşık 15 santimetre kadar uzayabilir.",
     'en':
         'The Eiffel Tower can grow by about 15 centimeters in summer due to thermal expansion.',
   },
   {
     'tr':
-        'DÃƒÂ¼nyadaki tÃƒÂ¼m insanlarÃ„Â±n toplam aÃ„Å¸Ã„Â±rlÃ„Â±Ã„Å¸Ã„Â±, dÃƒÂ¼nyadaki tÃƒÂ¼m karÃ„Â±ncalarÃ„Â±n toplam aÃ„Å¸Ã„Â±rlÃ„Â±Ã„Å¸Ã„Â±na neredeyse eÃ…Å¸ittir.',
+        'Dünyadaki tüm insanların toplam ağırlığı, dünyadaki tüm karıncaların toplam ağırlığına neredeyse eşittir.',
     'en':
         'The total weight of all humans on Earth is roughly comparable to the total weight of all ants.',
   },
   {
     'tr':
-        'Tembel hayvanlar nefeslerini su altÃ„Â±nda yunuslardan daha uzun sÃƒÂ¼re tutabilirler; tam 40 dakika boyunca suyun altÃ„Â±nda kalabilirler.',
+        'Tembel hayvanlar nefeslerini su altında yunuslardan daha uzun süre tutabilirler; tam 40 dakika boyunca suyun altında kalabilirler.',
     'en':
-        'Sloths can hold their breath underwater longer than dolphinsÃ¢â‚¬â€up to about 40 minutes.',
+        'Sloths can hold their breath underwater longer than dolphins—up to about 40 minutes.',
   },
   {
     'tr':
-        "GÃƒÂ¼vercinler, Picasso ve Monet'nin tablolarÃ„Â± arasÃ„Â±ndaki farkÃ„Â± ayÃ„Â±rt edebilirler; yani sandÃ„Â±Ã„Å¸Ã„Â±ndan ÃƒÂ§ok daha sanatsal bir vizyona sahipler.",
+        "Güvercinler, Picasso ve Monet'nin tabloları arasındaki farkı ayırt edebilirler; yani sandığından çok daha sanatsal bir vizyona sahipler.",
     'en':
-        'Pigeons can tell the difference between paintings by Picasso and MonetÃ¢â‚¬â€turns out theyÃ¢â‚¬â„¢re more art-savvy than we think.',
+        'Pigeons can tell the difference between paintings by Picasso and Monet—turns out they’re more art-savvy than we think.',
   },
   {
     'tr':
-        'GPS sistemi aslÃ„Â±nda dÃƒÂ¼nya ÃƒÂ§apÃ„Â±nda ÃƒÂ¼cretsizdir ancak ABD hÃƒÂ¼kÃƒÂ¼meti bu sistemi ÃƒÂ§alÃ„Â±Ã…Å¸Ã„Â±r halde tutmak iÃƒÂ§in gÃƒÂ¼nde yaklaÃ…Å¸Ã„Â±k 2 milyon dolar harcar.',
+        'GPS sistemi aslında dünya çapında ücretsizdir ancak ABD hükümeti bu sistemi çalışır halde tutmak için günde yaklaşık 2 milyon dolar harcar.',
     'en':
         'GPS is free to use worldwide, but the U.S. government reportedly spends around \$2 million a day to keep it running.',
   },
   {
     'tr':
-        'PlatipuslarÃ„Â±n (orkinitorenk) mideleri yoktur; yedikleri besinler yemek borusundan doÃ„Å¸rudan baÃ„Å¸Ã„Â±rsaklarÃ„Â±na geÃƒÂ§er.',
+        'Platipusların (orkinitorenk) mideleri yoktur; yedikleri besinler yemek borusundan doğrudan bağırsaklarına geçer.',
     'en':
-        'Platypuses donÃ¢â‚¬â„¢t have stomachsÃ¢â‚¬â€food goes from the esophagus straight to the intestines.',
+        'Platypuses don’t have stomachs—food goes from the esophagus straight to the intestines.',
   },
   {
     'tr':
-        '"Swagger" (havalÃ„Â± yÃƒÂ¼rÃƒÂ¼yÃƒÂ¼Ã…Å¸/tavÃ„Â±r) kelimesini ilk kez William Shakespeare kullanmÃ„Â±Ã…Å¸tÃ„Â±r; adam 16. yÃƒÂ¼zyÃ„Â±lda bile ortama Ã…Å¸eklini koymuÃ…Å¸.',
+        '"Swagger" (havalı yürüyüş/tavır) kelimesini ilk kez William Shakespeare kullanmıştır; adam 16. yüzyılda bile ortama şeklini koymuş.',
     'en':
-        'William Shakespeare is credited with the first recorded use of the word Ã¢â‚¬Å“swaggerÃ¢â‚¬ÂÃ¢â‚¬â€even in the 16th century, he had style.',
+        'William Shakespeare is credited with the first recorded use of the word “swagger”—even in the 16th century, he had style.',
   },
   {
     'tr':
-        'Mavi balinalarÃ„Â±n kalbi o kadar bÃƒÂ¼yÃƒÂ¼ktÃƒÂ¼r ki, bir insan ana atardamarlarÃ„Â±nÃ„Â±n iÃƒÂ§inde rahatÃƒÂ§a yÃƒÂ¼zebilir.',
+        'Mavi balinaların kalbi o kadar büyüktür ki, bir insan ana atardamarlarının içinde rahatça yüzebilir.',
     'en':
-        'A blue whaleÃ¢â‚¬â„¢s heart is so large that a human could swim through its main arteries.',
+        'A blue whale’s heart is so large that a human could swim through its main arteries.',
   },
   {
     'tr':
-        'KarÃ„Â±ncalarÃ„Â±n akciÃ„Å¸erleri yoktur ve asla uyumazlar; tam bir iÃ…Å¸kolik gibi 7/24 ÃƒÂ§alÃ„Â±Ã…Å¸Ã„Â±rlar.',
+        'Karıncaların akciğerleri yoktur ve asla uyumazlar; tam bir işkolik gibi 7/24 çalışırlar.',
     'en':
-        'Ants donÃ¢â‚¬â„¢t have lungsÃ¢â‚¬â€and they never truly Ã¢â‚¬Å“sleepÃ¢â‚¬Â; they operate nonstop like tiny workaholics.',
+        'Ants don’t have lungs—and they never truly “sleep”; they operate nonstop like tiny workaholics.',
   },
   {
     'tr':
-        "SatÃƒÂ¼rn ve JÃƒÂ¼piter'de kelimenin tam anlamÃ„Â±yla elmas yaÃ„Å¸muru yaÃ„Å¸ar; zengin olmak iÃƒÂ§in yanlÃ„Â±Ã…Å¸ gezegende yaÃ…Å¸Ã„Â±yoruz.",
+        "Satürn ve Jüpiter'de kelimenin tam anlamıyla elmas yağmuru yağar; zengin olmak için yanlış gezegende yaşıyoruz.",
     'en':
-        'On Saturn and Jupiter, it can literally rain diamondsÃ¢â‚¬â€apparently weÃ¢â‚¬â„¢re living on the wrong planet.',
+        'On Saturn and Jupiter, it can literally rain diamonds—apparently we’re living on the wrong planet.',
   },
   {
     'tr':
-        'Bal arÃ„Â±larÃ„Â± insan yÃƒÂ¼zlerini tanÃ„Â±yabilir ve onlarÃ„Â± tek tek hafÃ„Â±zalarÃ„Â±na kaydedebilirler.',
+        'Bal arıları insan yüzlerini tanıyabilir ve onları tek tek hafızalarına kaydedebilirler.',
     'en': 'Honeybees can recognize human faces and remember them individually.',
   },
   {
     'tr':
-        'Su aygÃ„Â±rlarÃ„Â±nÃ„Â±n teri aslÃ„Â±nda pembe renklidir ve bu ter hem gÃƒÂ¼neÃ…Å¸ kremi hem de mikrop ÃƒÂ¶ldÃƒÂ¼rÃƒÂ¼cÃƒÂ¼ yerine geÃƒÂ§er.',
+        'Su aygırlarının teri aslında pembe renklidir ve bu ter hem güneş kremi hem de mikrop öldürücü yerine geçer.',
     'en':
-        'Hippo Ã¢â‚¬Å“sweatÃ¢â‚¬Â can look pink and acts like both sunscreen and an antibacterial shield.',
+        'Hippo “sweat” can look pink and acts like both sunscreen and an antibacterial shield.',
   },
   {
     'tr':
-        'VombatlarÃ„Â±n dÃ„Â±Ã…Å¸kÃ„Â±larÃ„Â± kÃƒÂ¼p Ã…Å¸eklindedir; bu sayede dÃ„Â±Ã…Å¸kÃ„Â±larÃ„Â± yokuÃ…Å¸ aÃ…Å¸aÃ„Å¸Ã„Â± yuvarlanmaz ve bÃƒÂ¶lgelerini iÃ…Å¸aretlemek iÃƒÂ§in sabit durur.',
+        'Vombatların dışkıları küp şeklindedir; bu sayede dışkıları yokuş aşağı yuvarlanmaz ve bölgelerini işaretlemek için sabit durur.',
     'en':
-        'Wombat poop is cube-shaped, so it doesnÃ¢â‚¬â„¢t roll away and can mark territory more effectively.',
+        'Wombat poop is cube-shaped, so it doesn’t roll away and can mark territory more effectively.',
   },
   {
     'tr':
-        'Kaju fÃ„Â±stÃ„Â±Ã„Å¸Ã„Â± aslÃ„Â±nda bir meyvenin (kaju elmasÃ„Â±) en ucunda, meyvenin dÃ„Â±Ã…Å¸Ã„Â±nda yetiÃ…Å¸ir; oldukÃƒÂ§a tuhaf bir gÃƒÂ¶rÃƒÂ¼ntÃƒÂ¼sÃƒÂ¼ vardÃ„Â±r.',
+        'Kaju fıstığı aslında bir meyvenin (kaju elması) en ucunda, meyvenin dışında yetişir; oldukça tuhaf bir görüntüsü vardır.',
     'en':
-        'Cashews grow outside the cashew apple, hanging at the very endÃ¢â‚¬â€an oddly surprising design.',
+        'Cashews grow outside the cashew apple, hanging at the very end—an oddly surprising design.',
   },
   {
     'tr':
-        "KÃƒÂ¶pekbalÃ„Â±klarÃ„Â±, SatÃƒÂ¼rn'ÃƒÂ¼n halkalarÃ„Â±ndan daha eskidir; SatÃƒÂ¼rn o gÃƒÂ¶steriÃ…Å¸li halkalarÃ„Â±nÃ„Â± takÃ„Â±nmadan milyonlarca yÃ„Â±l ÃƒÂ¶nce kÃƒÂ¶pekbalÃ„Â±klarÃ„Â± dÃƒÂ¼nyadaydÃ„Â±.",
+        "Köpekbalıkları, Satürn'ün halkalarından daha eskidir; Satürn o gösterişli halkalarını takınmadan milyonlarca yıl önce köpekbalıkları dünyadaydı.",
     'en':
-        'Sharks are older than SaturnÃ¢â‚¬â„¢s ringsÃ¢â‚¬â€they were around millions of years before Saturn got its famous bling.',
+        'Sharks are older than Saturn’s rings—they were around millions of years before Saturn got its famous bling.',
   },
   {
     'tr':
-        'Kelebekler ayaklarÃ„Â±yla tat alÃ„Â±rlar; bir yapraÃ„Å¸Ã„Â±n ÃƒÂ¼zerine konduklarÃ„Â±nda aslÃ„Â±nda akÃ…Å¸am yemeÃ„Å¸inin tadÃ„Â±na bakÃ„Â±yorlar.',
+        'Kelebekler ayaklarıyla tat alırlar; bir yaprağın üzerine konduklarında aslında akşam yemeğinin tadına bakıyorlar.',
     'en':
-        'Butterflies taste with their feetÃ¢â‚¬â€when they land on a leaf, theyÃ¢â‚¬â„¢re basically sampling dinner.',
+        'Butterflies taste with their feet—when they land on a leaf, they’re basically sampling dinner.',
   },
   {
     'tr':
-        'Bir salyangoz tam 3 yÃ„Â±l boyunca hiÃƒÂ§ uyanmadan uyuyabilir; bazen hepimizin buna ihtiyacÃ„Â± var.',
+        'Bir salyangoz tam 3 yıl boyunca hiç uyanmadan uyuyabilir; bazen hepimizin buna ihtiyacı var.',
     'en':
-        'A snail can sleep for up to three years without waking upÃ¢â‚¬â€honestly, relatable.',
+        'A snail can sleep for up to three years without waking up—honestly, relatable.',
   },
   {
     'tr':
-        'Deve kuÃ…Å¸larÃ„Â±nÃ„Â±n gÃƒÂ¶zleri beyinlerinden daha bÃƒÂ¼yÃƒÂ¼ktÃƒÂ¼r; bakmakla gÃƒÂ¶rmek arasÃ„Â±ndaki o ince ÃƒÂ§izgide yaÃ…Å¸Ã„Â±yorlar.',
+        'Deve kuşlarının gözleri beyinlerinden daha büyüktür; bakmakla görmek arasındaki o ince çizgide yaşıyorlar.',
     'en':
-        'An ostrichÃ¢â‚¬â„¢s eyes are bigger than its brainÃ¢â‚¬â€living on the fine line between looking and thinking.',
+        'An ostrich’s eyes are bigger than its brain—living on the fine line between looking and thinking.',
   },
   {
     'tr':
-        'Flamingolar aslÃ„Â±nda gri doÃ„Å¸arlar; o meÃ…Å¸hur pembe renklerini yedikleri karides ve alglerdeki pigmentlerden alÃ„Â±rlar.',
+        'Flamingolar aslında gri doğarlar; o meşhur pembe renklerini yedikleri karides ve alglerdeki pigmentlerden alırlar.',
     'en':
         'Flamingos are born gray; their famous pink comes from pigments in shrimp and algae they eat.',
   },
   {
     'tr':
-        'Sincaplar her yÃ„Â±l binlerce yeni aÃ„Å¸acÃ„Â±n yetiÃ…Å¸mesine neden olur ÃƒÂ§ÃƒÂ¼nkÃƒÂ¼ sakladÃ„Â±klarÃ„Â± fÃ„Â±ndÃ„Â±k ve cevizlerin yerini unuturlar.',
+        'Sincaplar her yıl binlerce yeni ağacın yetişmesine neden olur çünkü sakladıkları fındık ve cevizlerin yerini unuturlar.',
     'en':
         'Squirrels help grow thousands of new trees each year because they forget where they buried nuts.',
   },
   {
     'tr':
-        "Uzayda oynanan ilk video oyunu Tetris'tir; 1993 yÃ„Â±lÃ„Â±nda bir kozmonot tarafÃ„Â±ndan Game Boy ile oynanmÃ„Â±Ã…Å¸tÃ„Â±r.",
+        "Uzayda oynanan ilk video oyunu Tetris'tir; 1993 yılında bir kozmonot tarafından Game Boy ile oynanmıştır.",
     'en':
-        'The first video game played in space was TetrisÃ¢â‚¬â€played on a Game Boy by a cosmonaut in 1993.',
+        'The first video game played in space was Tetris—played on a Game Boy by a cosmonaut in 1993.',
   },
   {
     'tr':
-        'AÃ„Å¸aÃƒÂ§kakanlar beyin sarsÃ„Â±ntÃ„Â±sÃ„Â± geÃƒÂ§irmemek iÃƒÂ§in dillerini beyinlerinin etrafÃ„Â±na sararlar; kask niyetine dil kullanmak oldukÃƒÂ§a yaratÃ„Â±cÃ„Â± bir ÃƒÂ§ÃƒÂ¶zÃƒÂ¼m.',
+        'Ağaçkakanlar beyin sarsıntısı geçirmemek için dillerini beyinlerinin etrafına sararlar; kask niyetine dil kullanmak oldukça yaratıcı bir çözüm.',
     'en':
-        'Woodpeckers wrap their tongues around their brains to help avoid concussionsÃ¢â‚¬â€using your tongue as a helmet is a wild solution.',
+        'Woodpeckers wrap their tongues around their brains to help avoid concussions—using your tongue as a helmet is a wild solution.',
   },
 ];
 
@@ -2357,8 +2357,8 @@ class _BioPlannerScreenState extends State<BioPlannerScreen> {
     "Collecting moments, not things.",
     "Proof that small steps still move you forward.",
     "Soft light, loud dreams.",
-    "Catching the inÃ¢â‚¬â€˜between.",
-    "If you need me, IÃ¢â‚¬â„¢m out chasing sunsets.",
+    "Catching the in‑between.",
+    "If you need me, I’m out chasing sunsets.",
     "Less perfection, more authenticity.",
     "Built on late nights and big ideas.",
     "My favorite color is the feeling of calm.",
@@ -2369,7 +2369,7 @@ class _BioPlannerScreenState extends State<BioPlannerScreen> {
     "Making ordinary days feel cinematic.",
     "This is your sign to start.",
     "Woke up grateful, stayed focused.",
-    "Dreams donÃ¢â‚¬â„¢t work unless we do.",
+    "Dreams don’t work unless we do.",
     "Staying soft in a loud world.",
     "Find your pace, then enjoy it.",
     "Messy hair, clear goals.",
@@ -2402,7 +2402,7 @@ class _BioPlannerScreenState extends State<BioPlannerScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(localizeTrEn(
-            langCode, 'Biyografi PlanlayÃ„Â±cÃ„Â±', 'Bio Planner')),
+            langCode, 'Biyografi Planlayıcı', 'Bio Planner')),
         centerTitle: true,
         elevation: 0,
       ),
@@ -3234,50 +3234,50 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   final Map<String, Map<String, String>> _localized = {
     'tr': {
-      'tagline': 'Sosyal medya iÃƒÂ§in profesyonel ÃƒÂ§ÃƒÂ¶zÃƒÂ¼mler',
+      'tagline': 'Sosyal medya için profesyonel çözümler',
       'adsense_banner': 'REKLAM ALANI',
       'admin_active_note': 'Y\u00F6netici Modu Aktif',
       'free_app_note':
-          'Size daha iyi bir deneyim sunmak iÃƒÂ§in her gÃƒÂ¼n geliÃ…Å¸iyoruz. GÃƒÂ¶rÃƒÂ¼Ã…Å¸leriniz bizim iÃƒÂ§in deÃ„Å¸erli, geri bildirimlerinizi bekliyoruz!',
+          'Size daha iyi bir deneyim sunmak için her gün gelişiyoruz. Görüşleriniz bizim için değerli, geri bildirimlerinizi bekliyoruz!',
       'login_prompt':
-          'Analizi baÃ…Å¸latmak iÃƒÂ§in lÃƒÂ¼tfen giriÃ…Å¸ yapÃ„Â±n.',
-      'welcome': 'HoÃ…Å¸ geldiniz, {username}',
-      'refresh_data': 'VERÃ„Â°LERÃ„Â° GÃƒÅ“NCELLE',
-      'login_with_instagram': 'INSTAGRAM Ã„Â°LE GÃ„Â°RÃ„Â°Ã…Â YAP',
+          'Analizi başlatmak için lütfen giriş yapın.',
+      'welcome': 'HoÅŸ geldiniz, {username}',
+      'refresh_data': 'VERİLERİ GÜNCELLE',
+      'login_with_instagram': 'INSTAGRAM İLE GİRİŞ YAP',
       'fetching_data':
-          'Veriler analiz ediliyor...\nBu iÃ…Å¸lem biraz sÃƒÂ¼rebilir.',
-      'processing_data': 'Veriler iÃ…Å¸leniyor...\nNeredeyse bitti.',
-      'loading_ad': 'Reklam yÃƒÂ¼kleniyor...\nLÃƒÂ¼tfen bekleyin.',
-      'google_ad_warning': 'Google reklam uyarÃ„Â±sÃ„Â±: {reason}',
+          'Veriler analiz ediliyor...\nBu işlem biraz sürebilir.',
+      'processing_data': 'Veriler iÅŸleniyor...\nNeredeyse bitti.',
+      'loading_ad': 'Reklam yükleniyor...\nLütfen bekleyin.',
+      'google_ad_warning': 'Google reklam uyarısı: {reason}',
       'analysis_secure':
-          'TÃƒÂ¼m analizler gÃƒÂ¼venli Ã…Å¸ekilde yalnÃ„Â±zca cihazÃ„Â±nÃ„Â±zda iÃ…Å¸lenir.',
-      'today_total_analysis': 'BugÃƒÂ¼n yapÃ„Â±lan toplam analiz: {count}',
+          'Tüm analizler güvenli şekilde yalnızca cihazınızda işlenir.',
+      'today_total_analysis': 'Bugün yapılan toplam analiz: {count}',
       'purchases_not_configured':
-          'SatÃ„Â±n alma sistemi hazÃ„Â±r deÃ„Å¸il. LÃƒÂ¼tfen daha sonra tekrar deneyin.',
+          'Satın alma sistemi hazır değil. Lütfen daha sonra tekrar deneyin.',
       'premium_not_active':
-          'SatÃ„Â±n alma tamamlandÃ„Â± ancak Premium aktif gÃƒÂ¶rÃƒÂ¼nmÃƒÂ¼yor. LÃƒÂ¼tfen tekrar deneyin.',
+          'Satın alma tamamlandı ancak Premium aktif görünmüyor. Lütfen tekrar deneyin.',
       'premium_welcome_box':
-          'Premium\'a hoÃ…Å¸ geldiniz! Reklamlar ve bekleme sÃƒÂ¼releri kaldÃ„Â±rÃ„Â±ldÃ„Â±.',
-      'premium_already_active': 'Premium ÃƒÂ¼yeliÃ„Å¸iniz aktif.',
-      'restore_purchases': 'SatÃ„Â±n AlÃ„Â±mlarÃ„Â± Geri YÃƒÂ¼kle',
-      'restore_purchases_short': 'GERÃ„Â° YÃƒÅ“KLE',
-      'restoring_purchases': 'SatÃ„Â±n alÃ„Â±mlar geri yÃƒÂ¼kleniyor...',
+          'Premium\'a hoş geldiniz! Reklamlar ve bekleme süreleri kaldırıldı.',
+      'premium_already_active': 'Premium üyeliğiniz aktif.',
+      'restore_purchases': 'Satın Alımları Geri Yükle',
+      'restore_purchases_short': 'GERİ YÜKLE',
+      'restoring_purchases': 'Satın alımlar geri yükleniyor...',
       'restore_purchases_success':
-          'SatÃ„Â±n alÃ„Â±mlar geri yÃƒÂ¼klendi Ã¢Å“â€¦',
+          'Satın alımlar geri yüklendi ✅',
       'restore_purchases_none':
-          'Geri yÃƒÂ¼klenecek satÃ„Â±n alÃ„Â±m bulunamadÃ„Â±.',
-      'restore_purchases_failed': 'Geri yÃƒÂ¼kleme baÃ…Å¸arÃ„Â±sÃ„Â±z: {err}',
+          'Geri yüklenecek satın alım bulunamadı.',
+      'restore_purchases_failed': 'Geri yükleme başarısız: {err}',
       'next_analysis': 'Sonraki analiz',
-      'next_analysis_ready': 'Analiz Ã…Å¸imdi hazÃ„Â±r.',
-      'analysis_available_now': 'Analiz Ã…Å¸u anda kullanÃ„Â±labilir.',
+      'next_analysis_ready': 'Analiz şimdi hazır.',
+      'analysis_available_now': 'Analiz şu anda kullanılabilir.',
       'analysis_ready_risk':
-          'Analiz Ã…Å¸imdi hazÃ„Â±r; ancak art arda analiz yapmak hesabÃ„Â±nÃ„Â±zÃ„Â± riske atabilir.',
-      'please_wait': 'LÃƒÂ¼tfen bekleyin',
-      'warning': 'UyarÃ„Â±',
-      'remaining_time': 'Kalan sÃƒÂ¼re: {time}',
-      'watch_ad': 'REKLAM Ã„Â°ZLE VE ANALÃ„Â°ZÃ„Â° BAÃ…ÂLAT',
-      'start_analysis': 'ANALÃ„Â°ZÃ„Â° BAÃ…ÂLAT',
-      'start_analysis_question': 'Analiz baÃ…Å¸latÃ„Â±lsÃ„Â±n mÃ„Â±?',
+          'Analiz şimdi hazır; ancak art arda analiz yapmak hesabınızı riske atabilir.',
+      'please_wait': 'Lütfen bekleyin',
+      'warning': 'Uyarı',
+      'remaining_time': 'Kalan süre: {time}',
+      'watch_ad': 'REKLAM İZLE VE ANALİZİ BAŞLAT',
+      'start_analysis': 'ANALİZİ BAŞLAT',
+      'start_analysis_question': 'Analiz başlatılsın mı?',
       'premium_required_title': 'Premium gerekli',
       'premium_required_description':
           'Bu analiz için Premium gereklidir. Reklam destek limiti doldu. Lütfen Premium\'a yükseltin.',
@@ -3300,93 +3300,93 @@ class _DashboardScreenState extends State<DashboardScreen>
           'Abonelik başlatarak, Kullaným Koşullarımızñ ve Gizlilik Politikamñzñ kabul etmiş olursunuz.',
       'subscription_start_trial': 'ÜCRETSİZ DENE',
       'subscription_subscribe': 'ABONE OL',
-      'clear_data_title': 'Veri SÃ„Â±fÃ„Â±rlama',
+      'clear_data_title': 'Veri Sıfırlama',
       'clear_data_content':
-          'TÃƒÂ¼m yerel veriler ve oturum bilgileri silinecektir. Emin misiniz?',
-      'cancel': 'Ã„Â°PTAL',
-      'delete': 'SÃ„Â°L',
+          'Tüm yerel veriler ve oturum bilgileri silinecektir. Emin misiniz?',
+      'cancel': 'İPTAL',
+      'delete': 'SİL',
       'error_title': 'HATA',
       'data_fetch_error':
-          'Veri alÃ„Â±namadÃ„Â±: {err}\n\nÃƒâ€“neri: Ãƒâ€¡Ã„Â±kÃ„Â±Ã…Å¸ yapÃ„Â±p tekrar giriÃ…Å¸ yapmayÃ„Â± deneyin.',
-      'followers': 'TakipÃƒÂ§iler',
+          'Veri alınamadı: {err}\n\nÖneri: Çıkış yapıp tekrar giriş yapmayı deneyin.',
+      'followers': 'Takipçiler',
       'following': 'Takip Ettiklerin',
-      'new_followers': 'Yeni TakipÃƒÂ§iler',
+      'new_followers': 'Yeni Takipçiler',
       'non_followers': 'Geri Takip Etmeyenler',
-      'left_followers': 'Takibi BÃ„Â±rakanlar',
+      'left_followers': 'Takibi Bırakanlar',
       'left_following': 'Takibi B\u0131rakt\u0131klar\u0131m',
-      'legal_warning': 'Yasal UyarÃ„Â±',
+      'legal_warning': 'Yasal Uyarı',
       'rate_us': 'Bizi Puanla',
       'contact_us': 'Bize Ula\u015f\u0131n',
       'remove_ads_and_limits':
-          'ReklamlarÃ„Â± ve bekleme sÃƒÂ¼relerini kaldÃ„Â±r',
-      'rate_test_message': 'Bu kutucuk Ã…Å¸u anda test aÃ…Å¸amasÃ„Â±ndadÃ„Â±r.',
+          'Reklamları ve bekleme sürelerini kaldır',
+      'rate_test_message': 'Bu kutucuk şu anda test aşamasındadır.',
       'story_section_title':
-          'Hikayeleri gizlice izle veya profil fotoÃ„Å¸raflarÃ„Â±nÃ„Â± bÃƒÂ¼yÃƒÂ¼t',
+          'Hikayeleri gizlice izle veya profil fotoğraflarını büyüt',
       'story_login_required':
-          'Hikayeleri gizlice izleyebilmek ve profil fotoÃ„Å¸raflarÃ„Â±nÃ„Â± bÃƒÂ¼yÃƒÂ¼tmek iÃƒÂ§in lÃƒÂ¼tfen giriÃ…Å¸ yapÃ„Â±nÃ„Â±z.',
-      'story_ad_wait': 'Reklamdan sonra gÃƒÂ¶sterilecek. LÃƒÂ¼tfen bekleyin.',
+          'Hikayeleri gizlice izleyebilmek ve profil fotoğraflarını büyütmek için lütfen giriş yapınız.',
+      'story_ad_wait': 'Reklamdan sonra gösterilecek. Lütfen bekleyin.',
       'story_action_title': 'Ne yapmak istersiniz?',
-      'story_view_photo': 'Profil fotoÃ„Å¸rafÃ„Â±nÃ„Â± bÃƒÂ¼yÃƒÂ¼t',
+      'story_view_photo': 'Profil fotoğrafını büyüt',
       'story_watch_secret': 'Gizlice hikayeyi izle',
-      'story_no_data': 'Hikaye verisi bulunamadÃ„Â±.',
+      'story_no_data': 'Hikaye verisi bulunamadı.',
       'story_close': 'KAPAT',
-      'read_and_agree': 'OKUDUM VE KABUL EDÃ„Â°YORUM',
-      'withdraw_consent': 'RÃ„Â±zayÃ„Â± Geri Al',
+      'read_and_agree': 'OKUDUM VE KABUL EDİYORUM',
+      'withdraw_consent': 'Rızayı Geri Al',
       'withdraw_consent_confirm_title': 'Onay',
       'withdraw_consent_confirm_body':
-          'RÃ„Â±za ayarlarÃ„Â± sÃ„Â±fÃ„Â±rlanacak. Emin misiniz?',
+          'Rıza ayarları sıfırlanacak. Emin misiniz?',
       'withdraw_consent_confirm_yes': 'Evet',
-      'withdraw_consent_confirm_no': 'VazgeÃƒÂ§',
+      'withdraw_consent_confirm_no': 'Vazgeç',
       'no_data': 'Veri yok',
-      'new_badge': 'YENÃ„Â°',
-      'login_title': 'GiriÃ…Å¸ Yap',
+      'new_badge': 'YENİ',
+      'login_title': 'GiriÅŸ Yap',
       'user_label': 'Kullan\u0131c\u0131',
-      'redirecting': 'Oturum doÃ„Å¸rulandÃ„Â±, yÃƒÂ¶nlendiriliyorsunuz...',
-      'data_updated': 'Analiz tamamlandÃ„Â± Ã¢Å“â€¦',
+      'redirecting': 'Oturum doğrulandı, yönlendiriliyorsunuz...',
+      'data_updated': 'Analiz tamamlandı ✅',
       'enter_pin': 'PIN giriniz',
-      'pin_accepted': 'PIN kabul edildi, sÃƒÂ¼re sÃ„Â±fÃ„Â±rlandÃ„Â± Ã¢Å“â€¦',
-      'pin_incorrect': 'YanlÃ„Â±Ã…Å¸ PIN',
+      'pin_accepted': 'PIN kabul edildi, süre sıfırlandı ✅',
+      'pin_incorrect': 'Yanlış PIN',
       'ok': 'TAMAM',
       'legal_intro':
-          'Bu uygulamayÃ„Â± indiren ve kullanan her KullanÃ„Â±cÃ„Â±, aÃ…Å¸aÃ„Å¸Ã„Â±daki "KullanÃ„Â±m KoÃ…Å¸ullarÃ„Â± ve Feragatname" metnini okumuÃ…Å¸, anlamÃ„Â±Ã…Å¸ ve hÃƒÂ¼kÃƒÂ¼mlerini kabul etmiÃ…Å¸ sayÃ„Â±lÃ„Â±r:',
+          'Bu uygulamayı indiren ve kullanan her Kullanıcı, aşağıdaki "Kullanım Koşulları ve Feragatname" metnini okumuş, anlamış ve hükümlerini kabul etmiş sayılır:',
       'article1_title':
-          'Madde 1: Veri GizliliÃ„Å¸i ve Yerel Ã„Â°Ã…Å¸leme Mimarisi',
+          'Madde 1: Veri Gizliliği ve Yerel İşleme Mimarisi',
       'article1_text':
-          "VERDICT, istemci tarafÃ„Â±nda ÃƒÂ§alÃ„Â±Ã…Å¸an bir yazÃ„Â±lÃ„Â±mdÃ„Â±r. KullanÃ„Â±cÃ„Â±nÃ„Â±n giriÃ…Å¸ bilgileri (kullanÃ„Â±cÃ„Â± adÃ„Â±, Ã…Å¸ifre, oturum ÃƒÂ§erezleri) hiÃƒÂ§bir surette harici bir sunucuya iletilmez veya depolanmaz. TÃƒÂ¼m veri iÃ…Å¸leme faaliyetleri yalnÃ„Â±zca kullanÃ„Â±cÃ„Â±nÃ„Â±n cihazÃ„Â±nÃ„Â±n geÃƒÂ§ici belleÃ„Å¸inde ve yerel depolama alanÃ„Â±nda gerÃƒÂ§ekleÃ…Å¸ir. Uygulama, Instagram arayÃƒÂ¼zÃƒÂ¼ ÃƒÂ¼zerinde ÃƒÂ§alÃ„Â±Ã…Å¸an bir tarayÃ„Â±cÃ„Â± katmanÃ„Â± olarak iÃ…Å¸lev gÃƒÂ¶rÃƒÂ¼r.",
-      'article2_title': 'Madde 2: ÃƒÅ“ÃƒÂ§ÃƒÂ¼ncÃƒÂ¼ Taraf Platform Riskleri',
+          "VERDICT, istemci tarafında çalışan bir yazılımdır. Kullanıcının giriş bilgileri (kullanıcı adı, şifre, oturum çerezleri) hiçbir surette harici bir sunucuya iletilmez veya depolanmaz. Tüm veri işleme faaliyetleri yalnızca kullanıcının cihazının geçici belleğinde ve yerel depolama alanında gerçekleşir. Uygulama, Instagram arayüzü üzerinde çalışan bir tarayıcı katmanı olarak işlev görür.",
+      'article2_title': 'Madde 2: Üçüncü Taraf Platform Riskleri',
       'article2_text':
-          "Instagram (Meta Platforms, Inc.), platform politikalarÃ„Â± gereÃ„Å¸i ÃƒÂ¼ÃƒÂ§ÃƒÂ¼ncÃƒÂ¼ taraf yazÃ„Â±lÃ„Â±mlarÃ„Â±n kullanÃ„Â±mÃ„Â±nÃ„Â± kÃ„Â±sÃ„Â±tlama hakkÃ„Â±nÃ„Â± saklÃ„Â± tutar. UygulamanÃ„Â±n kullanÃ„Â±mÃ„Â±na baÃ„Å¸lÃ„Â± olarak geliÃ…Å¸ebilecek iÃ…Å¸lem engeli, hesap kÃ„Â±sÃ„Â±tlamasÃ„Â±, gÃƒÂ¶lge yasaklama veya hesap kapatÃ„Â±lmasÃ„Â± dahil ancak bunlarla sÃ„Â±nÃ„Â±rlÃ„Â± olmamak ÃƒÂ¼zere tÃƒÂ¼m riskler mÃƒÂ¼nhasÃ„Â±ran KullanÃ„Â±cÃ„Â±ya aittir. VERDICT geliÃ…Å¸tiricisi, bu tÃƒÂ¼r idari yaptÃ„Â±rÃ„Â±mlardan dolayÃ„Â± doÃ„Å¸abilecek doÃ„Å¸rudan veya dolaylÃ„Â± zararlardan sorumlu tutulamaz.",
+          "Instagram (Meta Platforms, Inc.), platform politikaları gereği üçüncü taraf yazılımların kullanımını kısıtlama hakkını saklı tutar. Uygulamanın kullanımına bağlı olarak gelişebilecek işlem engeli, hesap kısıtlaması, gölge yasaklama veya hesap kapatılması dahil ancak bunlarla sınırlı olmamak üzere tüm riskler münhasıran Kullanıcıya aittir. VERDICT geliştiricisi, bu tür idari yaptırımlardan dolayı doğabilecek doğrudan veya dolaylı zararlardan sorumlu tutulamaz.",
       'article3_title': 'Madde 3: Garanti Feragatnamesi ve Sorumluluk Reddi',
       'article3_text':
-          "Ã„Â°Ã…Å¸bu yazÃ„Â±lÃ„Â±m, olduÃ„Å¸u gibi ve mevcut haliyle sunulmaktadÃ„Â±r. YazÃ„Â±lÃ„Â±mÃ„Â±n saÃ„Å¸ladÃ„Â±Ã„Å¸Ã„Â± analiz sonuÃƒÂ§larÃ„Â±nÃ„Â±n %100 kesinliÃ„Å¸i, sÃƒÂ¼rekliliÃ„Å¸i veya ticari elveriÃ…Å¸liliÃ„Å¸i garanti edilmez. KullanÃ„Â±cÃ„Â±, uygulama verilerine dayanarak gerÃƒÂ§ekleÃ…Å¸tireceÃ„Å¸i hukuki veya ticari iÃ…Å¸lemlerden doÃ„Å¸abilecek sonuÃƒÂ§larÃ„Â±n kendi sorumluluÃ„Å¸unda olduÃ„Å¸unu; geliÃ…Å¸tiriciyi her tÃƒÂ¼rlÃƒÂ¼ talep, dava ve Ã…Å¸ikayetten ari tutacaÃ„Å¸Ã„Â±nÃ„Â± beyan ve taahhÃƒÂ¼t eder.",
+          "İşbu yazılım, olduğu gibi ve mevcut haliyle sunulmaktadır. Yazılımın sağladığı analiz sonuçlarının %100 kesinliği, sürekliliği veya ticari elverişliliği garanti edilmez. Kullanıcı, uygulama verilerine dayanarak gerçekleştireceği hukuki veya ticari işlemlerden doğabilecek sonuçların kendi sorumluluğunda olduğunu; geliştiriciyi her türlü talep, dava ve şikayetten ari tutacağını beyan ve taahhüt eder.",
       'article4_title':
-          'Madde 4: Fikri MÃƒÂ¼lkiyet ve BaÃ„Å¸Ã„Â±msÃ„Â±zlÃ„Â±k Bildirimi',
+          'Madde 4: Fikri Mülkiyet ve Bağımsızlık Bildirimi',
       'article4_text':
-          "VERDICT, baÃ„Å¸Ã„Â±msÃ„Â±z bir geliÃ…Å¸tirici projesidir. 'Instagram', 'Facebook' ve 'Meta' markalarÃ„Â± Meta Platforms, Inc.'in tescilli ticari markalarÃ„Â±dÃ„Â±r. Bu uygulamanÃ„Â±n sÃƒÂ¶z konusu Ã…Å¸irketlerle herhangi bir ticari ortaklÃ„Â±Ã„Å¸Ã„Â±, sponsorluk anlaÃ…Å¸masÃ„Â± veya resmi baÃ„Å¸lantÃ„Â±sÃ„Â± bulunmamaktadÃ„Â±r.",
+          "VERDICT, bağımsız bir geliştirici projesidir. 'Instagram', 'Facebook' ve 'Meta' markaları Meta Platforms, Inc.'in tescilli ticari markalarıdır. Bu uygulamanın söz konusu şirketlerle herhangi bir ticari ortaklığı, sponsorluk anlaşması veya resmi bağlantısı bulunmamaktadır.",
       'article5_title':
-          'Madde 5: Hizmet SÃƒÂ¼rekliliÃ„Å¸i ve Platform DeÃ„Å¸iÃ…Å¸iklikleri',
+          'Madde 5: Hizmet Sürekliliği ve Platform Değişiklikleri',
       'article5_text':
-          "Instagram APIÃ¢â‚¬â„¢sinde veya web altyapÃ„Â±sÃ„Â±nda meydana gelebilecek kÃƒÂ¶klÃƒÂ¼ deÃ„Å¸iÃ…Å¸iklikler, uygulamanÃ„Â±n iÃ…Å¸levselliÃ„Å¸ini kÃ„Â±smen veya tamamen yitirmesine neden olabilir. GeliÃ…Å¸tirici, mÃƒÂ¼cbir sebep kapsamÃ„Â±nda deÃ„Å¸erlendirilen bu tÃƒÂ¼r altyapÃ„Â±sal deÃ„Å¸iÃ…Å¸ikliklere baÃ„Å¸lÃ„Â± olarak uygulamayÃ„Â± gÃƒÂ¼ncelleme veya hizmeti sÃƒÂ¼rdÃƒÂ¼rme konusunda herhangi bir taahhÃƒÂ¼tte bulunmamaktadÃ„Â±r.",
+          "Instagram API’sinde veya web altyapısında meydana gelebilecek köklü değişiklikler, uygulamanın işlevselliğini kısmen veya tamamen yitirmesine neden olabilir. Geliştirici, mücbir sebep kapsamında değerlendirilen bu tür altyapısal değişikliklere bağlı olarak uygulamayı güncelleme veya hizmeti sürdürme konusunda herhangi bir taahhütte bulunmamaktadır.",
       'ad_wait_message':
-          'Analiz tamamlandÃ„Â±, sonuÃƒÂ§lar reklamdan sonra gÃƒÂ¶sterilecek.',
-      'analysis_failed_title': 'Analiz yapÃ„Â±lamadÃ„Â±',
+          'Analiz tamamlandı, sonuçlar reklamdan sonra gösterilecek.',
+      'analysis_failed_title': 'Analiz yapılamadı',
       'analysis_failed_reason': 'Neden: {reason}',
       'analysis_failed_hint':
-          'Ã„Â°pucu: Ãƒâ€¡Ã„Â±kÃ„Â±Ã…Å¸ yapÃ„Â±p yeniden giriÃ…Å¸ yapmak iÃ…Å¸e yarayabilir.',
+          'İpucu: Çıkış yapıp yeniden giriş yapmak işe yarayabilir.',
       'analysis_fast_no_change':
-          'HÃ„Â±zlÃ„Â± kontrol: DeÃ„Å¸iÃ…Å¸iklik bulunamadÃ„Â±.',
-      'usage_metrics_title': 'GÃƒÂ¼nlÃƒÂ¼k Veriler',
-      'usage_metrics_active': 'Aktif kullanÃ„Â±cÃ„Â±',
-      'usage_metrics_queries': 'GÃƒÂ¼nlÃƒÂ¼k sorgu sayÃ„Â±sÃ„Â±',
+          'Hızlı kontrol: Değişiklik bulunamadı.',
+      'usage_metrics_title': 'Günlük Veriler',
+      'usage_metrics_active': 'Aktif kullanıcı',
+      'usage_metrics_queries': 'Günlük sorgu sayısı',
       'usage_metrics_na': '--',
-      'usage_metrics_live': 'canlÃ„Â±'
+      'usage_metrics_live': 'canlı'
     },
     'en': {
       'tagline': 'Professional Social Media Solutions',
       'adsense_banner': 'AD SPACE',
       'admin_active_note': 'Admin mode active',
       'free_app_note':
-          'We are evolving every day to provide you with a better experience. Your feedback is valuable to usÃ¢â‚¬â€weÃ¢â‚¬â„¢d love to hear from you!',
+          'We are evolving every day to provide you with a better experience. Your feedback is valuable to us—we’d love to hear from you!',
       'login_prompt': 'Please log in to start the analysis.',
       'welcome': 'Welcome, {username}',
       'refresh_data': 'REFRESH DATA',
@@ -3470,7 +3470,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'login_title': 'Login',
       'user_label': 'User',
       'redirecting': 'Session verified, redirecting securely...',
-      'data_updated': 'Analysis complete Ã¢Å“â€¦',
+      'data_updated': 'Analysis complete ✅',
       'purchases_not_configured':
           'Purchases are not available right now. Please try again later.',
       'premium_not_active':
@@ -3481,11 +3481,11 @@ class _DashboardScreenState extends State<DashboardScreen>
       'restore_purchases': 'Restore Purchases',
       'restore_purchases_short': 'RESTORE',
       'restoring_purchases': 'Restoring purchases...',
-      'restore_purchases_success': 'Purchases restored Ã¢Å“â€¦',
+      'restore_purchases_success': 'Purchases restored ✅',
       'restore_purchases_none': 'No purchases to restore.',
       'restore_purchases_failed': 'Restore failed: {err}',
       'enter_pin': 'Enter PIN',
-      'pin_accepted': 'PIN accepted, timer reset Ã¢Å“â€¦',
+      'pin_accepted': 'PIN accepted, timer reset ✅',
       'pin_incorrect': 'Invalid PIN',
       'ok': 'OK',
       'legal_intro':
@@ -3522,10 +3522,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       'usage_metrics_live': 'live panel'
     },
     'de': {
-      'tagline': 'Professionelle Social-Media-LÃƒÂ¶sungen',
+      'tagline': 'Professionelle Social-Media-Lösungen',
       'admin_active_note': 'Admin-Modus aktiv',
       'free_app_note':
-          'Wir entwickeln uns tÃƒÂ¤glich weiter, um dir ein besseres Erlebnis zu bieten. Dein Feedback ist uns wichtig.',
+          'Wir entwickeln uns täglich weiter, um dir ein besseres Erlebnis zu bieten. Dein Feedback ist uns wichtig.',
       'login_prompt': 'Bitte melde dich an, um die Analyse zu starten.',
       'welcome': 'Willkommen, {username}',
       'refresh_data': 'DATEN AKTUALISIEREN',
@@ -3535,54 +3535,54 @@ class _DashboardScreenState extends State<DashboardScreen>
       'loading_ad': 'Anzeige wird geladen...\nBitte warten.',
       'google_ad_warning': 'Google-Warnung zur Werbung: {reason}',
       'analysis_secure':
-          'Alle Analysen werden sicher lokal auf deinem GerÃƒÂ¤t verarbeitet.',
+          'Alle Analysen werden sicher lokal auf deinem Gerät verarbeitet.',
       'today_total_analysis': 'Analysen heute insgesamt: {count}',
       'purchases_not_configured':
-          'KÃƒÂ¤ufe sind derzeit nicht verfÃƒÂ¼gbar. Bitte spÃƒÂ¤ter erneut versuchen.',
+          'Käufe sind derzeit nicht verfügbar. Bitte später erneut versuchen.',
       'premium_already_active': 'Deine Premium-Mitgliedschaft ist aktiv.',
       'premium_welcome_box':
           'Willkommen bei Premium! Werbung und Wartezeiten wurden entfernt.',
-      'restore_purchases': 'KÃƒÂ¤ufe wiederherstellen',
+      'restore_purchases': 'Käufe wiederherstellen',
       'restore_purchases_short': 'WIEDERHERSTELLEN',
-      'restoring_purchases': 'KÃƒÂ¤ufe werden wiederhergestellt...',
-      'restore_purchases_success': 'KÃƒÂ¤ufe wiederhergestellt Ã¢Å“â€¦',
-      'restore_purchases_none': 'Keine KÃƒÂ¤ufe zum Wiederherstellen gefunden.',
+      'restoring_purchases': 'Käufe werden wiederhergestellt...',
+      'restore_purchases_success': 'Käufe wiederhergestellt ✅',
+      'restore_purchases_none': 'Keine Käufe zum Wiederherstellen gefunden.',
       'restore_purchases_failed': 'Wiederherstellung fehlgeschlagen: {err}',
       'premium_main_description':
-          'Entfernen Sie alle Anzeigen, eliminieren Sie Wartezeiten und fÃƒÂ¼hren Sie unbegrenzte Analysen durch.',
+          'Entfernen Sie alle Anzeigen, eliminieren Sie Wartezeiten und führen Sie unbegrenzte Analysen durch.',
       'premium_benefits_title': 'Premium-Vorteile',
       'premium_benefit_no_ads': 'Werbung komplett entfernt.',
       'premium_benefit_fast':
-          'Wartezeiten eliminiert und Geschwindigkeit erhÃƒÂ¶ht.',
+          'Wartezeiten eliminiert und Geschwindigkeit erhöht.',
       'premium_benefit_unlimited':
           'Unbegrenzte Analyse mit vollem Zugriff auf alle Funktionen.',
       'remove_ads_and_limits_subtitle': 'Werbung und Wartezeiten entfernen.',
-      'next_analysis': 'NÃƒÂ¤chste Analyse',
-      'next_analysis_ready': 'Analyse ist jetzt verfÃƒÂ¼gbar.',
+      'next_analysis': 'Nächste Analyse',
+      'next_analysis_ready': 'Analyse ist jetzt verfügbar.',
       'analysis_ready_risk':
-          'Eine Analyse ist jetzt mÃƒÂ¶glich, aber Analysen direkt hintereinander kÃƒÂ¶nnen dein Konto gefÃƒÂ¤hrden.',
+          'Eine Analyse ist jetzt möglich, aber Analysen direkt hintereinander können dein Konto gefährden.',
       'please_wait': 'Bitte warten',
       'remaining_time': 'Verbleibende Zeit: {time}',
       'watch_ad': 'WERBUNG ANSEHEN UND ANALYSE STARTEN',
       'start_analysis': 'ANALYSE STARTEN',
       'start_analysis_question': 'Analyse starten?',
-      'clear_data_title': 'App-Daten zurÃƒÂ¼cksetzen',
+      'clear_data_title': 'App-Daten zurücksetzen',
       'clear_data_content':
-          'Alle lokalen Daten und Sitzungsinformationen werden gelÃƒÂ¶scht. Bist du sicher?',
+          'Alle lokalen Daten und Sitzungsinformationen werden gelöscht. Bist du sicher?',
       'cancel': 'ABBRECHEN',
-      'delete': 'LÃƒâ€“SCHEN',
+      'delete': 'LÖSCHEN',
       'ad_wait_message':
           'Analyse abgeschlossen, Ergebnisse werden nach der Werbung angezeigt.',
       'analysis_failed_title': 'Analyse fehlgeschlagen',
       'analysis_failed_reason': 'Grund: {reason}',
       'analysis_failed_hint': 'Tipp: Abmelden und erneut anmelden kann helfen.',
       'story_section_title':
-          'Stories heimlich ansehen oder Profilfotos vergrÃƒÂ¶ÃƒÅ¸ern',
+          'Stories heimlich ansehen oder Profilfotos vergrößern',
       'story_login_required':
-          'Bitte melde dich an, um Stories anonym anzusehen und Profilfotos zu vergrÃƒÂ¶ÃƒÅ¸ern.',
+          'Bitte melde dich an, um Stories anonym anzusehen und Profilfotos zu vergrößern.',
       'story_ad_wait': 'Wird nach der Werbung angezeigt, bitte warten.',
-      'story_action_title': 'Was mÃƒÂ¶chtest du tun?',
-      'story_view_photo': 'Profilfoto vergrÃƒÂ¶ÃƒÅ¸ern',
+      'story_action_title': 'Was möchtest du tun?',
+      'story_view_photo': 'Profilfoto vergrößern',
       'story_watch_secret': 'Story heimlich ansehen',
       'story_no_data': 'Keine Story-Daten gefunden.',
       'story_close': 'SCHLIESSEN',
@@ -3590,15 +3590,15 @@ class _DashboardScreenState extends State<DashboardScreen>
       'new_badge': 'NEU',
       'login_title': 'Anmelden',
       'read_and_agree': 'ICH HABE GELESEN UND STIMME ZU',
-      'withdraw_consent': 'Einwilligung zurÃƒÂ¼ckziehen',
-      'withdraw_consent_confirm_title': 'BestÃƒÂ¤tigen',
+      'withdraw_consent': 'Einwilligung zurückziehen',
+      'withdraw_consent_confirm_title': 'Bestätigen',
       'withdraw_consent_confirm_body':
-          'Deine Einwilligungseinstellungen werden zurÃƒÂ¼ckgesetzt. Bist du sicher?',
+          'Deine Einwilligungseinstellungen werden zurückgesetzt. Bist du sicher?',
       'withdraw_consent_confirm_yes': 'Ja',
       'withdraw_consent_confirm_no': 'Abbrechen',
-      'data_updated': 'Analyse abgeschlossen Ã¢Å“â€¦',
+      'data_updated': 'Analyse abgeschlossen ✅',
       'enter_pin': 'PIN eingeben',
-      'pin_accepted': 'PIN akzeptiert, Zeit zurÃƒÂ¼ckgesetzt Ã¢Å“â€¦',
+      'pin_accepted': 'PIN akzeptiert, Zeit zurückgesetzt ✅',
       'pin_incorrect': 'Falsche PIN',
       'ok': 'OK',
       'legal_warning': 'Rechtlicher Hinweis',
@@ -3612,255 +3612,255 @@ class _DashboardScreenState extends State<DashboardScreen>
     },
     'ko': {
       'tagline':
-          'Ã¬Â â€Ã«Â¬Â¸ Ã¬â€ Å’Ã¬â€¦Å“ Ã«Â¯Â¸Ã«â€â€Ã¬â€“Â´ Ã¬â€ â€Ã«Â£Â¨Ã¬â€¦Ëœ',
+          '전문 소셜 미디어 솔루션',
       'admin_active_note':
-          'ÃªÂ´â‚¬Ã«Â¦Â¬Ã¬ÂÂ Ã«ÂªÂ¨Ã«â€œÅ“ Ã­â„¢Å“Ã¬â€Â±Ã­â„¢â€',
+          '관리자 모드 활성화',
       'free_app_note':
-          'Ã«Ââ€ Ã«â€šËœÃ¬Ââ‚¬ ÃªÂ²Â½Ã­â€”ËœÃ¬Ââ€ Ã¬Å“â€Ã­â€¢Â´ Ã«Â§Â¤Ã¬ÂÂ¼ ÃªÂ°Å“Ã¬â€Â Ã­â€¢ËœÃªÂ³Â  Ã¬ÂË†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤. Ã¬â€”Â¬Ã«Å¸Â¬Ã«Â¶â€Ã¬ÂËœ Ã­â€Â¼Ã«â€œÅ“Ã«Â°Â±Ã¬Ââ‚¬ Ã«Â§Â¤Ã¬Å¡Â° Ã¬â€ Å’Ã¬Â¤â€˜Ã­â€¢Â©Ã«â€¹Ë†Ã«â€¹Â¤.',
+          '더 나은 경험을 위해 매일 개선하고 있습니다. 여러분의 피드백은 매우 소중합니다.',
       'login_prompt':
-          'Ã«Â¶â€Ã¬â€ÂÃ¬Ââ€ Ã¬â€¹Å“Ã¬Ââ€˜Ã­â€¢ËœÃ«Â Â¤Ã«Â©Â´ Ã«Â¡Å“ÃªÂ·Â¸Ã¬ÂÂ¸Ã­â€¢Â´ Ã¬Â£Â¼Ã¬â€Â¸Ã¬Å¡â€.',
-      'welcome': 'Ã­â„¢ËœÃ¬ËœÂÃ­â€¢Â©Ã«â€¹Ë†Ã«â€¹Â¤, {username}',
-      'refresh_data': 'Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â° Ã¬Æ’Ë†Ã«Â¡Å“ÃªÂ³Â Ã¬Â¹Â¨',
+          '분석을 시작하려면 로그인해 주세요.',
+      'welcome': '환영합니다, {username}',
+      'refresh_data': '데이터 새로고침',
       'login_with_instagram':
-          'Ã¬ÂÂ¸Ã¬Å Â¤Ã­Æ’â‚¬ÃªÂ·Â¸Ã«ÂÂ¨Ã¬Å“Â¼Ã«Â¡Å“ Ã«Â¡Å“ÃªÂ·Â¸Ã¬ÂÂ¸',
+          '인스타그램으로 로그인',
       'fetching_data':
-          'Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â°Ã«Â¥Â¼ Ã«Â¶â€Ã¬â€ÂÃ­â€¢ËœÃ«Å â€ Ã¬Â¤â€˜...\nÃ¬ÂÂ Ã¬â€¹Å“Ã«Â§Å’ ÃªÂ¸Â°Ã«â€¹Â¤Ã«Â Â¤ Ã¬Â£Â¼Ã¬â€Â¸Ã¬Å¡â€.',
+          '데이터를 분석하는 중...\n잠시만 기다려 주세요.',
       'processing_data':
-          'Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â° Ã¬Â²ËœÃ«Â¦Â¬ Ã¬Â¤â€˜...\nÃªÂ±Â°Ã¬ÂËœ Ã¬â„¢â€Ã«Â£Å’Ã«ÂËœÃ¬â€”Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤.',
+          '데이터 처리 중...\n거의 완료되었습니다.',
       'loading_ad':
-          'ÃªÂ´â€˜ÃªÂ³Â  Ã«Â¡Å“Ã«â€Â© Ã¬Â¤â€˜...\nÃ¬ÂÂ Ã¬â€¹Å“Ã«Â§Å’ ÃªÂ¸Â°Ã«â€¹Â¤Ã«Â Â¤ Ã¬Â£Â¼Ã¬â€Â¸Ã¬Å¡â€.',
-      'google_ad_warning': 'Google ÃªÂ´â€˜ÃªÂ³Â  ÃªÂ²Â½ÃªÂ³Â : {reason}',
+          '광고 로딩 중...\n잠시만 기다려 주세요.',
+      'google_ad_warning': 'Google 광고 경고: {reason}',
       'analysis_secure':
-          'Ã«ÂªÂ¨Ã«â€œÂ  Ã«Â¶â€Ã¬â€ÂÃ¬Ââ‚¬ ÃªÂ¸Â°ÃªÂ¸Â°Ã¬â€”ÂÃ¬â€Å“ Ã¬â€¢Ë†Ã¬Â â€Ã­â€¢ËœÃªÂ²Å’ Ã«Â¡Å“Ã¬Â»Â¬ Ã¬Â²ËœÃ«Â¦Â¬Ã«ÂÂ©Ã«â€¹Ë†Ã«â€¹Â¤.',
+          '모든 분석은 기기에서 안전하게 로컬 처리됩니다.',
       'today_total_analysis':
-          'Ã¬ËœÂ¤Ã«Å Ëœ Ã¬Â´Â Ã«Â¶â€Ã¬â€Â Ã¬Ë†Ëœ: {count}',
+          '오늘 총 분석 수: {count}',
       'purchases_not_configured':
-          'Ã­Ëœâ€Ã¬ÂÂ¬ ÃªÂµÂ¬Ã«Â§Â¤ ÃªÂ¸Â°Ã«Å Â¥Ã¬Ââ€ Ã¬â€šÂ¬Ã¬Å¡Â©Ã­â€¢Â  Ã¬Ë†Ëœ Ã¬â€”â€ Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤. Ã«â€šËœÃ¬Â¤â€˜Ã¬â€”Â Ã«â€¹Â¤Ã¬â€¹Å“ Ã¬â€¹Å“Ã«Ââ€Ã­â€¢Â´ Ã¬Â£Â¼Ã¬â€Â¸Ã¬Å¡â€.',
+          '현재 구매 기능을 사용할 수 없습니다. 나중에 다시 시도해 주세요.',
       'premium_already_active':
-          'Ã­â€â€Ã«Â¦Â¬Ã«Â¯Â¸Ã¬â€”â€ Ã«Â©Â¤Ã«Â²â€Ã¬â€¹Â­Ã¬ÂÂ´ Ã­â„¢Å“Ã¬â€Â±Ã­â„¢â€Ã«ÂËœÃ¬â€“Â´ Ã¬ÂË†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤.',
+          '프리미엄 멤버십이 활성화되어 있습니다.',
       'premium_welcome_box':
-          'Ã­â€â€Ã«Â¦Â¬Ã«Â¯Â¸Ã¬â€”â€Ã¬â€”Â Ã¬ËœÂ¤Ã¬â€¹Â  ÃªÂ²Æ’Ã¬Ââ€ Ã­â„¢ËœÃ¬ËœÂÃ­â€¢Â©Ã«â€¹Ë†Ã«â€¹Â¤! ÃªÂ´â€˜ÃªÂ³Â Ã¬â„¢â‚¬ Ã«Å’â‚¬ÃªÂ¸Â° Ã¬â€¹Å“ÃªÂ°â€Ã¬ÂÂ´ Ã¬Â Å“ÃªÂ±Â°Ã«ÂËœÃ¬â€”Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤.',
+          '프리미엄에 오신 것을 환영합니다! 광고와 대기 시간이 제거되었습니다.',
       'premium_main_description': '모든 광고를 제거하고 대기 시간을 없애며 무제한 분석을 수행하세요.',
       'premium_benefits_title': '프리미엄 혜택',
       'premium_benefit_no_ads': '광고가 완전히 제거되었습니다.',
       'premium_benefit_fast': '대기 시간이 제거되고 속도가 향상되었습니다.',
       'premium_benefit_unlimited': '모든 기능에 대한 전체 액세스 권한과 무제한 분석.',
       'remove_ads_and_limits_subtitle': '광고 및 대기 시간 제거.',
-      'restore_purchases': 'ÃªÂµÂ¬Ã«Â§Â¤ Ã«Â³ÂµÃ¬â€ºÂ',
+      'restore_purchases': '구매 복원',
       'restore_purchases_short': '\uBCF5\uC6D0',
-      'restoring_purchases': 'ÃªÂµÂ¬Ã«Â§Â¤ Ã«Â³ÂµÃ¬â€ºÂ Ã¬Â¤â€˜...',
+      'restoring_purchases': '구매 복원 중...',
       'restore_purchases_success':
-          'ÃªÂµÂ¬Ã«Â§Â¤ÃªÂ°â‚¬ Ã«Â³ÂµÃ¬â€ºÂÃ«ÂËœÃ¬â€”Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤ Ã¢Å“â€¦',
+          '구매가 복원되었습니다 ✅',
       'restore_purchases_none':
-          'Ã«Â³ÂµÃ¬â€ºÂÃ­â€¢Â  ÃªÂµÂ¬Ã«Â§Â¤ Ã«â€šÂ´Ã¬â€”Â­Ã¬ÂÂ´ Ã¬â€”â€ Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤.',
-      'restore_purchases_failed': 'Ã«Â³ÂµÃ¬â€ºÂ Ã¬â€¹Â¤Ã­Å’Â¨: {err}',
-      'next_analysis': 'Ã«â€¹Â¤Ã¬ÂÅ’ Ã«Â¶â€Ã¬â€Â',
+          '복원할 구매 내역이 없습니다.',
+      'restore_purchases_failed': '복원 실패: {err}',
+      'next_analysis': '다음 분석',
       'next_analysis_ready':
-          'Ã¬Â§â‚¬ÃªÂ¸Ë† Ã«Â¶â€Ã¬â€ÂÃ­â€¢Â  Ã¬Ë†Ëœ Ã¬ÂË†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤.',
+          '지금 분석할 수 있습니다.',
       'analysis_ready_risk':
-          'Ã¬Â§â‚¬ÃªÂ¸Ë† Ã«Â¶â€Ã¬â€ÂÃ¬ÂÂ´ ÃªÂ°â‚¬Ã«Å Â¥Ã­â€¢ËœÃ¬Â§â‚¬Ã«Â§Å’, Ã¬â€”Â°Ã¬â€ Â Ã«Â¶â€Ã¬â€ÂÃ¬Ââ‚¬ ÃªÂ³â€Ã¬Â â€¢Ã¬â€”Â Ã¬Å“â€Ã­â€”ËœÃ­â€¢Â  Ã¬Ë†Ëœ Ã¬ÂË†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤.',
+          '지금 분석이 가능하지만, 연속 분석은 계정에 위험할 수 있습니다.',
       'please_wait':
-          'Ã¬ÂÂ Ã¬â€¹Å“Ã«Â§Å’ ÃªÂ¸Â°Ã«â€¹Â¤Ã«Â Â¤ Ã¬Â£Â¼Ã¬â€Â¸Ã¬Å¡â€',
-      'remaining_time': 'Ã«â€šÂ¨Ã¬Ââ‚¬ Ã¬â€¹Å“ÃªÂ°â€: {time}',
+          '잠시만 기다려 주세요',
+      'remaining_time': '남은 시간: {time}',
       'watch_ad':
-          'ÃªÂ´â€˜ÃªÂ³Â  Ã¬â€¹Å“Ã¬Â²Â­ Ã­â€ºâ€ Ã«Â¶â€Ã¬â€Â Ã¬â€¹Å“Ã¬Ââ€˜',
-      'start_analysis': 'Ã«Â¶â€Ã¬â€Â Ã¬â€¹Å“Ã¬Ââ€˜',
+          '광고 시청 후 분석 시작',
+      'start_analysis': '분석 시작',
       'start_analysis_question':
-          'Ã«Â¶â€Ã¬â€ÂÃ¬Ââ€ Ã¬â€¹Å“Ã¬Ââ€˜Ã­â€¢Â ÃªÂ¹Å’Ã¬Å¡â€?',
-      'clear_data_title': 'Ã¬â€¢Â± Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â° Ã¬Â´Ë†ÃªÂ¸Â°Ã­â„¢â€',
+          '분석을 시작할까요?',
+      'clear_data_title': '앱 데이터 초기화',
       'clear_data_content':
-          'Ã«ÂªÂ¨Ã«â€œÂ  Ã«Â¡Å“Ã¬Â»Â¬ Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â°Ã¬â„¢â‚¬ Ã¬â€Â¸Ã¬â€¦Ëœ Ã¬Â â€¢Ã«Â³Â´ÃªÂ°â‚¬ Ã¬â€šÂ­Ã¬Â Å“Ã«ÂÂ©Ã«â€¹Ë†Ã«â€¹Â¤. ÃªÂ³â€Ã¬â€ ÂÃ­â€¢Â ÃªÂ¹Å’Ã¬Å¡â€?',
-      'cancel': 'Ã¬Â·Â¨Ã¬â€ Å’',
-      'delete': 'Ã¬â€šÂ­Ã¬Â Å“',
+          '모든 로컬 데이터와 세션 정보가 삭제됩니다. 계속할까요?',
+      'cancel': '취소',
+      'delete': '삭제',
       'ad_wait_message':
-          'Ã«Â¶â€Ã¬â€ÂÃ¬ÂÂ´ Ã¬â„¢â€Ã«Â£Å’Ã«ÂËœÃ¬â€”Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤. ÃªÂ´â€˜ÃªÂ³Â  Ã­â€ºâ€ ÃªÂ²Â°ÃªÂ³Â¼ÃªÂ°â‚¬ Ã­â€˜Å“Ã¬â€¹Å“Ã«ÂÂ©Ã«â€¹Ë†Ã«â€¹Â¤.',
-      'analysis_failed_title': 'Ã«Â¶â€Ã¬â€Â Ã¬â€¹Â¤Ã­Å’Â¨',
-      'analysis_failed_reason': 'Ã¬â€ºÂÃ¬ÂÂ¸: {reason}',
+          '분석이 완료되었습니다. 광고 후 결과가 표시됩니다.',
+      'analysis_failed_title': '분석 실패',
+      'analysis_failed_reason': '원인: {reason}',
       'analysis_failed_hint':
-          'Ã«Ââ€Ã¬â€ºâ‚¬Ã«Â§Â: Ã«Â¡Å“ÃªÂ·Â¸Ã¬â€¢â€Ã¬â€ºÆ’ Ã­â€ºâ€ Ã«â€¹Â¤Ã¬â€¹Å“ Ã«Â¡Å“ÃªÂ·Â¸Ã¬ÂÂ¸Ã­â€¢Â´ Ã«Â³Â´Ã¬â€Â¸Ã¬Å¡â€.',
+          '도움말: 로그아웃 후 다시 로그인해 보세요.',
       'story_section_title':
-          'Ã¬Å Â¤Ã­â€ Â Ã«Â¦Â¬Ã«Â¥Â¼ Ã«ÂªÂ°Ã«ÂËœ Ã«Â³Â´ÃªÂ±Â°Ã«â€šËœ Ã­â€â€Ã«Â¡Å“Ã­â€¢â€ Ã¬â€šÂ¬Ã¬Â§â€ Ã­â„¢â€¢Ã«Å’â‚¬Ã­â€¢ËœÃªÂ¸Â°',
+          '스토리를 몰래 보거나 프로필 사진 확대하기',
       'story_login_required':
-          'Ã¬Å Â¤Ã­â€ Â Ã«Â¦Â¬Ã«Â¥Â¼ Ã¬ÂÂµÃ«Âªâ€¦Ã¬Å“Â¼Ã«Â¡Å“ Ã«Â³Â´ÃªÂ³Â  Ã­â€â€Ã«Â¡Å“Ã­â€¢â€ Ã¬â€šÂ¬Ã¬Â§â€Ã¬Ââ€ Ã­â„¢â€¢Ã«Å’â‚¬Ã­â€¢ËœÃ«Â Â¤Ã«Â©Â´ Ã«Â¡Å“ÃªÂ·Â¸Ã¬ÂÂ¸Ã­â€¢Â´ Ã¬Â£Â¼Ã¬â€Â¸Ã¬Å¡â€.',
+          '스토리를 익명으로 보고 프로필 사진을 확대하려면 로그인해 주세요.',
       'story_ad_wait':
-          'ÃªÂ´â€˜ÃªÂ³Â  Ã­â€ºâ€ Ã­â€˜Å“Ã¬â€¹Å“Ã«ÂÂ©Ã«â€¹Ë†Ã«â€¹Â¤. Ã¬ÂÂ Ã¬â€¹Å“Ã«Â§Å’ ÃªÂ¸Â°Ã«â€¹Â¤Ã«Â Â¤ Ã¬Â£Â¼Ã¬â€Â¸Ã¬Å¡â€.',
+          '광고 후 표시됩니다. 잠시만 기다려 주세요.',
       'story_action_title':
-          'Ã«Â¬Â´Ã¬â€”â€¡Ã¬Ââ€ Ã­â€¢ËœÃ¬â€¹Å“ÃªÂ²Â Ã¬â€“Â´Ã¬Å¡â€?',
+          '무엇을 하시겠어요?',
       'story_view_photo':
-          'Ã­â€â€Ã«Â¡Å“Ã­â€¢â€ Ã¬â€šÂ¬Ã¬Â§â€ Ã­â„¢â€¢Ã«Å’â‚¬',
-      'story_watch_secret': 'Ã¬Å Â¤Ã­â€ Â Ã«Â¦Â¬ Ã«ÂªÂ°Ã«ÂËœ Ã«Â³Â´ÃªÂ¸Â°',
+          '프로필 사진 확대',
+      'story_watch_secret': '스토리 몰래 보기',
       'story_no_data':
-          'Ã¬Å Â¤Ã­â€ Â Ã«Â¦Â¬ Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â°ÃªÂ°â‚¬ Ã¬â€”â€ Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤.',
-      'story_close': 'Ã«â€¹Â«ÃªÂ¸Â°',
+          '스토리 데이터가 없습니다.',
+      'story_close': '닫기',
       'no_data': '\uB370\uC774\uD130 \uC5C6\uC74C',
       'new_badge': '\uC2E0\uADDC',
       'login_title': '\uB85C\uADF8\uC778',
       'read_and_agree':
-          'Ã¬ÂÂ½Ã¬â€”Ë†Ã¬Å“Â¼Ã«Â©Â° Ã«Ââ„¢Ã¬ÂËœÃ­â€¢Â©Ã«â€¹Ë†Ã«â€¹Â¤',
-      'withdraw_consent': 'Ã«Ââ„¢Ã¬ÂËœ Ã¬Â²Â Ã­Å¡Å’',
-      'withdraw_consent_confirm_title': 'Ã­â„¢â€¢Ã¬ÂÂ¸',
+          '읽었으며 동의합니다',
+      'withdraw_consent': '동의 철회',
+      'withdraw_consent_confirm_title': '확인',
       'withdraw_consent_confirm_body':
-          'Ã«Ââ„¢Ã¬ÂËœ Ã¬â€Â¤Ã¬Â â€¢Ã¬ÂÂ´ Ã¬Â´Ë†ÃªÂ¸Â°Ã­â„¢â€Ã«ÂÂ©Ã«â€¹Ë†Ã«â€¹Â¤. ÃªÂ³â€Ã¬â€ ÂÃ­â€¢ËœÃ¬â€¹Å“ÃªÂ²Â Ã¬Å ÂµÃ«â€¹Ë†ÃªÂ¹Å’?',
-      'withdraw_consent_confirm_yes': 'Ã¬ËœË†',
-      'withdraw_consent_confirm_no': 'Ã¬Â·Â¨Ã¬â€ Å’',
-      'data_updated': 'Ã«Â¶â€Ã¬â€Â Ã¬â„¢â€Ã«Â£Å’ Ã¢Å“â€¦',
-      'enter_pin': 'PIN Ã¬Ââ€¦Ã«Â Â¥',
+          '동의 설정이 초기화됩니다. 계속하시겠습니까?',
+      'withdraw_consent_confirm_yes': '예',
+      'withdraw_consent_confirm_no': '취소',
+      'data_updated': '분석 완료 ✅',
+      'enter_pin': 'PIN 입력',
       'pin_accepted':
-          'PINÃ¬ÂÂ´ Ã¬Å Â¹Ã¬ÂÂ¸Ã«ÂËœÃ¬â€“Â´ Ã¬â€¹Å“ÃªÂ°â€Ã¬ÂÂ´ Ã¬Â´Ë†ÃªÂ¸Â°Ã­â„¢â€Ã«ÂËœÃ¬â€”Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤ Ã¢Å“â€¦',
+          'PIN이 승인되어 시간이 초기화되었습니다 ✅',
       'pin_incorrect':
-          'PINÃ¬ÂÂ´ Ã¬ËœÂ¬Ã«Â°â€Ã«Â¥Â´Ã¬Â§â‚¬ Ã¬â€¢Å Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤',
-      'ok': 'Ã­â„¢â€¢Ã¬ÂÂ¸',
-      'legal_warning': 'Ã«Â²â€¢Ã¬Â Â ÃªÂ³Â Ã¬Â§â‚¬',
+          'PIN이 올바르지 않습니다',
+      'ok': '확인',
+      'legal_warning': '법적 고지',
       'rate_us': '\uBCC4\uC810 \uC8FC\uAE30',
       'contact_us': '\uBB38\uC758\uD558\uAE30',
       'remove_ads_and_limits':
           '\uAD11\uACE0 \uBC0F \uB300\uAE30 \uC2DC\uAC04 \uC81C\uAC70',
       'legal_intro':
-          'Ã¬ÂÂ´ Ã¬â€¢Â±Ã¬Ââ€ Ã«â€¹Â¤Ã¬Å¡Â´Ã«Â¡Å“Ã«â€œÅ“Ã­â€¢ËœÃªÂ³Â  Ã¬â€šÂ¬Ã¬Å¡Â©Ã­â€¢ËœÃ«Å â€ Ã«ÂªÂ¨Ã«â€œÂ  Ã¬â€šÂ¬Ã¬Å¡Â©Ã¬ÂÂÃ«Å â€ Ã¬â€¢â€Ã«ÂËœ ÃªÂ³Â Ã¬Â§â‚¬ Ã«â€šÂ´Ã¬Å¡Â©Ã¬Ââ€ Ã¬ÂÂ½ÃªÂ³Â  Ã«Ââ„¢Ã¬ÂËœÃ­â€¢Å“ ÃªÂ²Æ’Ã¬Å“Â¼Ã«Â¡Å“ ÃªÂ°â€Ã¬Â£Â¼Ã«ÂÂ©Ã«â€¹Ë†Ã«â€¹Â¤.',
+          '이 앱을 다운로드하고 사용하는 모든 사용자는 아래 고지 내용을 읽고 동의한 것으로 간주됩니다.',
       'user_label': '\uC0AC\uC6A9\uC790',
     },
     'ja': {
       'tagline':
-          'Ã£Æ’â€”Ã£Æ’Â­Ã£Æ’â€¢Ã£â€šÂ§Ã£Æ’Æ’Ã£â€šÂ·Ã£Æ’Â§Ã£Æ’Å Ã£Æ’Â«SNSÃ£â€šÂ½Ã£Æ’ÂªÃ£Æ’Â¥Ã£Æ’Â¼Ã£â€šÂ·Ã£Æ’Â§Ã£Æ’Â³',
+          'プロフェッショナルSNSソリューション',
       'admin_active_note':
-          'Ã§Â®Â¡Ã§Ââ€ Ã¨â‚¬â€¦Ã£Æ’Â¢Ã£Æ’Â¼Ã£Æ’â€°Ã¦Å“â€°Ã¥Å Â¹',
+          '管理者モード有効',
       'free_app_note':
-          'Ã£â€šË†Ã£â€šÅ Ã¨â€°Â¯Ã£Ââ€Ã¤Â½â€œÃ©Â¨â€œÃ£ÂÂ®Ã£ÂÅ¸Ã£â€šÂÃ£â‚¬ÂÃ¦Â¯ÂÃ¦â€”Â¥Ã¦â€Â¹Ã¥â€“â€Ã£â€šâ€™Ã§Â¶Å¡Ã£Ââ€˜Ã£ÂÂ¦Ã£Ââ€Ã£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€šÃ£Ââ€Ã¦â€ÂÃ¨Â¦â€¹Ã£â€šâ€™Ã£ÂÅ Ã¥Â¾â€¦Ã£ÂÂ¡Ã£Ââ€”Ã£ÂÂ¦Ã£Ââ€Ã£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€š',
+          'より良い体験のため、毎日改善を続けています。ご意見をお待ちしています。',
       'login_prompt':
-          'Ã¥Ë†â€ Ã¦ÂÂÃ£â€šâ€™Ã©â€“â€¹Ã¥Â§â€¹Ã£Ââ„¢Ã£â€šâ€¹Ã£ÂÂ«Ã£ÂÂ¯Ã£Æ’Â­Ã£â€šÂ°Ã£â€šÂ¤Ã£Æ’Â³Ã£Ââ€”Ã£ÂÂ¦Ã£ÂÂÃ£ÂÂ Ã£Ââ€¢Ã£Ââ€Ã£â‚¬â€š',
-      'welcome': 'Ã£â€šË†Ã£Ââ€ Ã£Ââ€œÃ£ÂÂÃ£â‚¬Â{username}',
-      'refresh_data': 'Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã£â€šâ€™Ã¦â€ºÂ´Ã¦â€“Â°',
-      'login_with_instagram': 'InstagramÃ£ÂÂ§Ã£Æ’Â­Ã£â€šÂ°Ã£â€šÂ¤Ã£Æ’Â³',
+          '分析を開始するにはログインしてください。',
+      'welcome': 'ようこそ、{username}',
+      'refresh_data': 'データを更新',
+      'login_with_instagram': 'Instagramでログイン',
       'fetching_data':
-          'Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã£â€šâ€™Ã¥Ë†â€ Ã¦ÂÂÃ¤Â¸Â­...\nÃ£Ââ€”Ã£ÂÂ°Ã£â€šâ€°Ã£ÂÂÃ£ÂÅ Ã¥Â¾â€¦Ã£ÂÂ¡Ã£ÂÂÃ£ÂÂ Ã£Ââ€¢Ã£Ââ€Ã£â‚¬â€š',
+          'データを分析中...\nしばらくお待ちください。',
       'processing_data':
-          'Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã£â€šâ€™Ã¥â€¡Â¦Ã§Ââ€ Ã¤Â¸Â­...\nÃ£ÂÂ¾Ã£â€šâ€šÃ£ÂÂªÃ£ÂÂÃ¥Â®Å’Ã¤Âºâ€ Ã£Ââ€”Ã£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€š',
+          'データを処理中...\nまもなく完了します。',
       'loading_ad':
-          'Ã¥ÂºÆ’Ã¥â€˜Å Ã£â€šâ€™Ã¨ÂªÂ­Ã£ÂÂ¿Ã¨Â¾Â¼Ã£ÂÂ¿Ã¤Â¸Â­...\nÃ£Ââ€”Ã£ÂÂ°Ã£â€šâ€°Ã£ÂÂÃ£ÂÅ Ã¥Â¾â€¦Ã£ÂÂ¡Ã£ÂÂÃ£ÂÂ Ã£Ââ€¢Ã£Ââ€Ã£â‚¬â€š',
-      'google_ad_warning': 'GoogleÃ¥ÂºÆ’Ã¥â€˜Å Ã£ÂÂ®Ã¨Â­Â¦Ã¥â€˜Å : {reason}',
+          '広告を読み込み中...\nしばらくお待ちください。',
+      'google_ad_warning': 'Google広告の警告: {reason}',
       'analysis_secure':
-          'Ã£Ââ„¢Ã£ÂÂ¹Ã£ÂÂ¦Ã£ÂÂ®Ã¥Ë†â€ Ã¦ÂÂÃ£ÂÂ¯Ã§Â«Â¯Ã¦Å“Â«Ã¥â€ â€¦Ã£ÂÂ§Ã¥Â®â€°Ã¥â€¦Â¨Ã£ÂÂ«Ã£Æ’Â­Ã£Æ’Â¼Ã£â€šÂ«Ã£Æ’Â«Ã¥â€¡Â¦Ã§Ââ€ Ã£Ââ€¢Ã£â€šÅ’Ã£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€š',
+          'すべての分析は端末内で安全にローカル処理されます。',
       'today_total_analysis':
-          'Ã¦Å“Â¬Ã¦â€”Â¥Ã£ÂÂ®Ã¥Ë†â€ Ã¦ÂÂÃ§Â·ÂÃ¦â€¢Â°: {count}',
+          '本日の分析総数: {count}',
       'purchases_not_configured':
-          'Ã§ÂÂ¾Ã¥Å“Â¨Ã£â‚¬ÂÃ¨Â³Â¼Ã¥â€¦Â¥Ã¦Â©Å¸Ã¨Æ’Â½Ã£ÂÂ¯Ã¥Ë†Â©Ã§â€Â¨Ã£ÂÂ§Ã£ÂÂÃ£ÂÂ¾Ã£Ââ€ºÃ£â€šâ€œÃ£â‚¬â€šÃ¥Â¾Å’Ã£ÂÂ§Ã£â€šâ€šÃ£Ââ€ Ã¤Â¸â‚¬Ã¥ÂºÂ¦Ã£ÂÅ Ã¨Â©Â¦Ã£Ââ€”Ã£ÂÂÃ£ÂÂ Ã£Ââ€¢Ã£Ââ€Ã£â‚¬â€š',
+          '現在、購入機能は利用できません。後でもう一度お試しください。',
       'premium_already_active':
-          'PremiumÃ£Æ’Â¡Ã£Æ’Â³Ã£Æ’ÂÃ£Æ’Â¼Ã£â€šÂ·Ã£Æ’Æ’Ã£Æ’â€”Ã£ÂÂ¯Ã¦Å“â€°Ã¥Å Â¹Ã£ÂÂ§Ã£Ââ„¢Ã£â‚¬â€š',
+          'Premiumメンバーシップは有効です。',
       'premium_welcome_box':
-          'PremiumÃ£ÂÂ¸Ã£â€šË†Ã£Ââ€ Ã£Ââ€œÃ£ÂÂÃ¯Â¼ÂÃ¥ÂºÆ’Ã¥â€˜Å Ã£ÂÂ¨Ã¥Â¾â€¦Ã¦Â©Å¸Ã¦â„¢â€šÃ©â€“â€œÃ£ÂÅ’Ã¨Â§Â£Ã©â„¢Â¤Ã£Ââ€¢Ã£â€šÅ’Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸Ã£â‚¬â€š',
+          'Premiumへようこそ！広告と待機時間が解除されました。',
       'premium_main_description': 'すべての広告を削除し、待ち時間をなくし、無制限の分析を実行します。',
       'premium_benefits_title': 'プレミアム特典',
       'premium_benefit_no_ads': '広告は完全に削除されました。',
       'premium_benefit_fast': '待ち時間がなくなり、速度が向上しました。',
       'premium_benefit_unlimited': 'すべての機能へのフルアクセスと無制限の分析。',
       'remove_ads_and_limits_subtitle': '広告と待ち時間の削除。',
-      'restore_purchases': 'Ã¨Â³Â¼Ã¥â€¦Â¥Ã£â€šâ€™Ã¥Â¾Â©Ã¥â€¦Æ’',
+      'restore_purchases': '購入を復元',
       'restore_purchases_short': '\u5FA9\u5143',
-      'restoring_purchases': 'Ã¨Â³Â¼Ã¥â€¦Â¥Ã£â€šâ€™Ã¥Â¾Â©Ã¥â€¦Æ’Ã¤Â¸Â­...',
+      'restoring_purchases': '購入を復元中...',
       'restore_purchases_success':
-          'Ã¨Â³Â¼Ã¥â€¦Â¥Ã£â€šâ€™Ã¥Â¾Â©Ã¥â€¦Æ’Ã£Ââ€”Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸ Ã¢Å“â€¦',
+          '購入を復元しました ✅',
       'restore_purchases_none':
-          'Ã¥Â¾Â©Ã¥â€¦Æ’Ã£ÂÂ§Ã£ÂÂÃ£â€šâ€¹Ã¨Â³Â¼Ã¥â€¦Â¥Ã£ÂÅ’Ã£Ââ€šÃ£â€šÅ Ã£ÂÂ¾Ã£Ââ€ºÃ£â€šâ€œÃ£â‚¬â€š',
+          '復元できる購入がありません。',
       'restore_purchases_failed':
-          'Ã¥Â¾Â©Ã¥â€¦Æ’Ã£ÂÂ«Ã¥Â¤Â±Ã¦â€¢â€”Ã£Ââ€”Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸: {err}',
-      'next_analysis': 'Ã¦Â¬Â¡Ã£ÂÂ®Ã¥Ë†â€ Ã¦ÂÂ',
+          '復元に失敗しました: {err}',
+      'next_analysis': '次の分析',
       'next_analysis_ready':
-          'Ã¤Â»Å Ã£Ââ„¢Ã£ÂÂÃ¥Ë†â€ Ã¦ÂÂÃ£ÂÂ§Ã£ÂÂÃ£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€š',
+          '今すぐ分析できます。',
       'analysis_ready_risk':
-          'Ã¤Â»Å Ã£Ââ„¢Ã£ÂÂÃ¥Ë†â€ Ã¦ÂÂÃ£ÂÂ§Ã£ÂÂÃ£ÂÂ¾Ã£Ââ„¢Ã£ÂÅ’Ã£â‚¬ÂÃ©â‚¬Â£Ã§Â¶Å¡Ã¥Â®Å¸Ã¨Â¡Å’Ã£ÂÂ¯Ã£â€šÂ¢Ã£â€šÂ«Ã£â€šÂ¦Ã£Æ’Â³Ã£Æ’Ë†Ã£ÂÂ®Ã£Æ’ÂªÃ£â€šÂ¹Ã£â€šÂ¯Ã£ÂÂ«Ã£ÂÂªÃ£â€šâ€¹Ã¥ÂÂ¯Ã¨Æ’Â½Ã¦â‚¬Â§Ã£ÂÅ’Ã£Ââ€šÃ£â€šÅ Ã£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€š',
-      'please_wait': 'Ã£ÂÅ Ã¥Â¾â€¦Ã£ÂÂ¡Ã£ÂÂÃ£ÂÂ Ã£Ââ€¢Ã£Ââ€',
-      'remaining_time': 'Ã¦Â®â€¹Ã£â€šÅ Ã¦â„¢â€šÃ©â€“â€œ: {time}',
+          '今すぐ分析できますが、連続実行はアカウントのリスクになる可能性があります。',
+      'please_wait': 'お待ちください',
+      'remaining_time': '残り時間: {time}',
       'watch_ad':
-          'Ã¥ÂºÆ’Ã¥â€˜Å Ã£â€šâ€™Ã¨Â¦â€¹Ã£ÂÂ¦Ã¥Ë†â€ Ã¦ÂÂÃ£â€šâ€™Ã©â€“â€¹Ã¥Â§â€¹',
-      'start_analysis': 'Ã¥Ë†â€ Ã¦ÂÂÃ£â€šâ€™Ã©â€“â€¹Ã¥Â§â€¹',
+          '広告を見て分析を開始',
+      'start_analysis': '分析を開始',
       'start_analysis_question':
-          'Ã¥Ë†â€ Ã¦ÂÂÃ£â€šâ€™Ã©â€“â€¹Ã¥Â§â€¹Ã£Ââ€”Ã£ÂÂ¾Ã£Ââ„¢Ã£Ââ€¹Ã¯Â¼Å¸',
+          '分析を開始しますか？',
       'clear_data_title':
-          'Ã£â€šÂ¢Ã£Æ’â€”Ã£Æ’ÂªÃ£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã£â€šâ€™Ã£Æ’ÂªÃ£â€šÂ»Ã£Æ’Æ’Ã£Æ’Ë†',
+          'アプリデータをリセット',
       'clear_data_content':
-          'Ã£Æ’Â­Ã£Æ’Â¼Ã£â€šÂ«Ã£Æ’Â«Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã£ÂÂ¨Ã£â€šÂ»Ã£Æ’Æ’Ã£â€šÂ·Ã£Æ’Â§Ã£Æ’Â³Ã¦Æ’â€¦Ã¥Â Â±Ã£ÂÅ’Ã£Ââ„¢Ã£ÂÂ¹Ã£ÂÂ¦Ã¥â€°Å Ã©â„¢Â¤Ã£Ââ€¢Ã£â€šÅ’Ã£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€šÃ£â€šË†Ã£â€šÂÃ£Ââ€”Ã£Ââ€Ã£ÂÂ§Ã£Ââ„¢Ã£Ââ€¹Ã¯Â¼Å¸',
-      'cancel': 'Ã£â€šÂ­Ã£Æ’Â£Ã£Æ’Â³Ã£â€šÂ»Ã£Æ’Â«',
-      'delete': 'Ã¥â€°Å Ã©â„¢Â¤',
+          'ローカルデータとセッション情報がすべて削除されます。よろしいですか？',
+      'cancel': 'キャンセル',
+      'delete': '削除',
       'ad_wait_message':
-          'Ã¥Ë†â€ Ã¦ÂÂÃ£ÂÅ’Ã¥Â®Å’Ã¤Âºâ€ Ã£Ââ€”Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸Ã£â‚¬â€šÃ¥ÂºÆ’Ã¥â€˜Å Ã£ÂÂ®Ã¥Â¾Å’Ã£ÂÂ«Ã§ÂµÂÃ¦ÂÅ“Ã£â€šâ€™Ã¨Â¡Â¨Ã§Â¤ÂºÃ£Ââ€”Ã£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€š',
+          '分析が完了しました。広告の後に結果を表示します。',
       'analysis_failed_title':
-          'Ã¥Ë†â€ Ã¦ÂÂÃ£ÂÂ«Ã¥Â¤Â±Ã¦â€¢â€”Ã£Ââ€”Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸',
-      'analysis_failed_reason': 'Ã§Ââ€ Ã§â€Â±: {reason}',
+          '分析に失敗しました',
+      'analysis_failed_reason': '理由: {reason}',
       'analysis_failed_hint':
-          'Ã£Æ’â€™Ã£Æ’Â³Ã£Æ’Ë†: Ã£Æ’Â­Ã£â€šÂ°Ã£â€šÂ¢Ã£â€šÂ¦Ã£Æ’Ë†Ã£Ââ€”Ã£ÂÂ¦Ã¥â€ ÂÃ£Æ’Â­Ã£â€šÂ°Ã£â€šÂ¤Ã£Æ’Â³Ã£Ââ„¢Ã£â€šâ€¹Ã£ÂÂ¨Ã¦â€Â¹Ã¥â€“â€Ã£Ââ„¢Ã£â€šâ€¹Ã¥Â Â´Ã¥ÂË†Ã£ÂÅ’Ã£Ââ€šÃ£â€šÅ Ã£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€š',
+          'ヒント: ログアウトして再ログインすると改善する場合があります。',
       'story_section_title':
-          'Ã£â€šÂ¹Ã£Æ’Ë†Ã£Æ’Â¼Ã£Æ’ÂªÃ£Æ’Â¼Ã£â€šâ€™Ã£Ââ€œÃ£ÂÂ£Ã£ÂÂÃ£â€šÅ Ã¨Â¦â€¹Ã£â€šâ€¹ / Ã£Æ’â€”Ã£Æ’Â­Ã£Æ’â€¢Ã£â€šÂ£Ã£Æ’Â¼Ã£Æ’Â«Ã¥â€ â„¢Ã§Å“Å¸Ã£â€šâ€™Ã¦â€¹Â¡Ã¥Â¤Â§',
+          'ストーリーをこっそり見る / プロフィール写真を拡大',
       'story_login_required':
-          'Ã£â€šÂ¹Ã£Æ’Ë†Ã£Æ’Â¼Ã£Æ’ÂªÃ£Æ’Â¼Ã£â€šâ€™Ã¥Å’Â¿Ã¥ÂÂÃ£ÂÂ§Ã¨Â¦â€¹Ã£ÂÅ¸Ã£â€šÅ Ã£â‚¬ÂÃ£Æ’â€”Ã£Æ’Â­Ã£Æ’â€¢Ã£â€šÂ£Ã£Æ’Â¼Ã£Æ’Â«Ã¥â€ â„¢Ã§Å“Å¸Ã£â€šâ€™Ã¦â€¹Â¡Ã¥Â¤Â§Ã£Ââ€”Ã£ÂÅ¸Ã£â€šÅ Ã£Ââ„¢Ã£â€šâ€¹Ã£ÂÂ«Ã£ÂÂ¯Ã£Æ’Â­Ã£â€šÂ°Ã£â€šÂ¤Ã£Æ’Â³Ã£Ââ€”Ã£ÂÂ¦Ã£ÂÂÃ£ÂÂ Ã£Ââ€¢Ã£Ââ€Ã£â‚¬â€š',
+          'ストーリーを匿名で見たり、プロフィール写真を拡大したりするにはログインしてください。',
       'story_ad_wait':
-          'Ã¥ÂºÆ’Ã¥â€˜Å Ã£ÂÂ®Ã¥Â¾Å’Ã£ÂÂ«Ã¨Â¡Â¨Ã§Â¤ÂºÃ£Ââ€¢Ã£â€šÅ’Ã£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€šÃ£Ââ€”Ã£ÂÂ°Ã£â€šâ€°Ã£ÂÂÃ£ÂÅ Ã¥Â¾â€¦Ã£ÂÂ¡Ã£ÂÂÃ£ÂÂ Ã£Ââ€¢Ã£Ââ€Ã£â‚¬â€š',
-      'story_action_title': 'Ã¤Â½â€¢Ã£â€šâ€™Ã£Ââ€”Ã£ÂÂ¾Ã£Ââ„¢Ã£Ââ€¹Ã¯Â¼Å¸',
+          '広告の後に表示されます。しばらくお待ちください。',
+      'story_action_title': '何をしますか？',
       'story_view_photo':
-          'Ã£Æ’â€”Ã£Æ’Â­Ã£Æ’â€¢Ã£â€šÂ£Ã£Æ’Â¼Ã£Æ’Â«Ã¥â€ â„¢Ã§Å“Å¸Ã£â€šâ€™Ã¦â€¹Â¡Ã¥Â¤Â§',
+          'プロフィール写真を拡大',
       'story_watch_secret': '\u8db3\u8de1\u306a\u3057\u3067\u95b2\u89a7',
       'story_no_data':
-          'Ã£â€šÂ¹Ã£Æ’Ë†Ã£Æ’Â¼Ã£Æ’ÂªÃ£Æ’Â¼Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã£ÂÅ’Ã¨Â¦â€¹Ã£ÂÂ¤Ã£Ââ€¹Ã£â€šÅ Ã£ÂÂ¾Ã£Ââ€ºÃ£â€šâ€œÃ£â‚¬â€š',
-      'story_close': 'Ã©â€“â€°Ã£ÂËœÃ£â€šâ€¹',
+          'ストーリーデータが見つかりません。',
+      'story_close': '閉じる',
       'no_data': '\u30C7\u30FC\u30BF\u306A\u3057',
       'new_badge': '\u65B0\u7740',
       'login_title': '\u30ED\u30B0\u30A4\u30F3',
       'read_and_agree':
-          'Ã¥â€ â€¦Ã¥Â®Â¹Ã£â€šâ€™Ã¨ÂªÂ­Ã£ÂÂ¿Ã£â‚¬ÂÃ¥ÂÅ’Ã¦â€ÂÃ£Ââ€”Ã£ÂÂ¾Ã£Ââ„¢',
-      'withdraw_consent': 'Ã¥ÂÅ’Ã¦â€ÂÃ£â€šâ€™Ã¥Ââ€“Ã£â€šÅ Ã¦Â¶Ë†Ã£Ââ„¢',
-      'withdraw_consent_confirm_title': 'Ã§Â¢ÂºÃ¨ÂªÂ',
+          '内容を読み、同意します',
+      'withdraw_consent': '同意を取り消す',
+      'withdraw_consent_confirm_title': '確認',
       'withdraw_consent_confirm_body':
-          'Ã¥ÂÅ’Ã¦â€ÂÃ¨Â¨Â­Ã¥Â®Å¡Ã£ÂÅ’Ã£Æ’ÂªÃ£â€šÂ»Ã£Æ’Æ’Ã£Æ’Ë†Ã£Ââ€¢Ã£â€šÅ’Ã£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€šÃ£â€šË†Ã£â€šÂÃ£Ââ€”Ã£Ââ€Ã£ÂÂ§Ã£Ââ„¢Ã£Ââ€¹Ã¯Â¼Å¸',
-      'withdraw_consent_confirm_yes': 'Ã£ÂÂ¯Ã£Ââ€',
-      'withdraw_consent_confirm_no': 'Ã¦Ë†Â»Ã£â€šâ€¹',
-      'data_updated': 'Ã¥Ë†â€ Ã¦ÂÂÃ¥Â®Å’Ã¤Âºâ€  Ã¢Å“â€¦',
-      'enter_pin': 'PINÃ£â€šâ€™Ã¥â€¦Â¥Ã¥Å â€º',
+          '同意設定がリセットされます。よろしいですか？',
+      'withdraw_consent_confirm_yes': 'はい',
+      'withdraw_consent_confirm_no': '戻る',
+      'data_updated': '分析完了 ✅',
+      'enter_pin': 'PINを入力',
       'pin_accepted':
-          'PINÃ£â€šâ€™Ã§Â¢ÂºÃ¨ÂªÂÃ£Ââ€”Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸Ã£â‚¬â€šÃ£â€šÂ¿Ã£â€šÂ¤Ã£Æ’ÂÃ£Æ’Â¼Ã£â€šâ€™Ã£Æ’ÂªÃ£â€šÂ»Ã£Æ’Æ’Ã£Æ’Ë†Ã£Ââ€”Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸ Ã¢Å“â€¦',
+          'PINを確認しました。タイマーをリセットしました ✅',
       'pin_incorrect':
-          'PINÃ£ÂÅ’Ã¦Â­Â£Ã£Ââ€”Ã£ÂÂÃ£Ââ€šÃ£â€šÅ Ã£ÂÂ¾Ã£Ââ€ºÃ£â€šâ€œ',
+          'PINが正しくありません',
       'ok': 'OK',
-      'legal_warning': 'Ã¦Â³â€¢Ã§Å¡â€Ã¦Â³Â¨Ã¦â€ÂÃ¤Âºâ€¹Ã©Â â€¦',
+      'legal_warning': '法的注意事項',
       'rate_us': '\u8A55\u4FA1\u3059\u308B',
       'contact_us': '\u304A\u554F\u3044\u5408\u308F\u305B',
       'remove_ads_and_limits':
           '\u5E83\u544A\u3068\u5F85\u6A5F\u6642\u9593\u3092\u524A\u9664',
       'legal_intro':
-          'Ã¦Å“Â¬Ã£â€šÂ¢Ã£Æ’â€”Ã£Æ’ÂªÃ£â€šâ€™Ã£Æ’â‚¬Ã£â€šÂ¦Ã£Æ’Â³Ã£Æ’Â­Ã£Æ’Â¼Ã£Æ’â€°Ã£Ââ€”Ã£ÂÂ¦Ã¥Ë†Â©Ã§â€Â¨Ã£Ââ€”Ã£ÂÅ¸Ã¦â„¢â€šÃ§â€šÂ¹Ã£ÂÂ§Ã£â‚¬ÂÃ¤Â»Â¥Ã¤Â¸â€¹Ã£ÂÂ®Ã¨Â¦ÂÃ§Â´â€Ã£ÂÂ«Ã¥ÂÅ’Ã¦â€ÂÃ£Ââ€”Ã£ÂÅ¸Ã£â€šâ€šÃ£ÂÂ®Ã£ÂÂ¨Ã£ÂÂ¿Ã£ÂÂªÃ£Ââ€¢Ã£â€šÅ’Ã£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€š',
+          '本アプリをダウンロードして利用した時点で、以下の規約に同意したものとみなされます。',
       'user_label': '\u30E6\u30FC\u30B6\u30FC',
     },
     'ru': {
       'tagline':
-          'ÄÅ¸Ã‘â‚¬ÄÂ¾Ã‘â€ÄÂµÃ‘ÂÃ‘ÂÄÂ¸ÄÂ¾ÄÂ½ÄÂ°ÄÂ»Ã‘Å’ÄÂ½Ã‘â€¹ÄÂµ Ã‘â‚¬ÄÂµÃ‘Ë†ÄÂµÄÂ½ÄÂ¸Ã‘Â ÄÂ´ÄÂ»Ã‘Â Ã‘ÂÄÂ¾Ã‘â€ Ã‘ÂÄÂµÃ‘â€šÄÂµÄÂ¹',
+          'Профессиональные решения для соцсетей',
       'admin_active_note':
-          'ÄÂ ÄÂµÄÂ¶ÄÂ¸ÄÂ¼ ÄÂ°ÄÂ´ÄÂ¼ÄÂ¸ÄÂ½ÄÂ¸Ã‘ÂÃ‘â€šÃ‘â‚¬ÄÂ°Ã‘â€šÄÂ¾Ã‘â‚¬ÄÂ° ÄÂ°ÄÂºÃ‘â€šÄÂ¸ÄÂ²ÄÂµÄÂ½',
+          'Режим администратора активен',
       'free_app_note':
-          'ÄÅ“Ã‘â€¹ ÄÂµÄÂ¶ÄÂµÄÂ´ÄÂ½ÄÂµÄÂ²ÄÂ½ÄÂ¾ Ã‘Æ’ÄÂ»Ã‘Æ’Ã‘â€¡Ã‘Ë†ÄÂ°ÄÂµÄÂ¼ ÄÂ¿Ã‘â‚¬ÄÂ¸ÄÂ»ÄÂ¾ÄÂ¶ÄÂµÄÂ½ÄÂ¸ÄÂµ, Ã‘â€¡Ã‘â€šÄÂ¾ÄÂ±Ã‘â€¹ Ã‘ÂÄÂ´ÄÂµÄÂ»ÄÂ°Ã‘â€šÃ‘Å’ ÄÂ²ÄÂ°Ã‘Ë† ÄÂ¾ÄÂ¿Ã‘â€¹Ã‘â€š ÄÂ»Ã‘Æ’Ã‘â€¡Ã‘Ë†ÄÂµ. Äâ€™ÄÂ°Ã‘Ë† ÄÂ¾Ã‘â€šÄÂ·Ã‘â€¹ÄÂ² ÄÂ²ÄÂ°ÄÂ¶ÄÂµÄÂ½ ÄÂ´ÄÂ»Ã‘Â ÄÂ½ÄÂ°Ã‘Â.',
+          'Мы ежедневно улучшаем приложение, чтобы сделать ваш опыт лучше. Ваш отзыв важен для нас.',
       'login_prompt':
-          'ÄÅ¸ÄÂ¾ÄÂ¶ÄÂ°ÄÂ»Ã‘Æ’ÄÂ¹Ã‘ÂÃ‘â€šÄÂ°, ÄÂ²ÄÂ¾ÄÂ¹ÄÂ´ÄÂ¸Ã‘â€šÄÂµ, Ã‘â€¡Ã‘â€šÄÂ¾ÄÂ±Ã‘â€¹ ÄÂ½ÄÂ°Ã‘â€¡ÄÂ°Ã‘â€šÃ‘Å’ ÄÂ°ÄÂ½ÄÂ°ÄÂ»ÄÂ¸ÄÂ·.',
+          'Пожалуйста, войдите, чтобы начать анализ.',
       'welcome':
-          'Äâ€ÄÂ¾ÄÂ±Ã‘â‚¬ÄÂ¾ ÄÂ¿ÄÂ¾ÄÂ¶ÄÂ°ÄÂ»ÄÂ¾ÄÂ²ÄÂ°Ã‘â€šÃ‘Å’, {username}',
+          'Добро пожаловать, {username}',
       'refresh_data':
-          'ÄÂÄâ€˜ÄÂÄÂÄâ€™ÄËœÄÂ¢ÄÂ¬ Äâ€ÄÂÄÂÄÂÄÂ«Äâ€¢',
+          'ОБНОВИТЬ ДАННЫЕ',
       'login_with_instagram':
-          'Äâ€™ÄÂÄâ„¢ÄÂ¢ÄËœ ÄÂ§Äâ€¢ÄÂ Äâ€¢Äâ€” INSTAGRAM',
+          'ВОЙТИ ЧЕРЕЗ INSTAGRAM',
       'fetching_data':
-          'ÄÂÄÂ½ÄÂ°ÄÂ»ÄÂ¸ÄÂ·ÄÂ¸Ã‘â‚¬Ã‘Æ’ÄÂµÄÂ¼ ÄÂ´ÄÂ°ÄÂ½ÄÂ½Ã‘â€¹ÄÂµ...\nÄÂ­Ã‘â€šÄÂ¾ ÄÂ¼ÄÂ¾ÄÂ¶ÄÂµÃ‘â€š ÄÂ·ÄÂ°ÄÂ½Ã‘ÂÃ‘â€šÃ‘Å’ ÄÂ½ÄÂµÄÂ¼ÄÂ½ÄÂ¾ÄÂ³ÄÂ¾ ÄÂ²Ã‘â‚¬ÄÂµÄÂ¼ÄÂµÄÂ½ÄÂ¸.',
+          'Анализируем данные...\nЭто может занять немного времени.',
       'processing_data':
-          'ÄÂÄÂ±Ã‘â‚¬ÄÂ°ÄÂ±ÄÂ°Ã‘â€šÃ‘â€¹ÄÂ²ÄÂ°ÄÂµÄÂ¼ ÄÂ´ÄÂ°ÄÂ½ÄÂ½Ã‘â€¹ÄÂµ...\nÄÅ¸ÄÂ¾Ã‘â€¡Ã‘â€šÄÂ¸ ÄÂ³ÄÂ¾Ã‘â€šÄÂ¾ÄÂ²ÄÂ¾.',
+          'Обрабатываем данные...\nПочти готово.',
       'loading_ad':
-          'Äâ€”ÄÂ°ÄÂ³Ã‘â‚¬Ã‘Æ’ÄÂ·ÄÂºÄÂ° Ã‘â‚¬ÄÂµÄÂºÄÂ»ÄÂ°ÄÂ¼Ã‘â€¹...\nÄÅ¸ÄÂ¾ÄÂ¶ÄÂ°ÄÂ»Ã‘Æ’ÄÂ¹Ã‘ÂÃ‘â€šÄÂ°, ÄÂ¿ÄÂ¾ÄÂ´ÄÂ¾ÄÂ¶ÄÂ´ÄÂ¸Ã‘â€šÄÂµ.',
+          'Загрузка рекламы...\nПожалуйста, подождите.',
       'google_ad_warning':
-          'ÄÅ¸Ã‘â‚¬ÄÂµÄÂ´Ã‘Æ’ÄÂ¿Ã‘â‚¬ÄÂµÄÂ¶ÄÂ´ÄÂµÄÂ½ÄÂ¸ÄÂµ Ã‘â‚¬ÄÂµÄÂºÄÂ»ÄÂ°ÄÂ¼Ã‘â€¹ Google: {reason}',
+          'Предупреждение рекламы Google: {reason}',
       'analysis_secure':
-          'Äâ€™ÄÂµÃ‘ÂÃ‘Å’ ÄÂ°ÄÂ½ÄÂ°ÄÂ»ÄÂ¸ÄÂ· ÄÂ±ÄÂµÄÂ·ÄÂ¾ÄÂ¿ÄÂ°Ã‘ÂÄÂ½ÄÂ¾ ÄÂ²Ã‘â€¹ÄÂ¿ÄÂ¾ÄÂ»ÄÂ½Ã‘ÂÄÂµÃ‘â€šÃ‘ÂÃ‘Â ÄÂ»ÄÂ¾ÄÂºÄÂ°ÄÂ»Ã‘Å’ÄÂ½ÄÂ¾ ÄÂ½ÄÂ° ÄÂ²ÄÂ°Ã‘Ë†ÄÂµÄÂ¼ Ã‘Æ’Ã‘ÂÃ‘â€šÃ‘â‚¬ÄÂ¾ÄÂ¹Ã‘ÂÃ‘â€šÄÂ²ÄÂµ.',
+          'Весь анализ безопасно выполняется локально на вашем устройстве.',
       'today_total_analysis':
-          'Äâ€™Ã‘ÂÄÂµÄÂ³ÄÂ¾ ÄÂ°ÄÂ½ÄÂ°ÄÂ»ÄÂ¸ÄÂ·ÄÂ¾ÄÂ² Ã‘ÂÄÂµÄÂ³ÄÂ¾ÄÂ´ÄÂ½Ã‘Â: {count}',
+          'Всего анализов сегодня: {count}',
       'purchases_not_configured':
-          'ÄÅ¸ÄÂ¾ÄÂºÃ‘Æ’ÄÂ¿ÄÂºÄÂ¸ Ã‘ÂÄÂµÄÂ¹Ã‘â€¡ÄÂ°Ã‘Â ÄÂ½ÄÂµÄÂ´ÄÂ¾Ã‘ÂÃ‘â€šÃ‘Æ’ÄÂ¿ÄÂ½Ã‘â€¹. ÄÅ¸ÄÂ¾ÄÂ¶ÄÂ°ÄÂ»Ã‘Æ’ÄÂ¹Ã‘ÂÃ‘â€šÄÂ°, ÄÂ¿ÄÂ¾ÄÂ¿Ã‘â‚¬ÄÂ¾ÄÂ±Ã‘Æ’ÄÂ¹Ã‘â€šÄÂµ ÄÂ¿ÄÂ¾ÄÂ·ÄÂ¶ÄÂµ.',
+          'Покупки сейчас недоступны. Пожалуйста, попробуйте позже.',
       'premium_already_active':
-          'Äâ€™ÄÂ°Ã‘Ë†ÄÂ° ÄÂ¿ÄÂ¾ÄÂ´ÄÂ¿ÄÂ¸Ã‘ÂÄÂºÄÂ° Premium ÄÂ°ÄÂºÃ‘â€šÄÂ¸ÄÂ²ÄÂ½ÄÂ°.',
+          'Ваша подписка Premium активна.',
       'premium_welcome_box':
-          'Äâ€ÄÂ¾ÄÂ±Ã‘â‚¬ÄÂ¾ ÄÂ¿ÄÂ¾ÄÂ¶ÄÂ°ÄÂ»ÄÂ¾ÄÂ²ÄÂ°Ã‘â€šÃ‘Å’ ÄÂ² Premium! ÄÂ ÄÂµÄÂºÄÂ»ÄÂ°ÄÂ¼ÄÂ° ÄÂ¸ ÄÂ¾ÄÂ¶ÄÂ¸ÄÂ´ÄÂ°ÄÂ½ÄÂ¸ÄÂµ ÄÂ¾Ã‘â€šÄÂºÄÂ»Ã‘ÂÃ‘â€¡ÄÂµÄÂ½Ã‘â€¹.',
+          'Добро пожаловать в Premium! Реклама и ожидание отключены.',
       'premium_main_description':
           '\u0423\u0434\u0430\u043B\u0438\u0442\u0435 \u0432\u0441\u044E \u0440\u0435\u043A\u043B\u0430\u043C\u0443, \u0438\u0441\u043A\u043B\u044E\u0447\u0438\u0442\u0435 \u0432\u0440\u0435\u043C\u044F \u043E\u0436\u0438\u0434\u0430\u043D\u0438\u044F \u0438 \u043F\u0440\u043E\u0432\u043E\u0434\u0438\u0442\u0435 \u043D\u0435\u043E\u0433\u0440\u0430\u043D\u0438\u0447\u0435\u043D\u043D\u044B\u0439 \u0430\u043D\u0430\u043B\u0438\u0437.',
       'premium_benefits_title':
@@ -3874,82 +3874,82 @@ class _DashboardScreenState extends State<DashboardScreen>
       'remove_ads_and_limits_subtitle':
           '\u0423\u0431\u0440\u0430\u0442\u044C \u0440\u0435\u043A\u043B\u0430\u043C\u0443 \u0438 \u043E\u0436\u0438\u0434\u0430\u043D\u0438\u0435.',
       'restore_purchases':
-          'Äâ€™ÄÂ¾Ã‘ÂÃ‘ÂÃ‘â€šÄÂ°ÄÂ½ÄÂ¾ÄÂ²ÄÂ¸Ã‘â€šÃ‘Å’ ÄÂ¿ÄÂ¾ÄÂºÃ‘Æ’ÄÂ¿ÄÂºÄÂ¸',
+          'Восстановить покупки',
       'restore_purchases_short':
           '\u0412\u041E\u0421\u0421\u0422\u0410\u041D\u041E\u0412\u0418\u0422\u042C',
       'restoring_purchases':
-          'Äâ€™ÄÂ¾Ã‘ÂÃ‘ÂÃ‘â€šÄÂ°ÄÂ½ÄÂ°ÄÂ²ÄÂ»ÄÂ¸ÄÂ²ÄÂ°ÄÂµÄÂ¼ ÄÂ¿ÄÂ¾ÄÂºÃ‘Æ’ÄÂ¿ÄÂºÄÂ¸...',
+          'Восстанавливаем покупки...',
       'restore_purchases_success':
-          'ÄÅ¸ÄÂ¾ÄÂºÃ‘Æ’ÄÂ¿ÄÂºÄÂ¸ ÄÂ²ÄÂ¾Ã‘ÂÃ‘ÂÃ‘â€šÄÂ°ÄÂ½ÄÂ¾ÄÂ²ÄÂ»ÄÂµÄÂ½Ã‘â€¹ Ã¢Å“â€¦',
+          'Покупки восстановлены ✅',
       'restore_purchases_none':
-          'ÄÂÄÂµÃ‘â€š ÄÂ¿ÄÂ¾ÄÂºÃ‘Æ’ÄÂ¿ÄÂ¾ÄÂº ÄÂ´ÄÂ»Ã‘Â ÄÂ²ÄÂ¾Ã‘ÂÃ‘ÂÃ‘â€šÄÂ°ÄÂ½ÄÂ¾ÄÂ²ÄÂ»ÄÂµÄÂ½ÄÂ¸Ã‘Â.',
+          'Нет покупок для восстановления.',
       'restore_purchases_failed':
-          'ÄÂÃ‘Ë†ÄÂ¸ÄÂ±ÄÂºÄÂ° ÄÂ²ÄÂ¾Ã‘ÂÃ‘ÂÃ‘â€šÄÂ°ÄÂ½ÄÂ¾ÄÂ²ÄÂ»ÄÂµÄÂ½ÄÂ¸Ã‘Â: {err}',
+          'Ошибка восстановления: {err}',
       'next_analysis':
-          'ÄÂ¡ÄÂ»ÄÂµÄÂ´Ã‘Æ’Ã‘ÂÃ‘â€°ÄÂ¸ÄÂ¹ ÄÂ°ÄÂ½ÄÂ°ÄÂ»ÄÂ¸ÄÂ·',
+          'Следующий анализ',
       'next_analysis_ready':
-          'ÄÂÄÂ½ÄÂ°ÄÂ»ÄÂ¸ÄÂ· Ã‘Æ’ÄÂ¶ÄÂµ ÄÂ´ÄÂ¾Ã‘ÂÃ‘â€šÃ‘Æ’ÄÂ¿ÄÂµÄÂ½.',
+          'Анализ уже доступен.',
       'analysis_ready_risk':
-          'ÄÂÄÂ½ÄÂ°ÄÂ»ÄÂ¸ÄÂ· ÄÂ´ÄÂ¾Ã‘ÂÃ‘â€šÃ‘Æ’ÄÂ¿ÄÂµÄÂ½ Ã‘ÂÄÂµÄÂ¹Ã‘â€¡ÄÂ°Ã‘Â, ÄÂ½ÄÂ¾ Ã‘â€¡ÄÂ°Ã‘ÂÃ‘â€šÃ‘â€¹ÄÂµ ÄÂ¿ÄÂ¾ÄÂ´Ã‘â‚¬Ã‘ÂÄÂ´ ÄÂ°ÄÂ½ÄÂ°ÄÂ»ÄÂ¸ÄÂ·Ã‘â€¹ ÄÂ¼ÄÂ¾ÄÂ³Ã‘Æ’Ã‘â€š ÄÂ¿ÄÂ¾ÄÂ²Ã‘â€¹Ã‘ÂÄÂ¸Ã‘â€šÃ‘Å’ Ã‘â‚¬ÄÂ¸Ã‘ÂÄÂº ÄÂ´ÄÂ»Ã‘Â ÄÂ°ÄÂºÄÂºÄÂ°Ã‘Æ’ÄÂ½Ã‘â€šÄÂ°.',
+          'Анализ доступен сейчас, но частые подряд анализы могут повысить риск для аккаунта.',
       'please_wait':
-          'ÄÅ¸ÄÂ¾ÄÂ¶ÄÂ°ÄÂ»Ã‘Æ’ÄÂ¹Ã‘ÂÃ‘â€šÄÂ°, ÄÂ¿ÄÂ¾ÄÂ´ÄÂ¾ÄÂ¶ÄÂ´ÄÂ¸Ã‘â€šÄÂµ',
+          'Пожалуйста, подождите',
       'remaining_time':
-          'ÄÂÃ‘ÂÃ‘â€šÄÂ°ÄÂ»ÄÂ¾Ã‘ÂÃ‘Å’ ÄÂ²Ã‘â‚¬ÄÂµÄÂ¼ÄÂµÄÂ½ÄÂ¸: {time}',
+          'Осталось времени: {time}',
       'watch_ad':
-          'ÄÅ¸ÄÂÄÂ¡ÄÅ“ÄÂÄÂ¢ÄÂ Äâ€¢ÄÂ¢ÄÂ¬ ÄÂ Äâ€¢ÄÅ¡Äâ€ºÄÂÄÅ“ÄÂ£ ÄËœ ÄÂÄÂÄÂ§ÄÂÄÂ¢ÄÂ¬ ÄÂÄÂÄÂÄâ€ºÄËœÄâ€”',
-      'start_analysis': 'ÄÂÄÂÄÂ§ÄÂÄÂ¢ÄÂ¬ ÄÂÄÂÄÂÄâ€ºÄËœÄâ€”',
+          'ПОСМОТРЕТЬ РЕКЛАМУ И НАЧАТЬ АНАЛИЗ',
+      'start_analysis': 'НАЧАТЬ АНАЛИЗ',
       'start_analysis_question':
-          'ÄÂÄÂ°Ã‘â€¡ÄÂ°Ã‘â€šÃ‘Å’ ÄÂ°ÄÂ½ÄÂ°ÄÂ»ÄÂ¸ÄÂ·?',
+          'Начать анализ?',
       'clear_data_title':
-          'ÄÂ¡ÄÂ±Ã‘â‚¬ÄÂ¾Ã‘Â ÄÂ´ÄÂ°ÄÂ½ÄÂ½Ã‘â€¹Ã‘â€¦ ÄÂ¿Ã‘â‚¬ÄÂ¸ÄÂ»ÄÂ¾ÄÂ¶ÄÂµÄÂ½ÄÂ¸Ã‘Â',
+          'Сброс данных приложения',
       'clear_data_content':
-          'Äâ€™Ã‘ÂÄÂµ ÄÂ»ÄÂ¾ÄÂºÄÂ°ÄÂ»Ã‘Å’ÄÂ½Ã‘â€¹ÄÂµ ÄÂ´ÄÂ°ÄÂ½ÄÂ½Ã‘â€¹ÄÂµ ÄÂ¸ ÄÂ´ÄÂ°ÄÂ½ÄÂ½Ã‘â€¹ÄÂµ Ã‘ÂÄÂµÃ‘ÂÃ‘ÂÄÂ¸ÄÂ¸ ÄÂ±Ã‘Æ’ÄÂ´Ã‘Æ’Ã‘â€š Ã‘Æ’ÄÂ´ÄÂ°ÄÂ»ÄÂµÄÂ½Ã‘â€¹. ÄÅ¸Ã‘â‚¬ÄÂ¾ÄÂ´ÄÂ¾ÄÂ»ÄÂ¶ÄÂ¸Ã‘â€šÃ‘Å’?',
-      'cancel': 'ÄÂÄÂ¢ÄÅ“Äâ€¢ÄÂÄÂ',
-      'delete': 'ÄÂ£Äâ€ÄÂÄâ€ºÄËœÄÂ¢ÄÂ¬',
+          'Все локальные данные и данные сессии будут удалены. Продолжить?',
+      'cancel': 'ОТМЕНА',
+      'delete': 'УДАЛИТЬ',
       'ad_wait_message':
-          'ÄÂÄÂ½ÄÂ°ÄÂ»ÄÂ¸ÄÂ· ÄÂ·ÄÂ°ÄÂ²ÄÂµÃ‘â‚¬Ã‘Ë†ÄÂµÄÂ½, Ã‘â‚¬ÄÂµÄÂ·Ã‘Æ’ÄÂ»Ã‘Å’Ã‘â€šÄÂ°Ã‘â€šÃ‘â€¹ ÄÂ±Ã‘Æ’ÄÂ´Ã‘Æ’Ã‘â€š ÄÂ¿ÄÂ¾ÄÂºÄÂ°ÄÂ·ÄÂ°ÄÂ½Ã‘â€¹ ÄÂ¿ÄÂ¾Ã‘ÂÄÂ»ÄÂµ Ã‘â‚¬ÄÂµÄÂºÄÂ»ÄÂ°ÄÂ¼Ã‘â€¹.',
+          'Анализ завершен, результаты будут показаны после рекламы.',
       'analysis_failed_title':
-          'ÄÂÄÂµ Ã‘Æ’ÄÂ´ÄÂ°ÄÂ»ÄÂ¾Ã‘ÂÃ‘Å’ ÄÂ²Ã‘â€¹ÄÂ¿ÄÂ¾ÄÂ»ÄÂ½ÄÂ¸Ã‘â€šÃ‘Å’ ÄÂ°ÄÂ½ÄÂ°ÄÂ»ÄÂ¸ÄÂ·',
-      'analysis_failed_reason': 'ÄÅ¸Ã‘â‚¬ÄÂ¸Ã‘â€¡ÄÂ¸ÄÂ½ÄÂ°: {reason}',
+          'Не удалось выполнить анализ',
+      'analysis_failed_reason': 'Причина: {reason}',
       'analysis_failed_hint':
-          'ÄÂ¡ÄÂ¾ÄÂ²ÄÂµÃ‘â€š: ÄÂ¿ÄÂ¾ÄÂ¿Ã‘â‚¬ÄÂ¾ÄÂ±Ã‘Æ’ÄÂ¹Ã‘â€šÄÂµ ÄÂ²Ã‘â€¹ÄÂ¹Ã‘â€šÄÂ¸ ÄÂ¸ ÄÂ²ÄÂ¾ÄÂ¹Ã‘â€šÄÂ¸ Ã‘ÂÄÂ½ÄÂ¾ÄÂ²ÄÂ°.',
+          'Совет: попробуйте выйти и войти снова.',
       'story_section_title':
-          'ÄÂ¡ÄÂ¼ÄÂ¾Ã‘â€šÃ‘â‚¬ÄÂµÃ‘â€šÃ‘Å’ Ã‘ÂÃ‘â€šÄÂ¾Ã‘â‚¬ÄÂ¸Ã‘Â ÄÂ°ÄÂ½ÄÂ¾ÄÂ½ÄÂ¸ÄÂ¼ÄÂ½ÄÂ¾ ÄÂ¸ÄÂ»ÄÂ¸ Ã‘Æ’ÄÂ²ÄÂµÄÂ»ÄÂ¸Ã‘â€¡ÄÂ¸ÄÂ²ÄÂ°Ã‘â€šÃ‘Å’ Ã‘â€ÄÂ¾Ã‘â€šÄÂ¾ ÄÂ¿Ã‘â‚¬ÄÂ¾Ã‘â€ÄÂ¸ÄÂ»Ã‘Â',
+          'Смотреть сторис анонимно или увеличивать фото профиля',
       'story_login_required':
-          'ÄÅ¸ÄÂ¾ÄÂ¶ÄÂ°ÄÂ»Ã‘Æ’ÄÂ¹Ã‘ÂÃ‘â€šÄÂ°, ÄÂ²ÄÂ¾ÄÂ¹ÄÂ´ÄÂ¸Ã‘â€šÄÂµ, Ã‘â€¡Ã‘â€šÄÂ¾ÄÂ±Ã‘â€¹ ÄÂ°ÄÂ½ÄÂ¾ÄÂ½ÄÂ¸ÄÂ¼ÄÂ½ÄÂ¾ Ã‘ÂÄÂ¼ÄÂ¾Ã‘â€šÃ‘â‚¬ÄÂµÃ‘â€šÃ‘Å’ Ã‘ÂÃ‘â€šÄÂ¾Ã‘â‚¬ÄÂ¸Ã‘Â ÄÂ¸ Ã‘Æ’ÄÂ²ÄÂµÄÂ»ÄÂ¸Ã‘â€¡ÄÂ¸ÄÂ²ÄÂ°Ã‘â€šÃ‘Å’ Ã‘â€ÄÂ¾Ã‘â€šÄÂ¾ ÄÂ¿Ã‘â‚¬ÄÂ¾Ã‘â€ÄÂ¸ÄÂ»Ã‘Â.',
+          'Пожалуйста, войдите, чтобы анонимно смотреть сторис и увеличивать фото профиля.',
       'story_ad_wait':
-          'ÄÅ¸ÄÂ¾Ã‘ÂÄÂ²ÄÂ¸Ã‘â€šÃ‘ÂÃ‘Â ÄÂ¿ÄÂ¾Ã‘ÂÄÂ»ÄÂµ Ã‘â‚¬ÄÂµÄÂºÄÂ»ÄÂ°ÄÂ¼Ã‘â€¹, ÄÂ¿ÄÂ¾ÄÂ¶ÄÂ°ÄÂ»Ã‘Æ’ÄÂ¹Ã‘ÂÃ‘â€šÄÂ°, ÄÂ¿ÄÂ¾ÄÂ´ÄÂ¾ÄÂ¶ÄÂ´ÄÂ¸Ã‘â€šÄÂµ.',
+          'Появится после рекламы, пожалуйста, подождите.',
       'story_action_title':
-          'ÄÂ§Ã‘â€šÄÂ¾ ÄÂ²Ã‘â€¹ Ã‘â€¦ÄÂ¾Ã‘â€šÄÂ¸Ã‘â€šÄÂµ Ã‘ÂÄÂ´ÄÂµÄÂ»ÄÂ°Ã‘â€šÃ‘Å’?',
+          'Что вы хотите сделать?',
       'story_view_photo':
-          'ÄÂ£ÄÂ²ÄÂµÄÂ»ÄÂ¸Ã‘â€¡ÄÂ¸Ã‘â€šÃ‘Å’ Ã‘â€ÄÂ¾Ã‘â€šÄÂ¾ ÄÂ¿Ã‘â‚¬ÄÂ¾Ã‘â€ÄÂ¸ÄÂ»Ã‘Â',
+          'Увеличить фото профиля',
       'story_watch_secret':
-          'ÄÂ¡ÄÂ¼ÄÂ¾Ã‘â€šÃ‘â‚¬ÄÂµÃ‘â€šÃ‘Å’ Ã‘ÂÃ‘â€šÄÂ¾Ã‘â‚¬ÄÂ¸Ã‘Â ÄÂ°ÄÂ½ÄÂ¾ÄÂ½ÄÂ¸ÄÂ¼ÄÂ½ÄÂ¾',
+          'Смотреть сторис анонимно',
       'story_no_data':
-          'Äâ€ÄÂ°ÄÂ½ÄÂ½Ã‘â€¹ÄÂµ Ã‘ÂÃ‘â€šÄÂ¾Ã‘â‚¬ÄÂ¸Ã‘Â ÄÂ½ÄÂµ ÄÂ½ÄÂ°ÄÂ¹ÄÂ´ÄÂµÄÂ½Ã‘â€¹.',
-      'story_close': 'Äâ€”ÄÂÄÅ¡ÄÂ ÄÂ«ÄÂ¢ÄÂ¬',
+          'Данные сторис не найдены.',
+      'story_close': 'ЗАКРЫТЬ',
       'no_data': '\u041D\u0435\u0442 \u0434\u0430\u043D\u043D\u044B\u0445',
       'new_badge': '\u041D\u041E\u0412\u041E\u0415',
       'login_title': '\u0412\u0445\u043E\u0434',
       'read_and_agree':
-          'ÄÂ¯ ÄÅ¸ÄÂ ÄÂÄÂ§ÄËœÄÂ¢ÄÂÄâ€º ÄËœ ÄÂ¡ÄÂÄâ€œÄâ€ºÄÂÄÂ¡Äâ€¢ÄÂ',
+          'Я ПРОЧИТАЛ И СОГЛАСЕН',
       'withdraw_consent':
-          'ÄÂÃ‘â€šÄÂ¾ÄÂ·ÄÂ²ÄÂ°Ã‘â€šÃ‘Å’ Ã‘ÂÄÂ¾ÄÂ³ÄÂ»ÄÂ°Ã‘ÂÄÂ¸ÄÂµ',
+          'Отозвать согласие',
       'withdraw_consent_confirm_title':
-          'ÄÅ¸ÄÂ¾ÄÂ´Ã‘â€šÄÂ²ÄÂµÃ‘â‚¬ÄÂ¶ÄÂ´ÄÂµÄÂ½ÄÂ¸ÄÂµ',
+          'Подтверждение',
       'withdraw_consent_confirm_body':
-          'ÄÂÄÂ°Ã‘ÂÃ‘â€šÃ‘â‚¬ÄÂ¾ÄÂ¹ÄÂºÄÂ¸ Ã‘ÂÄÂ¾ÄÂ³ÄÂ»ÄÂ°Ã‘ÂÄÂ¸Ã‘Â ÄÂ±Ã‘Æ’ÄÂ´Ã‘Æ’Ã‘â€š Ã‘ÂÄÂ±Ã‘â‚¬ÄÂ¾Ã‘Ë†ÄÂµÄÂ½Ã‘â€¹. Äâ€™Ã‘â€¹ Ã‘Æ’ÄÂ²ÄÂµÃ‘â‚¬ÄÂµÄÂ½Ã‘â€¹?',
-      'withdraw_consent_confirm_yes': 'Äâ€ÄÂ°',
-      'withdraw_consent_confirm_no': 'ÄÂÃ‘â€šÄÂ¼ÄÂµÄÂ½ÄÂ°',
+          'Настройки согласия будут сброшены. Вы уверены?',
+      'withdraw_consent_confirm_yes': 'Да',
+      'withdraw_consent_confirm_no': 'Отмена',
       'data_updated':
-          'ÄÂÄÂ½ÄÂ°ÄÂ»ÄÂ¸ÄÂ· ÄÂ·ÄÂ°ÄÂ²ÄÂµÃ‘â‚¬Ã‘Ë†ÄÂµÄÂ½ Ã¢Å“â€¦',
-      'enter_pin': 'Äâ€™ÄÂ²ÄÂµÄÂ´ÄÂ¸Ã‘â€šÄÂµ PIN',
+          'Анализ завершен ✅',
+      'enter_pin': 'Введите PIN',
       'pin_accepted':
-          'PIN ÄÂ¿Ã‘â‚¬ÄÂ¸ÄÂ½Ã‘ÂÃ‘â€š, Ã‘â€šÄÂ°ÄÂ¹ÄÂ¼ÄÂµÃ‘â‚¬ Ã‘ÂÄÂ±Ã‘â‚¬ÄÂ¾Ã‘Ë†ÄÂµÄÂ½ Ã¢Å“â€¦',
-      'pin_incorrect': 'ÄÂÄÂµÄÂ²ÄÂµÃ‘â‚¬ÄÂ½Ã‘â€¹ÄÂ¹ PIN',
+          'PIN принят, таймер сброшен ✅',
+      'pin_incorrect': 'Неверный PIN',
       'ok': 'OK',
       'legal_warning':
-          'ÄÂ®Ã‘â‚¬ÄÂ¸ÄÂ´ÄÂ¸Ã‘â€¡ÄÂµÃ‘ÂÄÂºÄÂ¾ÄÂµ ÄÂ¿Ã‘â‚¬ÄÂµÄÂ´Ã‘Æ’ÄÂ¿Ã‘â‚¬ÄÂµÄÂ¶ÄÂ´ÄÂµÄÂ½ÄÂ¸ÄÂµ',
+          'Юридическое предупреждение',
       'rate_us':
           '\u041E\u0446\u0435\u043D\u0438\u0442\u0435 \u043D\u0430\u0441',
       'contact_us':
@@ -3957,31 +3957,31 @@ class _DashboardScreenState extends State<DashboardScreen>
       'remove_ads_and_limits':
           '\u0423\u0431\u0440\u0430\u0442\u044C \u0440\u0435\u043A\u043B\u0430\u043C\u0443 \u0438 \u043E\u0436\u0438\u0434\u0430\u043D\u0438\u0435',
       'legal_intro':
-          'ÄÂ¡ÄÂºÄÂ°Ã‘â€¡ÄÂ¸ÄÂ²ÄÂ°Ã‘Â ÄÂ¸ ÄÂ¸Ã‘ÂÄÂ¿ÄÂ¾ÄÂ»Ã‘Å’ÄÂ·Ã‘Æ’Ã‘Â Ã‘ÂÃ‘â€šÄÂ¾ ÄÂ¿Ã‘â‚¬ÄÂ¸ÄÂ»ÄÂ¾ÄÂ¶ÄÂµÄÂ½ÄÂ¸ÄÂµ, ÄÂ¿ÄÂ¾ÄÂ»Ã‘Å’ÄÂ·ÄÂ¾ÄÂ²ÄÂ°Ã‘â€šÄÂµÄÂ»Ã‘Å’ Ã‘ÂÃ‘â€¡ÄÂ¸Ã‘â€šÄÂ°ÄÂµÃ‘â€šÃ‘ÂÃ‘Â ÄÂ¾ÄÂ·ÄÂ½ÄÂ°ÄÂºÄÂ¾ÄÂ¼ÄÂ¸ÄÂ²Ã‘Ë†ÄÂ¸ÄÂ¼Ã‘ÂÃ‘Â ÄÂ¸ Ã‘ÂÄÂ¾ÄÂ³ÄÂ»ÄÂ°Ã‘ÂÄÂ¸ÄÂ²Ã‘Ë†ÄÂ¸ÄÂ¼Ã‘ÂÃ‘Â Ã‘Â Ã‘Æ’Ã‘ÂÄÂ»ÄÂ¾ÄÂ²ÄÂ¸Ã‘ÂÄÂ¼ÄÂ¸ ÄÂ½ÄÂ¸ÄÂ¶ÄÂµ.',
+          'Скачивая и используя это приложение, пользователь считается ознакомившимся и согласившимся с условиями ниже.',
       'user_label':
           '\u041F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C',
     },
     'pt': {
-      'tagline': 'SoluÃƒÂ§ÃƒÂµes profissionais para redes sociais',
+      'tagline': 'Soluções profissionais para redes sociais',
       'admin_active_note': 'Modo administrador ativo',
       'free_app_note':
-          'Estamos evoluindo todos os dias para oferecer uma experiÃƒÂªncia melhor. Seu feedback ÃƒÂ© muito importante para nÃƒÂ³s.',
-      'login_prompt': 'FaÃƒÂ§a login para iniciar a anÃƒÂ¡lise.',
+          'Estamos evoluindo todos os dias para oferecer uma experiência melhor. Seu feedback é muito importante para nós.',
+      'login_prompt': 'Faça login para iniciar a análise.',
       'welcome': 'Bem-vindo, {username}',
       'refresh_data': 'ATUALIZAR DADOS',
       'login_with_instagram': 'ENTRAR COM INSTAGRAM',
       'fetching_data': 'Analisando dados...\nIsso pode levar um momento.',
       'processing_data': 'Processando dados...\nQuase pronto.',
-      'loading_ad': 'Carregando anÃƒÂºncio...\nAguarde.',
-      'google_ad_warning': 'Aviso de anÃƒÂºncio do Google: {reason}',
+      'loading_ad': 'Carregando anúncio...\nAguarde.',
+      'google_ad_warning': 'Aviso de anúncio do Google: {reason}',
       'analysis_secure':
-          'Toda a anÃƒÂ¡lise ÃƒÂ© processada com seguranÃƒÂ§a localmente no seu dispositivo.',
-      'today_total_analysis': 'Total de anÃƒÂ¡lises hoje: {count}',
+          'Toda a análise é processada com segurança localmente no seu dispositivo.',
+      'today_total_analysis': 'Total de análises hoje: {count}',
       'purchases_not_configured':
-          'Compras indisponÃƒÂ­veis no momento. Tente novamente mais tarde.',
-      'premium_already_active': 'Sua assinatura Premium estÃƒÂ¡ ativa.',
+          'Compras indisponíveis no momento. Tente novamente mais tarde.',
+      'premium_already_active': 'Sua assinatura Premium está ativa.',
       'premium_welcome_box':
-          'Bem-vindo ao Premium! AnÃƒÂºncios e tempos de espera foram removidos.',
+          'Bem-vindo ao Premium! Anúncios e tempos de espera foram removidos.',
       'premium_main_description':
           'Remova todos os an\u00FAncios, elimine os tempos de espera e realize an\u00E1lises ilimitadas.',
       'premium_benefits_title': 'Benef\u00EDcios Premium',
@@ -3995,34 +3995,34 @@ class _DashboardScreenState extends State<DashboardScreen>
       'restore_purchases': 'Restaurar compras',
       'restore_purchases_short': 'RESTAURAR',
       'restoring_purchases': 'Restaurando compras...',
-      'restore_purchases_success': 'Compras restauradas Ã¢Å“â€¦',
+      'restore_purchases_success': 'Compras restauradas ✅',
       'restore_purchases_none': 'Nenhuma compra para restaurar.',
-      'restore_purchases_failed': 'Falha na restauraÃƒÂ§ÃƒÂ£o: {err}',
-      'next_analysis': 'PrÃƒÂ³xima anÃƒÂ¡lise',
-      'next_analysis_ready': 'AnÃƒÂ¡lise disponÃƒÂ­vel agora.',
+      'restore_purchases_failed': 'Falha na restauração: {err}',
+      'next_analysis': 'Próxima análise',
+      'next_analysis_ready': 'Análise disponível agora.',
       'analysis_ready_risk':
-          'A anÃƒÂ¡lise estÃƒÂ¡ disponÃƒÂ­vel, mas fazer anÃƒÂ¡lises em sequÃƒÂªncia pode aumentar o risco da conta.',
+          'A análise está disponível, mas fazer análises em sequência pode aumentar o risco da conta.',
       'please_wait': 'Aguarde',
       'remaining_time': 'Tempo restante: {time}',
-      'watch_ad': 'ASSISTIR AO ANÃƒÅ¡NCIO E INICIAR ANÃƒÂLISE',
-      'start_analysis': 'INICIAR ANÃƒÂLISE',
-      'start_analysis_question': 'Iniciar anÃƒÂ¡lise?',
+      'watch_ad': 'ASSISTIR AO ANÚNCIO E INICIAR ANÁLISE',
+      'start_analysis': 'INICIAR ANÁLISE',
+      'start_analysis_question': 'Iniciar análise?',
       'clear_data_title': 'Redefinir dados do app',
       'clear_data_content':
-          'Todos os dados locais e sessÃƒÂµes serÃƒÂ£o apagados. Tem certeza?',
+          'Todos os dados locais e sessões serão apagados. Tem certeza?',
       'cancel': 'CANCELAR',
       'delete': 'EXCLUIR',
       'ad_wait_message':
-          'AnÃƒÂ¡lise concluÃƒÂ­da, os resultados serÃƒÂ£o mostrados apÃƒÂ³s o anÃƒÂºncio.',
-      'analysis_failed_title': 'Falha na anÃƒÂ¡lise',
+          'Análise concluída, os resultados serão mostrados após o anúncio.',
+      'analysis_failed_title': 'Falha na análise',
       'analysis_failed_reason': 'Motivo: {reason}',
       'analysis_failed_hint': 'Dica: sair e entrar novamente pode ajudar.',
       'story_section_title':
           'Veja stories em segredo ou amplie fotos de perfil',
       'story_login_required':
-          'FaÃƒÂ§a login para ver stories anonimamente e ampliar fotos de perfil.',
-      'story_ad_wait': 'SerÃƒÂ¡ exibido apÃƒÂ³s o anÃƒÂºncio. Aguarde.',
-      'story_action_title': 'O que vocÃƒÂª deseja fazer?',
+          'Faça login para ver stories anonimamente e ampliar fotos de perfil.',
+      'story_ad_wait': 'Será exibido após o anúncio. Aguarde.',
+      'story_action_title': 'O que você deseja fazer?',
       'story_view_photo': 'Ampliar foto de perfil',
       'story_watch_secret': 'Ver story em segredo',
       'story_no_data': 'Nenhum dado de story encontrado.',
@@ -4032,55 +4032,55 @@ class _DashboardScreenState extends State<DashboardScreen>
       'login_title': 'Entrar',
       'read_and_agree': 'LI E CONCORDO',
       'withdraw_consent': 'Retirar consentimento',
-      'withdraw_consent_confirm_title': 'ConfirmaÃƒÂ§ÃƒÂ£o',
+      'withdraw_consent_confirm_title': 'Confirmação',
       'withdraw_consent_confirm_body':
-          'As configuraÃƒÂ§ÃƒÂµes de consentimento serÃƒÂ£o redefinidas. Continuar?',
+          'As configurações de consentimento serão redefinidas. Continuar?',
       'withdraw_consent_confirm_yes': 'Sim',
       'withdraw_consent_confirm_no': 'Cancelar',
-      'data_updated': 'AnÃƒÂ¡lise concluÃƒÂ­da Ã¢Å“â€¦',
+      'data_updated': 'Análise concluída ✅',
       'enter_pin': 'Digite o PIN',
-      'pin_accepted': 'PIN aceito, tempo reiniciado Ã¢Å“â€¦',
-      'pin_incorrect': 'PIN invÃƒÂ¡lido',
+      'pin_accepted': 'PIN aceito, tempo reiniciado ✅',
+      'pin_incorrect': 'PIN inválido',
       'ok': 'OK',
       'legal_warning': 'Aviso legal',
       'rate_us': 'Avalie-nos',
       'contact_us': 'Fale conosco',
       'remove_ads_and_limits': 'Remover an\u00FAncios e espera',
       'legal_intro':
-          'Ao baixar e usar este aplicativo, o usuÃƒÂ¡rio declara que leu e aceitou os termos abaixo.',
+          'Ao baixar e usar este aplicativo, o usuário declara que leu e aceitou os termos abaixo.',
       'user_label': 'Usu\u00E1rio',
     },
     'ar': {
       'tagline':
-          'Ã˜Â­Ã™â€Ã™Ë†Ã™â€ Ã˜Â§Ã˜Â­Ã˜ÂªÃ˜Â±Ã˜Â§Ã™ÂÃ™Å Ã˜Â© Ã™â€Ã™Ë†Ã˜Â³Ã˜Â§Ã˜Â¦Ã™â€ Ã˜Â§Ã™â€Ã˜ÂªÃ™Ë†Ã˜Â§Ã˜ÂµÃ™â€ Ã˜Â§Ã™â€Ã˜Â§Ã˜Â¬Ã˜ÂªÃ™â€¦Ã˜Â§Ã˜Â¹Ã™Å ',
+          'حلول احترافية لوسائل التواصل الاجتماعي',
       'admin_active_note':
-          'Ã™Ë†Ã˜Â¶Ã˜Â¹ Ã˜Â§Ã™â€Ã™â€¦Ã˜Â´Ã˜Â±Ã™Â Ã™â€¦Ã™ÂÃ˜Â¹Ã™â€˜Ã™â€',
+          'وضع المشرف مفعّل',
       'free_app_note':
-          'Ã™â€ Ã˜Â­Ã™â€  Ã™â€ Ã˜Â·Ã™Ë†Ã™â€˜Ã˜Â± Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â·Ã˜Â¨Ã™Å Ã™â€š Ã™Å Ã™Ë†Ã™â€¦Ã™Å Ã˜Â§Ã™â€¹ Ã™â€Ã˜ÂªÃ™â€šÃ˜Â¯Ã™Å Ã™â€¦ Ã˜ÂªÃ˜Â¬Ã˜Â±Ã˜Â¨Ã˜Â© Ã˜Â£Ã™ÂÃ˜Â¶Ã™â€. Ã™â€¦Ã™â€Ã˜Â§Ã˜Â­Ã˜Â¸Ã˜Â§Ã˜ÂªÃ™Æ’ Ã™â€¦Ã™â€¡Ã™â€¦Ã˜Â© Ã˜Â¬Ã˜Â¯Ã˜Â§Ã™â€¹ Ã™â€Ã™â€ Ã˜Â§.',
+          'نحن نطوّر التطبيق يومياً لتقديم تجربة أفضل. ملاحظاتك مهمة جداً لنا.',
       'login_prompt':
-          'Ã™Å Ã˜Â±Ã˜Â¬Ã™â€° Ã˜ÂªÃ˜Â³Ã˜Â¬Ã™Å Ã™â€ Ã˜Â§Ã™â€Ã˜Â¯Ã˜Â®Ã™Ë†Ã™â€ Ã™â€Ã˜Â¨Ã˜Â¯Ã˜Â¡ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€.',
-      'welcome': 'Ã™â€¦Ã˜Â±Ã˜Â­Ã˜Â¨Ã˜Â§Ã™â€¹Ã˜Å’ {username}',
-      'refresh_data': 'Ã˜ÂªÃ˜Â­Ã˜Â¯Ã™Å Ã˜Â« Ã˜Â§Ã™â€Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª',
+          'يرجى تسجيل الدخول لبدء التحليل.',
+      'welcome': 'مرحباً، {username}',
+      'refresh_data': 'تحديث البيانات',
       'login_with_instagram':
-          'Ã˜ÂªÃ˜Â³Ã˜Â¬Ã™Å Ã™â€ Ã˜Â§Ã™â€Ã˜Â¯Ã˜Â®Ã™Ë†Ã™â€ Ã˜Â¹Ã˜Â¨Ã˜Â± Ã˜Â§Ã™â€ Ã˜Â³Ã˜ÂªÃ˜ÂºÃ˜Â±Ã˜Â§Ã™â€¦',
+          'تسجيل الدخول عبر انستغرام',
       'fetching_data':
-          'Ã˜Â¬Ã˜Â§Ã˜Â±Ã™Â Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€ Ã˜Â§Ã™â€Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª...\nÃ™â€šÃ˜Â¯ Ã™Å Ã˜Â³Ã˜ÂªÃ˜ÂºÃ˜Â±Ã™â€š Ã˜Â°Ã™â€Ã™Æ’ Ã˜Â¨Ã˜Â¹Ã˜Â¶ Ã˜Â§Ã™â€Ã™Ë†Ã™â€šÃ˜Âª.',
+          'جارٍ تحليل البيانات...\nقد يستغرق ذلك بعض الوقت.',
       'processing_data':
-          'Ã˜Â¬Ã˜Â§Ã˜Â±Ã™Â Ã™â€¦Ã˜Â¹Ã˜Â§Ã™â€Ã˜Â¬Ã˜Â© Ã˜Â§Ã™â€Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª...\nÃ˜Â¹Ã™â€Ã™â€° Ã™Ë†Ã˜Â´Ã™Æ’ Ã˜Â§Ã™â€Ã˜Â§Ã™â€ Ã˜ÂªÃ™â€¡Ã˜Â§Ã˜Â¡.',
+          'جارٍ معالجة البيانات...\nعلى وشك الانتهاء.',
       'loading_ad':
-          'Ã˜Â¬Ã˜Â§Ã˜Â±Ã™Â Ã˜ÂªÃ˜Â­Ã™â€¦Ã™Å Ã™â€ Ã˜Â§Ã™â€Ã˜Â¥Ã˜Â¹Ã™â€Ã˜Â§Ã™â€ ...\nÃ™Å Ã˜Â±Ã˜Â¬Ã™â€° Ã˜Â§Ã™â€Ã˜Â§Ã™â€ Ã˜ÂªÃ˜Â¸Ã˜Â§Ã˜Â±.',
+          'جارٍ تحميل الإعلان...\nيرجى الانتظار.',
       'google_ad_warning':
-          'Ã˜ÂªÃ˜Â­Ã˜Â°Ã™Å Ã˜Â± Ã˜Â¥Ã˜Â¹Ã™â€Ã˜Â§Ã™â€  Google: {reason}',
+          'تحذير إعلان Google: {reason}',
       'analysis_secure':
-          'Ã™Å Ã˜ÂªÃ™â€¦ Ã˜ÂªÃ™â€ Ã™ÂÃ™Å Ã˜Â° Ã˜Â¬Ã™â€¦Ã™Å Ã˜Â¹ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€Ã˜Â§Ã˜Âª Ã˜Â¨Ã˜Â´Ã™Æ’Ã™â€ Ã˜Â¢Ã™â€¦Ã™â€  Ã™â€¦Ã˜Â­Ã™â€Ã™Å Ã˜Â§Ã™â€¹ Ã˜Â¹Ã™â€Ã™â€° Ã˜Â¬Ã™â€¡Ã˜Â§Ã˜Â²Ã™Æ’.',
+          'يتم تنفيذ جميع التحليلات بشكل آمن محلياً على جهازك.',
       'today_total_analysis':
-          'Ã˜Â¥Ã˜Â¬Ã™â€¦Ã˜Â§Ã™â€Ã™Å  Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€Ã™Å Ã™Ë†Ã™â€¦: {count}',
+          'إجمالي التحليلات اليوم: {count}',
       'purchases_not_configured':
-          'Ã˜Â§Ã™â€Ã˜Â´Ã˜Â±Ã˜Â§Ã˜Â¡ Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂªÃ˜Â§Ã˜Â­ Ã˜Â­Ã˜Â§Ã™â€Ã™Å Ã˜Â§Ã™â€¹. Ã™Å Ã˜Â±Ã˜Â¬Ã™â€° Ã˜Â§Ã™â€Ã™â€¦Ã˜Â­Ã˜Â§Ã™Ë†Ã™â€Ã˜Â© Ã™â€Ã˜Â§Ã˜Â­Ã™â€šÃ˜Â§Ã™â€¹.',
+          'الشراء غير متاح حالياً. يرجى المحاولة لاحقاً.',
       'premium_already_active':
-          'Ã˜Â¹Ã˜Â¶Ã™Ë†Ã™Å Ã˜Â© Premium Ã™â€¦Ã™ÂÃ˜Â¹Ã™â€Ã˜Â© Ã™â€Ã˜Â¯Ã™Å Ã™Æ’.',
+          'عضوية Premium مفعلة لديك.',
       'premium_welcome_box':
-          'Ã™â€¦Ã˜Â±Ã˜Â­Ã˜Â¨Ã˜Â§Ã™â€¹ Ã˜Â¨Ã™Æ’ Ã™ÂÃ™Å  Premium! Ã˜ÂªÃ™â€¦Ã˜Âª Ã˜Â¥Ã˜Â²Ã˜Â§Ã™â€Ã˜Â© Ã˜Â§Ã™â€Ã˜Â¥Ã˜Â¹Ã™â€Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª Ã™Ë†Ã™ÂÃ˜ÂªÃ˜Â±Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€Ã˜Â§Ã™â€ Ã˜ÂªÃ˜Â¸Ã˜Â§Ã˜Â±.',
+          'مرحباً بك في Premium! تمت إزالة الإعلانات وفترات الانتظار.',
       'premium_benefits_title': 'مزايا بريميوم',
       'remove_ads_and_limits_subtitle': 'إزالة الإعلانات وأوقات الانتظار.',
       'premium_main_description':
@@ -4090,84 +4090,84 @@ class _DashboardScreenState extends State<DashboardScreen>
       'premium_benefit_unlimited':
           'تحليل غير محدود مع وصول كامل لجميع الميزات.',
       'restore_purchases':
-          'Ã˜Â§Ã˜Â³Ã˜ÂªÃ˜Â¹Ã˜Â§Ã˜Â¯Ã˜Â© Ã˜Â§Ã™â€Ã™â€¦Ã˜Â´Ã˜ÂªÃ˜Â±Ã™Å Ã˜Â§Ã˜Âª',
+          'استعادة المشتريات',
       'restore_purchases_short': '\u0627\u0633\u062A\u0639\u0627\u062F\u0629',
       'restoring_purchases':
-          'Ã˜Â¬Ã˜Â§Ã˜Â±Ã™Â Ã˜Â§Ã˜Â³Ã˜ÂªÃ˜Â¹Ã˜Â§Ã˜Â¯Ã˜Â© Ã˜Â§Ã™â€Ã™â€¦Ã˜Â´Ã˜ÂªÃ˜Â±Ã™Å Ã˜Â§Ã˜Âª...',
+          'جارٍ استعادة المشتريات...',
       'restore_purchases_success':
-          'Ã˜ÂªÃ™â€¦Ã˜Âª Ã˜Â§Ã˜Â³Ã˜ÂªÃ˜Â¹Ã˜Â§Ã˜Â¯Ã˜Â© Ã˜Â§Ã™â€Ã™â€¦Ã˜Â´Ã˜ÂªÃ˜Â±Ã™Å Ã˜Â§Ã˜Âª Ã¢Å“â€¦',
+          'تمت استعادة المشتريات ✅',
       'restore_purchases_none':
-          'Ã™â€Ã˜Â§ Ã˜ÂªÃ™Ë†Ã˜Â¬Ã˜Â¯ Ã™â€¦Ã˜Â´Ã˜ÂªÃ˜Â±Ã™Å Ã˜Â§Ã˜Âª Ã™â€Ã™â€Ã˜Â§Ã˜Â³Ã˜ÂªÃ˜Â¹Ã˜Â§Ã˜Â¯Ã˜Â©.',
+          'لا توجد مشتريات للاستعادة.',
       'restore_purchases_failed':
-          'Ã™ÂÃ˜Â´Ã™â€Ã˜Âª Ã˜Â§Ã™â€Ã˜Â§Ã˜Â³Ã˜ÂªÃ˜Â¹Ã˜Â§Ã˜Â¯Ã˜Â©: {err}',
+          'فشلت الاستعادة: {err}',
       'next_analysis':
-          'Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â§Ã™â€Ã™Å ',
+          'التحليل التالي',
       'next_analysis_ready':
-          'Ã™Å Ã™â€¦Ã™Æ’Ã™â€ Ã™Æ’ Ã˜Â¥Ã˜Â¬Ã˜Â±Ã˜Â§Ã˜Â¡ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€ Ã˜Â§Ã™â€Ã˜Â¢Ã™â€ .',
+          'يمكنك إجراء التحليل الآن.',
       'analysis_ready_risk':
-          'Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€ Ã™â€¦Ã˜ÂªÃ˜Â§Ã˜Â­ Ã˜Â§Ã™â€Ã˜Â¢Ã™â€ Ã˜Å’ Ã™â€Ã™Æ’Ã™â€  Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€ Ã˜Â§Ã™â€Ã™â€¦Ã˜ÂªÃ™Æ’Ã˜Â±Ã˜Â± Ã™â€šÃ˜Â¯ Ã™Å Ã˜Â¹Ã˜Â±Ã™â€˜Ã˜Â¶ Ã˜Â­Ã˜Â³Ã˜Â§Ã˜Â¨Ã™Æ’ Ã™â€Ã™â€Ã˜Â®Ã˜Â·Ã˜Â±.',
-      'please_wait': 'Ã™Å Ã˜Â±Ã˜Â¬Ã™â€° Ã˜Â§Ã™â€Ã˜Â§Ã™â€ Ã˜ÂªÃ˜Â¸Ã˜Â§Ã˜Â±',
+          'التحليل متاح الآن، لكن التحليل المتكرر قد يعرّض حسابك للخطر.',
+      'please_wait': 'يرجى الانتظار',
       'remaining_time':
-          'Ã˜Â§Ã™â€Ã™Ë†Ã™â€šÃ˜Âª Ã˜Â§Ã™â€Ã™â€¦Ã˜ÂªÃ˜Â¨Ã™â€šÃ™Å : {time}',
+          'الوقت المتبقي: {time}',
       'watch_ad':
-          'Ã˜Â´Ã˜Â§Ã™â€¡Ã˜Â¯ Ã˜Â§Ã™â€Ã˜Â¥Ã˜Â¹Ã™â€Ã˜Â§Ã™â€  Ã™Ë†Ã˜Â§Ã˜Â¨Ã˜Â¯Ã˜Â£ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€',
-      'start_analysis': 'Ã˜Â§Ã˜Â¨Ã˜Â¯Ã˜Â£ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€',
+          'شاهد الإعلان وابدأ التحليل',
+      'start_analysis': 'ابدأ التحليل',
       'start_analysis_question':
-          'Ã™â€¡Ã™â€ Ã˜ÂªÃ˜Â±Ã™Å Ã˜Â¯ Ã˜Â¨Ã˜Â¯Ã˜Â¡ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€Ã˜Å¸',
+          'هل تريد بدء التحليل؟',
       'clear_data_title':
-          'Ã˜Â¥Ã˜Â¹Ã˜Â§Ã˜Â¯Ã˜Â© Ã˜ÂªÃ˜Â¹Ã™Å Ã™Å Ã™â€  Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â·Ã˜Â¨Ã™Å Ã™â€š',
+          'إعادة تعيين بيانات التطبيق',
       'clear_data_content':
-          'Ã˜Â³Ã™Å Ã˜ÂªÃ™â€¦ Ã˜Â­Ã˜Â°Ã™Â Ã˜Â¬Ã™â€¦Ã™Å Ã˜Â¹ Ã˜Â§Ã™â€Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€Ã™â€¦Ã˜Â­Ã™â€Ã™Å Ã˜Â© Ã™Ë†Ã™â€¦Ã˜Â¹Ã™â€Ã™Ë†Ã™â€¦Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€Ã˜Â¬Ã™â€Ã˜Â³Ã˜Â©. Ã™â€¡Ã™â€ Ã˜Â£Ã™â€ Ã˜Âª Ã™â€¦Ã˜ÂªÃ˜Â£Ã™Æ’Ã˜Â¯Ã˜Å¸',
-      'cancel': 'Ã˜Â¥Ã™â€Ã˜ÂºÃ˜Â§Ã˜Â¡',
-      'delete': 'ÃƒËœÃ‚Â­ÃƒËœÃ‚Â°Ãƒâ„¢Ã‚Â',
+          'سيتم حذف جميع البيانات المحلية ومعلومات الجلسة. هل أنت متأكد؟',
+      'cancel': 'إلغاء',
+      'delete': 'حذف',
       'ad_wait_message':
-          'Ã˜Â§Ã™Æ’Ã˜ÂªÃ™â€¦Ã™â€ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€Ã˜Å’ Ã™Ë†Ã˜Â³Ã™Å Ã˜ÂªÃ™â€¦ Ã˜Â¹Ã˜Â±Ã˜Â¶ Ã˜Â§Ã™â€Ã™â€ Ã˜ÂªÃ˜Â§Ã˜Â¦Ã˜Â¬ Ã˜Â¨Ã˜Â¹Ã˜Â¯ Ã˜Â§Ã™â€Ã˜Â¥Ã˜Â¹Ã™â€Ã˜Â§Ã™â€ .',
-      'analysis_failed_title': 'Ã™ÂÃ˜Â´Ã™â€ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€',
-      'analysis_failed_reason': 'Ã˜Â§Ã™â€Ã˜Â³Ã˜Â¨Ã˜Â¨: {reason}',
+          'اكتمل التحليل، وسيتم عرض النتائج بعد الإعلان.',
+      'analysis_failed_title': 'فشل التحليل',
+      'analysis_failed_reason': 'السبب: {reason}',
       'analysis_failed_hint':
-          'Ã™â€ Ã˜ÂµÃ™Å Ã˜Â­Ã˜Â©: Ã™â€šÃ˜Â¯ Ã™Å Ã™ÂÃ™Å Ã˜Â¯ Ã˜ÂªÃ˜Â³Ã˜Â¬Ã™Å Ã™â€ Ã˜Â§Ã™â€Ã˜Â®Ã˜Â±Ã™Ë†Ã˜Â¬ Ã˜Â«Ã™â€¦ Ã˜ÂªÃ˜Â³Ã˜Â¬Ã™Å Ã™â€ Ã˜Â§Ã™â€Ã˜Â¯Ã˜Â®Ã™Ë†Ã™â€ Ã™â€¦Ã˜Â±Ã˜Â© Ã˜Â£Ã˜Â®Ã˜Â±Ã™â€°.',
+          'نصيحة: قد يفيد تسجيل الخروج ثم تسجيل الدخول مرة أخرى.',
       'story_section_title':
-          'Ã˜Â´Ã˜Â§Ã™â€¡Ã˜Â¯ Ã˜Â§Ã™â€Ã™â€šÃ˜ÂµÃ˜Âµ Ã˜Â¨Ã˜Â´Ã™Æ’Ã™â€ Ã™â€¦Ã˜Â®Ã™ÂÃ™Å  Ã˜Â£Ã™Ë† Ã™Æ’Ã˜Â¨Ã™â€˜Ã˜Â± Ã˜ÂµÃ™Ë†Ã˜Â± Ã˜Â§Ã™â€Ã™â€¦Ã™â€Ã™Â Ã˜Â§Ã™â€Ã˜Â´Ã˜Â®Ã˜ÂµÃ™Å ',
+          'شاهد القصص بشكل مخفي أو كبّر صور الملف الشخصي',
       'story_login_required':
-          'Ã™Å Ã˜Â±Ã˜Â¬Ã™â€° Ã˜ÂªÃ˜Â³Ã˜Â¬Ã™Å Ã™â€ Ã˜Â§Ã™â€Ã˜Â¯Ã˜Â®Ã™Ë†Ã™â€ Ã™â€Ã™â€¦Ã˜Â´Ã˜Â§Ã™â€¡Ã˜Â¯Ã˜Â© Ã˜Â§Ã™â€Ã™â€šÃ˜ÂµÃ˜Âµ Ã˜Â¨Ã˜Â´Ã™Æ’Ã™â€ Ã˜Â³Ã˜Â±Ã™Å  Ã™Ë†Ã˜ÂªÃ™Æ’Ã˜Â¨Ã™Å Ã˜Â± Ã˜ÂµÃ™Ë†Ã˜Â± Ã˜Â§Ã™â€Ã™â€¦Ã™â€Ã™Â Ã˜Â§Ã™â€Ã˜Â´Ã˜Â®Ã˜ÂµÃ™Å .',
+          'يرجى تسجيل الدخول لمشاهدة القصص بشكل سري وتكبير صور الملف الشخصي.',
       'story_ad_wait':
-          'Ã˜Â³Ã™Å Ã˜ÂªÃ™â€¦ Ã˜Â§Ã™â€Ã˜Â¹Ã˜Â±Ã˜Â¶ Ã˜Â¨Ã˜Â¹Ã˜Â¯ Ã˜Â§Ã™â€Ã˜Â¥Ã˜Â¹Ã™â€Ã˜Â§Ã™â€ Ã˜Å’ Ã™Å Ã˜Â±Ã˜Â¬Ã™â€° Ã˜Â§Ã™â€Ã˜Â§Ã™â€ Ã˜ÂªÃ˜Â¸Ã˜Â§Ã˜Â±.',
+          'سيتم العرض بعد الإعلان، يرجى الانتظار.',
       'story_action_title':
-          'Ã™â€¦Ã˜Â§Ã˜Â°Ã˜Â§ Ã˜ÂªÃ˜Â±Ã™Å Ã˜Â¯ Ã˜Â£Ã™â€  Ã˜ÂªÃ™ÂÃ˜Â¹Ã™â€Ã˜Å¸',
+          'ماذا تريد أن تفعل؟',
       'story_view_photo':
-          'Ã˜ÂªÃ™Æ’Ã˜Â¨Ã™Å Ã˜Â± Ã˜ÂµÃ™Ë†Ã˜Â±Ã˜Â© Ã˜Â§Ã™â€Ã™â€¦Ã™â€Ã™Â Ã˜Â§Ã™â€Ã˜Â´Ã˜Â®Ã˜ÂµÃ™Å ',
+          'تكبير صورة الملف الشخصي',
       'story_watch_secret':
-          'Ã™â€¦Ã˜Â´Ã˜Â§Ã™â€¡Ã˜Â¯Ã˜Â© Ã˜Â§Ã™â€Ã™â€šÃ˜ÂµÃ˜Â© Ã˜Â¨Ã˜Â´Ã™Æ’Ã™â€ Ã™â€¦Ã˜Â®Ã™ÂÃ™Å ',
+          'مشاهدة القصة بشكل مخفي',
       'story_no_data':
-          'Ã™â€Ã˜Â§ Ã˜ÂªÃ™Ë†Ã˜Â¬Ã˜Â¯ Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª Ã™â€Ã™â€Ã™â€šÃ˜ÂµÃ˜Âµ.',
-      'story_close': 'Ã˜Â¥Ã˜ÂºÃ™â€Ã˜Â§Ã™â€š',
+          'لا توجد بيانات للقصص.',
+      'story_close': 'إغلاق',
       'no_data':
           '\u0644\u0627 \u062A\u0648\u062C\u062F \u0628\u064A\u0627\u0646\u0627\u062A',
       'new_badge': '\u062C\u062F\u064A\u062F',
       'login_title':
           '\u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u062F\u062E\u0648\u0644',
       'read_and_agree':
-          'Ã™â€Ã™â€šÃ˜Â¯ Ã™â€šÃ˜Â±Ã˜Â£Ã˜Âª Ã™Ë†Ã˜Â£Ã™Ë†Ã˜Â§Ã™ÂÃ™â€š',
-      'withdraw_consent': 'Ã˜Â³Ã˜Â­Ã˜Â¨ Ã˜Â§Ã™â€Ã™â€¦Ã™Ë†Ã˜Â§Ã™ÂÃ™â€šÃ˜Â©',
-      'withdraw_consent_confirm_title': 'Ã˜ÂªÃ˜Â£Ã™Æ’Ã™Å Ã˜Â¯',
+          'لقد قرأت وأوافق',
+      'withdraw_consent': 'سحب الموافقة',
+      'withdraw_consent_confirm_title': 'تأكيد',
       'withdraw_consent_confirm_body':
-          'Ã˜Â³Ã™Å Ã˜ÂªÃ™â€¦ Ã˜Â¥Ã˜Â¹Ã˜Â§Ã˜Â¯Ã˜Â© Ã˜ÂªÃ˜Â¹Ã™Å Ã™Å Ã™â€  Ã˜Â¥Ã˜Â¹Ã˜Â¯Ã˜Â§Ã˜Â¯Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€Ã™â€¦Ã™Ë†Ã˜Â§Ã™ÂÃ™â€šÃ˜Â©. Ã™â€¡Ã™â€ Ã˜Â£Ã™â€ Ã˜Âª Ã™â€¦Ã˜ÂªÃ˜Â£Ã™Æ’Ã˜Â¯Ã˜Å¸',
-      'withdraw_consent_confirm_yes': 'Ã™â€ Ã˜Â¹Ã™â€¦',
-      'withdraw_consent_confirm_no': 'Ã˜Â¥Ã™â€Ã˜ÂºÃ˜Â§Ã˜Â¡',
+          'سيتم إعادة تعيين إعدادات الموافقة. هل أنت متأكد؟',
+      'withdraw_consent_confirm_yes': 'نعم',
+      'withdraw_consent_confirm_no': 'إلغاء',
       'data_updated':
-          'Ã˜Â§Ã™Æ’Ã˜ÂªÃ™â€¦Ã™â€ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€ Ã¢Å“â€¦',
-      'enter_pin': 'Ã˜Â£Ã˜Â¯Ã˜Â®Ã™â€ PIN',
+          'اكتمل التحليل ✅',
+      'enter_pin': 'أدخل PIN',
       'pin_accepted':
-          'Ã˜ÂªÃ™â€¦ Ã™â€šÃ˜Â¨Ã™Ë†Ã™â€ PIN Ã™Ë†Ã˜Â¥Ã˜Â¹Ã˜Â§Ã˜Â¯Ã˜Â© Ã˜ÂªÃ˜Â¹Ã™Å Ã™Å Ã™â€  Ã˜Â§Ã™â€Ã™Ë†Ã™â€šÃ˜Âª Ã¢Å“â€¦',
-      'pin_incorrect': 'PIN Ã˜ÂºÃ™Å Ã˜Â± Ã˜ÂµÃ˜Â­Ã™Å Ã˜Â­',
-      'ok': 'Ã™â€¦Ã™Ë†Ã˜Â§Ã™ÂÃ™â€š',
-      'legal_warning': 'Ã˜ÂªÃ™â€ Ã˜Â¨Ã™Å Ã™â€¡ Ã™â€šÃ˜Â§Ã™â€ Ã™Ë†Ã™â€ Ã™Å ',
+          'تم قبول PIN وإعادة تعيين الوقت ✅',
+      'pin_incorrect': 'PIN غير صحيح',
+      'ok': 'موافق',
+      'legal_warning': 'تنبيه قانوني',
       'rate_us': '\u0642\u064A\u0645\u0646\u0627',
       'contact_us': '\u062A\u0648\u0627\u0635\u0644 \u0645\u0639\u0646\u0627',
       'remove_ads_and_limits':
           '\u0625\u0632\u0627\u0644\u0629 \u0627\u0644\u0625\u0639\u0644\u0627\u0646\u0627\u062A \u0648\u0641\u062A\u0631\u0627\u062A \u0627\u0644\u0627\u0646\u062A\u0638\u0627\u0631',
       'legal_intro':
-          'Ã˜Â¨Ã˜ÂªÃ™â€ Ã˜Â²Ã™Å Ã™â€ Ã™â€¡Ã˜Â°Ã˜Â§ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â·Ã˜Â¨Ã™Å Ã™â€š Ã™Ë†Ã˜Â§Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã˜Â§Ã™â€¦Ã™â€¡Ã˜Å’ Ã™Å Ã™ÂÃ˜Â¹Ã˜ÂªÃ˜Â¨Ã˜Â± Ã˜Â§Ã™â€Ã™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦ Ã™â€šÃ˜Â¯ Ã™â€šÃ˜Â±Ã˜Â£ Ã™Ë†Ã™Ë†Ã˜Â§Ã™ÂÃ™â€š Ã˜Â¹Ã™â€Ã™â€° Ã˜Â§Ã™â€Ã˜Â´Ã˜Â±Ã™Ë†Ã˜Â· Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â§Ã™â€Ã™Å Ã˜Â©.',
+          'بتنزيل هذا التطبيق واستخدامه، يُعتبر المستخدم قد قرأ ووافق على الشروط التالية.',
       'user_label': '\u0645\u0633\u062A\u062E\u062F\u0645',
     },
     'es': {
@@ -4230,7 +4230,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Ver historias en secreto o hacer zoom en las fotos del perfil",
       "story_login_required":
-          "Inicia sesiÃƒÂ³n para ver historias en modo anÃƒÂ³nimo y ampliar fotos de perfil.",
+          "Inicia sesión para ver historias en modo anónimo y ampliar fotos de perfil.",
       "story_ad_wait": "Se mostrar\u00e1 despu\u00e9s del anuncio, espere.",
       "story_action_title": "\u00bfQu\u00e9 te gustar\u00eda hacer?",
       "story_view_photo": "Ampliar foto de perfil",
@@ -4355,7 +4355,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Ver historias en secreto o hacer zoom en las fotos del perfil",
       "story_login_required":
-          "Inicia sesiÃƒÂ³n para ver historias en modo anÃƒÂ³nimo y ampliar fotos de perfil.",
+          "Inicia sesión para ver historias en modo anónimo y ampliar fotos de perfil.",
       "story_ad_wait": "Se mostrar\u00e1 despu\u00e9s del anuncio, espere.",
       "story_action_title": "\u00bfQu\u00e9 te gustar\u00eda hacer?",
       "story_view_photo": "Ampliar foto de perfil",
@@ -4513,7 +4513,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "\u0917\u0941\u092a\u094d\u0924 \u0930\u0942\u092a \u0938\u0947 \u0915\u0939\u093e\u0928\u093f\u092f\u093e\u0902 \u0926\u0947\u0916\u0947\u0902 \u092f\u093e \u092a\u094d\u0930\u094b\u092b\u093c\u093e\u0907\u0932 \u092b\u093c\u094b\u091f\u094b \u091c\u093c\u0942\u092e \u0915\u0930\u0947\u0902",
       "story_login_required":
-          "Ã Â¤Â¸Ã Â¥ÂÃ Â¤Å¸Ã Â¥â€¹Ã Â¤Â°Ã Â¥â‚¬ Ã Â¤â€¢Ã Â¥â€¹ Ã Â¤â€”Ã Â¥ÂÃ Â¤ÂªÃ Â¥ÂÃ Â¤Â¤ Ã Â¤Â°Ã Â¥â€šÃ Â¤Âª Ã Â¤Â¸Ã Â¥â€¡ Ã Â¤Â¦Ã Â¥â€¡Ã Â¤â€“Ã Â¤Â¨Ã Â¥â€¡ Ã Â¤â€Ã Â¤Â° Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â°Ã Â¥â€¹Ã Â¤Â«Ã Â¤Â¼Ã Â¤Â¾Ã Â¤â€¡Ã Â¤Â² Ã Â¤Â«Ã Â¥â€¹Ã Â¤Å¸Ã Â¥â€¹ Ã Â¤Â¬Ã Â¤Â¡Ã Â¤Â¼Ã Â¤Â¾ Ã Â¤â€¢Ã Â¤Â°Ã Â¤Â¨Ã Â¥â€¡ Ã Â¤â€¢Ã Â¥â€¡ Ã Â¤Â²Ã Â¤Â¿Ã Â¤Â Ã Â¤â€¢Ã Â¥Æ’Ã Â¤ÂªÃ Â¤Â¯Ã Â¤Â¾ Ã Â¤Â²Ã Â¥â€°Ã Â¤â€”Ã Â¤Â¿Ã Â¤Â¨ Ã Â¤â€¢Ã Â¤Â°Ã Â¥â€¡Ã Â¤â€šÃ Â¥Â¤",
+          "स्टोरी को गुप्त रूप से देखने और प्रोफ़ाइल फोटो बड़ा करने के लिए कृपया लॉगिन करें।",
       "story_ad_wait":
           "\u0935\u093f\u091c\u094d\u091e\u093e\u092a\u0928 \u0915\u0947 \u092c\u093e\u0926 \u0926\u093f\u0916\u093e\u092f\u093e \u091c\u093e\u090f\u0917\u093e, \u0915\u0943\u092a\u092f\u093e \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e \u0915\u0930\u0947\u0902\u0964",
       "story_action_title":
@@ -4672,7 +4672,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "N\u00e9zze meg a t\u00f6rt\u00e9neteket titokban vagy nagy\u00edtsa ki a profilfot\u00f3kat",
       "story_login_required":
-          "KÃƒÂ©rjÃƒÂ¼k, jelentkezz be a tÃƒÂ¶rtÃƒÂ©netek nÃƒÂ©vtelen megtekintÃƒÂ©sÃƒÂ©hez ÃƒÂ©s a profilkÃƒÂ©pek nagyÃƒÂ­tÃƒÂ¡sÃƒÂ¡hoz.",
+          "Kérjük, jelentkezz be a történetek névtelen megtekintéséhez és a profilképek nagyításához.",
       "story_ad_wait":
           "A hirdet\u00e9s ut\u00e1n jelenik meg, k\u00e9rj\u00fck, v\u00e1rjon.",
       "story_action_title": "Mit szeretn\u00e9l csin\u00e1lni?",
@@ -4811,7 +4811,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "\u79d8\u5bc6\u89c2\u770b\u6545\u4e8b\u6216\u7f29\u653e\u4e2a\u4eba\u8d44\u6599\u7167\u7247",
       "story_login_required":
-          "Ã¨Â¯Â·Ã§â„¢Â»Ã¥Â½â€¢Ã¤Â»Â¥Ã¥Å’Â¿Ã¥ÂÂÃ¦Å¸Â¥Ã§Å“â€¹Ã¥Å Â¨Ã¦â‚¬ÂÃ¥Â¹Â¶Ã¦â€Â¾Ã¥Â¤Â§Ã¥Â¤Â´Ã¥Æ’ÂÃ§â€¦Â§Ã§â€°â€¡Ã£â‚¬â€š",
+          "请登录以匿名查看动态并放大头像照片。",
       "story_ad_wait":
           "\u5c06\u5728\u5e7f\u544a\u540e\u663e\u793a\uff0c\u8bf7\u7a0d\u5019\u3002",
       "story_action_title": "\u4f60\u60f3\u505a\u4ec0\u4e48\uff1f",
@@ -5463,7 +5463,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Xem c\u00e2u chuy\u1ec7n m\u1ed9t c\u00e1ch b\u00ed m\u1eadt ho\u1eb7c thu ph\u00f3ng \u1ea3nh h\u1ed3 s\u01a1",
       "story_login_required":
-          "Vui lÃƒÂ²ng Ã„â€˜Ã„Æ’ng nhÃ¡ÂºÂ­p Ã„â€˜Ã¡Â»Æ’ xem story Ã¡ÂºÂ©n danh vÃƒÂ  phÃƒÂ³ng to Ã¡ÂºÂ£nh hÃ¡Â»â€œ sÃ†Â¡.",
+          "Vui lòng đăng nhập để xem story ẩn danh và phóng to ảnh hồ sơ.",
       "story_ad_wait":
           "S\u1ebd hi\u1ec3n th\u1ecb sau qu\u1ea3ng c\u00e1o, vui l\u00f2ng \u0111\u1ee3i.",
       "story_action_title": "B\u1ea1n mu\u1ed1n l\u00e0m g\u00ec?",
@@ -5634,7 +5634,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "\u0e14\u0e39\u0e40\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e25\u0e31\u0e1a\u0e2b\u0e23\u0e37\u0e2d\u0e0b\u0e39\u0e21\u0e23\u0e39\u0e1b\u0e42\u0e1b\u0e23\u0e44\u0e1f\u0e25\u0e4c",
       "story_login_required":
-          "Ã Â¹â€šÃ Â¸â€ºÃ Â¸Â£Ã Â¸â€Ã Â¹â‚¬Ã Â¸â€šÃ Â¹â€°Ã Â¸Â²Ã Â¸ÂªÃ Â¸Â¹Ã Â¹Ë†Ã Â¸Â£Ã Â¸Â°Ã Â¸Å¡Ã Â¸Å¡Ã Â¹â‚¬Ã Â¸ÂÃ Â¸Â·Ã Â¹Ë†Ã Â¸Â­Ã Â¸â€Ã Â¸Â¹Ã Â¸ÂªÃ Â¸â€¢Ã Â¸Â­Ã Â¸Â£Ã Â¸ÂµÃ Â¹ÂÃ Â¸Å¡Ã Â¸Å¡Ã Â¹â€Ã Â¸Â¡Ã Â¹Ë†Ã Â¸Â£Ã Â¸Â°Ã Â¸Å¡Ã Â¸Â¸Ã Â¸â€¢Ã Â¸Â±Ã Â¸Â§Ã Â¸â€¢Ã Â¸â„¢Ã Â¹ÂÃ Â¸Â¥Ã Â¸Â°Ã Â¸â€šÃ Â¸Â¢Ã Â¸Â²Ã Â¸Â¢Ã Â¸Â£Ã Â¸Â¹Ã Â¸â€ºÃ Â¹â€šÃ Â¸â€ºÃ Â¸Â£Ã Â¹â€Ã Â¸Å¸Ã Â¸Â¥Ã Â¹Å’",
+          "โปรดเข้าสู่ระบบเพื่อดูสตอรีแบบไม่ระบุตัวตนและขยายรูปโปรไฟล์",
       "story_ad_wait":
           "\u0e08\u0e30\u0e41\u0e2a\u0e14\u0e07\u0e2b\u0e25\u0e31\u0e07\u0e42\u0e06\u0e29\u0e13\u0e32 \u0e01\u0e23\u0e38\u0e13\u0e32\u0e23\u0e2d\u0e2a\u0e31\u0e01\u0e04\u0e23\u0e39\u0e48",
       "story_action_title":
@@ -5788,7 +5788,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       "story_section_title":
           "Ogl\u0105daj historie w tajemnicy lub powi\u0119kszaj zdj\u0119cia profilowe",
       "story_login_required":
-          "Zaloguj siÃ„â„¢, aby oglÃ„â€¦daÃ„â€¡ relacje anonimowo i powiÃ„â„¢kszaÃ„â€¡ zdjÃ„â„¢cia profilowe.",
+          "Zaloguj się, aby oglądać relacje anonimowo i powiększać zdjęcia profilowe.",
       "story_ad_wait":
           "Zostanie wy\u015bwietlone po reklamie, prosz\u0119 czeka\u0107.",
       "story_action_title": "Co chcia\u0142by\u015b robi\u0107?",
@@ -5860,32 +5860,32 @@ class _DashboardScreenState extends State<DashboardScreen>
   final Map<String, Map<String, String>> _flowLocalized = {
     "tr": {
       "followers_incomplete":
-          "Veri yÃƒÂ¼kleme kesildi: takipÃƒÂ§i verisi eksik ({fetched}/{total}).",
+          "Veri yükleme kesildi: takipçi verisi eksik ({fetched}/{total}).",
       "following_incomplete":
-          "Veri yÃƒÂ¼kleme kesildi: takip edilen verisi eksik ({fetched}/{total}).",
+          "Veri yükleme kesildi: takip edilen verisi eksik ({fetched}/{total}).",
       "empty_data":
-          "Veri yÃƒÂ¼kleme kesildi: Instagram boÃ…Å¸ veri dÃƒÂ¶ndÃƒÂ¼rdÃƒÂ¼.",
+          "Veri yükleme kesildi: Instagram boş veri döndürdü.",
       "unexpected_error":
-          "Veri yÃƒÂ¼kleme kesildi: beklenmeyen bir hata oluÃ…Å¸tu.",
+          "Veri yükleme kesildi: beklenmeyen bir hata oluştu.",
       "automation_warning":
-          "Instagram otomatik davranÃ„Â±Ã…Å¸ uyarÃ„Â±sÃ„Â± verdi. GÃƒÂ¼venlik iÃƒÂ§in veri ÃƒÂ§ekme durduruldu.",
+          "Instagram otomatik davranış uyarısı verdi. Güvenlik için veri çekme durduruldu.",
       "security_required":
-          "Instagram gÃƒÂ¼venlik doÃ„Å¸rulamasÃ„Â± istedi. Instagram uygulamasÃ„Â±ndan doÃ„Å¸rulayÃ„Â±p tekrar deneyin.",
+          "Instagram güvenlik doğrulaması istedi. Instagram uygulamasından doğrulayıp tekrar deneyin.",
       "session_invalid":
-          "Oturum geÃƒÂ§ersiz veya doÃ„Å¸rulama bekliyor. LÃƒÂ¼tfen tekrar giriÃ…Å¸ yapÃ„Â±n.",
+          "Oturum geçersiz veya doğrulama bekliyor. Lütfen tekrar giriş yapın.",
       "rate_limited":
-          "Ãƒâ€¡ok hÃ„Â±zlÃ„Â± istek gÃƒÂ¶nderildi. Veri yÃƒÂ¼kleme gÃƒÂ¼venlik nedeniyle kesildi.",
+          "Çok hızlı istek gönderildi. Veri yükleme güvenlik nedeniyle kesildi.",
       "connection_error":
-          "BaÃ„Å¸lantÃ„Â± sorunu nedeniyle veri yÃƒÂ¼kleme tamamlanamadÃ„Â±.",
+          "Bağlantı sorunu nedeniyle veri yükleme tamamlanamadı.",
       "server_error":
-          "Instagram sunucusu hata dÃƒÂ¶ndÃƒÂ¼rdÃƒÂ¼ (HTTP {code}). Veri yÃƒÂ¼kleme kesildi.",
+          "Instagram sunucusu hata döndürdü (HTTP {code}). Veri yükleme kesildi.",
       "story_security_required":
-          "Instagram gÃƒÂ¼venlik doÃ„Å¸rulamasÃ„Â± gerekiyor (hikaye verisi alÃ„Â±namadÃ„Â±).",
+          "Instagram güvenlik doğrulaması gerekiyor (hikaye verisi alınamadı).",
       "story_detail":
-          "Hikaye verisi alÃ„Â±namadÃ„Â±. Genelde Instagram doÃ„Å¸rulamasÃ„Â±, geÃƒÂ§ici API kÃ„Â±sÃ„Â±tÃ„Â± veya baÃ„Å¸lantÃ„Â± kesintisinden kaynaklanÃ„Â±r. 2-3 dakika sonra tekrar deneyin.",
+          "Hikaye verisi alınamadı. Genelde Instagram doğrulaması, geçici API kısıtı veya bağlantı kesintisinden kaynaklanır. 2-3 dakika sonra tekrar deneyin.",
       "story_generic":
-          "Hikaye verisi alÃ„Â±namadÃ„Â±. LÃƒÂ¼tfen biraz sonra tekrar deneyin.",
-      "secret_mode_label": "GÃ„Â°ZLÃ„Â° MOD",
+          "Hikaye verisi alınamadı. Lütfen biraz sonra tekrar deneyin.",
+      "secret_mode_label": "GİZLİ MOD",
     },
     "en": {
       "followers_incomplete":
@@ -5943,151 +5943,151 @@ class _DashboardScreenState extends State<DashboardScreen>
     },
     "ko": {
       "followers_incomplete":
-          "Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â° Ã«Â¡Å“Ã«â€œÅ“ÃªÂ°â‚¬ Ã¬Â¤â€˜Ã«â€¹Â¨Ã«ÂËœÃ¬â€”Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤: Ã­Å’â€Ã«Â¡Å“Ã¬â€ºÅ’ Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â°ÃªÂ°â‚¬ Ã«Â¶Ë†Ã¬â„¢â€Ã¬Â â€Ã­â€¢Â©Ã«â€¹Ë†Ã«â€¹Â¤ ({fetched}/{total}).",
+          "데이터 로드가 중단되었습니다: 팔로워 데이터가 불완전합니다 ({fetched}/{total}).",
       "following_incomplete":
-          "Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â° Ã«Â¡Å“Ã«â€œÅ“ÃªÂ°â‚¬ Ã¬Â¤â€˜Ã«â€¹Â¨Ã«ÂËœÃ¬â€”Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤: Ã­Å’â€Ã«Â¡Å“Ã¬Ââ€° Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â°ÃªÂ°â‚¬ Ã«Â¶Ë†Ã¬â„¢â€Ã¬Â â€Ã­â€¢Â©Ã«â€¹Ë†Ã«â€¹Â¤ ({fetched}/{total}).",
+          "데이터 로드가 중단되었습니다: 팔로잉 데이터가 불완전합니다 ({fetched}/{total}).",
       "empty_data":
-          "Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â° Ã«Â¡Å“Ã«â€œÅ“ÃªÂ°â‚¬ Ã¬Â¤â€˜Ã«â€¹Â¨Ã«ÂËœÃ¬â€”Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤: InstagramÃ¬ÂÂ´ Ã«Â¹Ë† Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â°Ã«Â¥Â¼ Ã«Â°ËœÃ­â„¢ËœÃ­â€“Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤.",
+          "데이터 로드가 중단되었습니다: Instagram이 빈 데이터를 반환했습니다.",
       "unexpected_error":
-          "Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â° Ã«Â¡Å“Ã«â€œÅ“ÃªÂ°â‚¬ Ã¬Â¤â€˜Ã«â€¹Â¨Ã«ÂËœÃ¬â€”Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤: Ã¬ËœË†ÃªÂ¸Â°Ã¬Â¹Ëœ Ã¬â€¢Å Ã¬Ââ‚¬ Ã¬ËœÂ¤Ã«Â¥ËœÃªÂ°â‚¬ Ã«Â°Å“Ã¬Æ’ÂÃ­â€“Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤.",
+          "데이터 로드가 중단되었습니다: 예기치 않은 오류가 발생했습니다.",
       "automation_warning":
-          "InstagramÃ¬â€”ÂÃ¬â€Å“ Ã¬ÂÂÃ«Ââ„¢Ã­â„¢â€ Ã«Ââ„¢Ã¬Ââ€˜ ÃªÂ²Â½ÃªÂ³Â ÃªÂ°â‚¬ ÃªÂ°ÂÃ¬Â§â‚¬Ã«ÂËœÃ¬â€“Â´ Ã¬â€¢Ë†Ã¬Â â€Ã¬Ââ€ Ã¬Å“â€Ã­â€¢Â´ Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â° Ã¬Ë†ËœÃ¬Â§â€˜Ã¬Ââ€ Ã¬Â¤â€˜Ã«â€¹Â¨Ã­â€“Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤.",
+          "Instagram에서 자동화 동작 경고가 감지되어 안전을 위해 데이터 수집을 중단했습니다.",
       "security_required":
-          "Instagram Ã«Â³Â´Ã¬â€¢Ë† Ã­â„¢â€¢Ã¬ÂÂ¸Ã¬ÂÂ´ Ã­â€¢â€Ã¬Å¡â€Ã­â€¢Â©Ã«â€¹Ë†Ã«â€¹Â¤. Instagram Ã¬â€¢Â±Ã¬â€”ÂÃ¬â€Å“ Ã­â„¢â€¢Ã¬ÂÂ¸ Ã­â€ºâ€ Ã«â€¹Â¤Ã¬â€¹Å“ Ã¬â€¹Å“Ã«Ââ€Ã­â€¢ËœÃ¬â€Â¸Ã¬Å¡â€.",
+          "Instagram 보안 확인이 필요합니다. Instagram 앱에서 확인 후 다시 시도하세요.",
       "session_invalid":
-          "Ã¬â€Â¸Ã¬â€¦ËœÃ¬ÂÂ´ Ã¬Å“Â Ã­Å¡Â¨Ã­â€¢ËœÃ¬Â§â‚¬ Ã¬â€¢Å ÃªÂ±Â°Ã«â€šËœ Ã­â„¢â€¢Ã¬ÂÂ¸ Ã«Å’â‚¬ÃªÂ¸Â° Ã¬Â¤â€˜Ã¬Ââ€¦Ã«â€¹Ë†Ã«â€¹Â¤. Ã«â€¹Â¤Ã¬â€¹Å“ Ã«Â¡Å“ÃªÂ·Â¸Ã¬ÂÂ¸Ã­â€¢Â´ Ã¬Â£Â¼Ã¬â€Â¸Ã¬Å¡â€.",
+          "세션이 유효하지 않거나 확인 대기 중입니다. 다시 로그인해 주세요.",
       "rate_limited":
-          "Ã¬Å¡â€Ã¬Â²Â­Ã¬ÂÂ´ Ã«â€Ë†Ã«Â¬Â´ Ã«Â§ÂÃ¬â€¢â€ Ã¬â€¢Ë†Ã¬Â â€Ã¬Ââ€ Ã¬Å“â€Ã­â€¢Â´ Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â° Ã«Â¡Å“Ã«â€œÅ“Ã«Â¥Â¼ Ã¬Â¤â€˜Ã«â€¹Â¨Ã­â€“Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤.",
+          "요청이 너무 많아 안전을 위해 데이터 로드를 중단했습니다.",
       "connection_error":
-          "Ã¬â€”Â°ÃªÂ²Â° Ã«Â¬Â¸Ã¬Â Å“Ã«Â¡Å“ Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â° Ã«Â¡Å“Ã«â€œÅ“Ã«Â¥Â¼ Ã¬â„¢â€Ã«Â£Å’Ã­â€¢ËœÃ¬Â§â‚¬ Ã«ÂªÂ»Ã­â€“Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤.",
+          "연결 문제로 데이터 로드를 완료하지 못했습니다.",
       "server_error":
-          "Instagram Ã¬ËœÂ¤Ã«Â¥Ëœ(HTTP {code})Ã«Â¡Å“ Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â° Ã«Â¡Å“Ã«â€œÅ“ÃªÂ°â‚¬ Ã¬Â¤â€˜Ã«â€¹Â¨Ã«ÂËœÃ¬â€”Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤.",
+          "Instagram 오류(HTTP {code})로 데이터 로드가 중단되었습니다.",
       "story_security_required":
-          "Instagram Ã«Â³Â´Ã¬â€¢Ë† Ã­â„¢â€¢Ã¬ÂÂ¸Ã¬ÂÂ´ Ã­â€¢â€Ã¬Å¡â€Ã­â€¢Â©Ã«â€¹Ë†Ã«â€¹Â¤ (Ã¬Å Â¤Ã­â€ Â Ã«Â¦Â¬ Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â°Ã«Â¥Â¼ Ã«Â¶Ë†Ã«Å¸Â¬Ã¬ËœÂ¬ Ã¬Ë†Ëœ Ã¬â€”â€ Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤).",
+          "Instagram 보안 확인이 필요합니다 (스토리 데이터를 불러올 수 없습니다).",
       "story_detail":
-          "Ã¬Å Â¤Ã­â€ Â Ã«Â¦Â¬ Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â°Ã«Â¥Â¼ Ã«Â¶Ë†Ã«Å¸Â¬Ã¬ËœÂ¤Ã¬Â§â‚¬ Ã«ÂªÂ»Ã­â€“Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤. Ã¬ÂÂ¼Ã«Â°ËœÃ¬Â ÂÃ¬Å“Â¼Ã«Â¡Å“ Instagram Ã¬ÂÂ¸Ã¬Â¦Â, Ã¬ÂÂ¼Ã¬â€¹Å“Ã¬Â Â API Ã¬Â Å“Ã­â€¢Å“ Ã«ËœÂÃ«Å â€ Ã«â€Â¤Ã­Å Â¸Ã¬â€ºÅ’Ã­ÂÂ¬ Ã«Â¬Â¸Ã¬Â Å“Ã«Â¡Å“ Ã«Â°Å“Ã¬Æ’ÂÃ­â€¢Â©Ã«â€¹Ë†Ã«â€¹Â¤. 2-3Ã«Â¶â€ Ã­â€ºâ€ Ã«â€¹Â¤Ã¬â€¹Å“ Ã¬â€¹Å“Ã«Ââ€Ã­â€¢ËœÃ¬â€Â¸Ã¬Å¡â€.",
+          "스토리 데이터를 불러오지 못했습니다. 일반적으로 Instagram 인증, 일시적 API 제한 또는 네트워크 문제로 발생합니다. 2-3분 후 다시 시도하세요.",
       "story_generic":
-          "Ã¬Å Â¤Ã­â€ Â Ã«Â¦Â¬ Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â°Ã«Â¥Â¼ Ã«Â¶Ë†Ã«Å¸Â¬Ã¬ËœÂ¤Ã¬Â§â‚¬ Ã«ÂªÂ»Ã­â€“Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤. Ã¬ÂÂ Ã¬â€¹Å“ Ã­â€ºâ€ Ã«â€¹Â¤Ã¬â€¹Å“ Ã¬â€¹Å“Ã«Ââ€Ã­â€¢ËœÃ¬â€Â¸Ã¬Å¡â€.",
-      "secret_mode_label": "Ã«Â¹â€Ã«Â°â‚¬ Ã«ÂªÂ¨Ã«â€œÅ“",
+          "스토리 데이터를 불러오지 못했습니다. 잠시 후 다시 시도하세요.",
+      "secret_mode_label": "비밀 모드",
     },
     "ja": {
       "followers_incomplete":
-          "Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã¥Ââ€“Ã¥Â¾â€”Ã£ÂÅ’Ã¤Â¸Â­Ã¦â€“Â­Ã£Ââ€¢Ã£â€šÅ’Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸: Ã£Æ’â€¢Ã£â€šÂ©Ã£Æ’Â­Ã£Æ’Â¯Ã£Æ’Â¼Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã£ÂÅ’Ã¤Â¸ÂÃ¥Â®Å’Ã¥â€¦Â¨Ã£ÂÂ§Ã£Ââ„¢ ({fetched}/{total})Ã£â‚¬â€š",
+          "データ取得が中断されました: フォロワーデータが不完全です ({fetched}/{total})。",
       "following_incomplete":
-          "Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã¥Ââ€“Ã¥Â¾â€”Ã£ÂÅ’Ã¤Â¸Â­Ã¦â€“Â­Ã£Ââ€¢Ã£â€šÅ’Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸: Ã£Æ’â€¢Ã£â€šÂ©Ã£Æ’Â­Ã£Æ’Â¼Ã¤Â¸Â­Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã£ÂÅ’Ã¤Â¸ÂÃ¥Â®Å’Ã¥â€¦Â¨Ã£ÂÂ§Ã£Ââ„¢ ({fetched}/{total})Ã£â‚¬â€š",
+          "データ取得が中断されました: フォロー中データが不完全です ({fetched}/{total})。",
       "empty_data":
-          "Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã¥Ââ€“Ã¥Â¾â€”Ã£ÂÅ’Ã¤Â¸Â­Ã¦â€“Â­Ã£Ââ€¢Ã£â€šÅ’Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸: Instagram Ã£ÂÅ’Ã§Â©ÂºÃ£ÂÂ®Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã£â€šâ€™Ã¨Â¿â€Ã£Ââ€”Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸Ã£â‚¬â€š",
+          "データ取得が中断されました: Instagram が空のデータを返しました。",
       "unexpected_error":
-          "Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã¥Ââ€“Ã¥Â¾â€”Ã£ÂÅ’Ã¤Â¸Â­Ã¦â€“Â­Ã£Ââ€¢Ã£â€šÅ’Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸: Ã¤ÂºË†Ã¦Å“Å¸Ã£Ââ€”Ã£ÂÂªÃ£Ââ€Ã£â€šÂ¨Ã£Æ’Â©Ã£Æ’Â¼Ã£ÂÅ’Ã§â„¢ÂºÃ§â€Å¸Ã£Ââ€”Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸Ã£â‚¬â€š",
+          "データ取得が中断されました: 予期しないエラーが発生しました。",
       "automation_warning":
-          "Instagram Ã£ÂÅ’Ã¨â€¡ÂªÃ¥â€¹â€¢Ã¥Å’â€“Ã£Ââ€¢Ã£â€šÅ’Ã£ÂÅ¸Ã¦Å’â„¢Ã¥â€¹â€¢Ã£â€šâ€™Ã¦Â¤Å“Ã¥â€¡ÂºÃ£Ââ€”Ã£ÂÅ¸Ã£ÂÅ¸Ã£â€šÂÃ£â‚¬ÂÃ¥Â®â€°Ã¥â€¦Â¨Ã£ÂÂ®Ã£ÂÅ¸Ã£â€šÂÃ£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã¥Ââ€“Ã¥Â¾â€”Ã£â€šâ€™Ã¥ÂÅ“Ã¦Â­Â¢Ã£Ââ€”Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸Ã£â‚¬â€š",
+          "Instagram が自動化された挙動を検出したため、安全のためデータ取得を停止しました。",
       "security_required":
-          "Instagram Ã£ÂÂ®Ã£â€šÂ»Ã£â€šÂ­Ã£Æ’Â¥Ã£Æ’ÂªÃ£Æ’â€ Ã£â€šÂ£Ã§Â¢ÂºÃ¨ÂªÂÃ£ÂÅ’Ã¥Â¿â€¦Ã¨Â¦ÂÃ£ÂÂ§Ã£Ââ„¢Ã£â‚¬â€šÃ£â€šÂ¢Ã£Æ’â€”Ã£Æ’ÂªÃ£ÂÂ§Ã§Â¢ÂºÃ¨ÂªÂÃ¥Â¾Å’Ã£â‚¬ÂÃ¥â€ ÂÃ¨Â©Â¦Ã¨Â¡Å’Ã£Ââ€”Ã£ÂÂ¦Ã£ÂÂÃ£ÂÂ Ã£Ââ€¢Ã£Ââ€Ã£â‚¬â€š",
+          "Instagram のセキュリティ確認が必要です。アプリで確認後、再試行してください。",
       "session_invalid":
-          "Ã£â€šÂ»Ã£Æ’Æ’Ã£â€šÂ·Ã£Æ’Â§Ã£Æ’Â³Ã£ÂÅ’Ã§â€Â¡Ã¥Å Â¹Ã£Ââ€¹Ã£â‚¬ÂÃ§Â¢ÂºÃ¨ÂªÂÃ¥Â¾â€¦Ã£ÂÂ¡Ã£ÂÂ§Ã£Ââ„¢Ã£â‚¬â€šÃ¥â€ ÂÃ£Æ’Â­Ã£â€šÂ°Ã£â€šÂ¤Ã£Æ’Â³Ã£Ââ€”Ã£ÂÂ¦Ã£ÂÂÃ£ÂÂ Ã£Ââ€¢Ã£Ââ€Ã£â‚¬â€š",
+          "セッションが無効か、確認待ちです。再ログインしてください。",
       "rate_limited":
-          "Ã£Æ’ÂªÃ£â€šÂ¯Ã£â€šÂ¨Ã£â€šÂ¹Ã£Æ’Ë†Ã£ÂÅ’Ã¥Â¤Å¡Ã£Ââ„¢Ã£ÂÂÃ£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€šÃ¥Â®â€°Ã¥â€¦Â¨Ã£ÂÂ®Ã£ÂÅ¸Ã£â€šÂÃ£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã¥Ââ€“Ã¥Â¾â€”Ã£â€šâ€™Ã¤Â¸Â­Ã¦â€“Â­Ã£Ââ€”Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸Ã£â‚¬â€š",
+          "リクエストが多すぎます。安全のためデータ取得を中断しました。",
       "connection_error":
-          "Ã¦ÂÂ¥Ã§Â¶Å¡Ã£ÂÂ®Ã¥â€¢ÂÃ©Â¡Å’Ã£ÂÂ«Ã£â€šË†Ã£â€šÅ Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã¥Ââ€“Ã¥Â¾â€”Ã£â€šâ€™Ã¥Â®Å’Ã¤Âºâ€ Ã£ÂÂ§Ã£ÂÂÃ£ÂÂ¾Ã£Ââ€ºÃ£â€šâ€œÃ£ÂÂ§Ã£Ââ€”Ã£ÂÅ¸Ã£â‚¬â€š",
+          "接続の問題によりデータ取得を完了できませんでした。",
       "server_error":
-          "Instagram Ã£â€šÂ¨Ã£Æ’Â©Ã£Æ’Â¼ (HTTP {code}) Ã£ÂÂ«Ã£â€šË†Ã£â€šÅ Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã¥Ââ€“Ã¥Â¾â€”Ã£ÂÅ’Ã¤Â¸Â­Ã¦â€“Â­Ã£Ââ€¢Ã£â€šÅ’Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸Ã£â‚¬â€š",
+          "Instagram エラー (HTTP {code}) によりデータ取得が中断されました。",
       "story_security_required":
-          "Instagram Ã£ÂÂ®Ã£â€šÂ»Ã£â€šÂ­Ã£Æ’Â¥Ã£Æ’ÂªÃ£Æ’â€ Ã£â€šÂ£Ã§Â¢ÂºÃ¨ÂªÂÃ£ÂÅ’Ã¥Â¿â€¦Ã¨Â¦ÂÃ£ÂÂ§Ã£Ââ„¢ (Ã£â€šÂ¹Ã£Æ’Ë†Ã£Æ’Â¼Ã£Æ’ÂªÃ£Æ’Â¼Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã£â€šâ€™Ã¥Ââ€“Ã¥Â¾â€”Ã£ÂÂ§Ã£ÂÂÃ£ÂÂ¾Ã£Ââ€ºÃ£â€šâ€œ)Ã£â‚¬â€š",
+          "Instagram のセキュリティ確認が必要です (ストーリーデータを取得できません)。",
       "story_detail":
-          "Ã£â€šÂ¹Ã£Æ’Ë†Ã£Æ’Â¼Ã£Æ’ÂªÃ£Æ’Â¼Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã£â€šâ€™Ã¥Ââ€“Ã¥Â¾â€”Ã£ÂÂ§Ã£ÂÂÃ£ÂÂ¾Ã£Ââ€ºÃ£â€šâ€œÃ£ÂÂ§Ã£Ââ€”Ã£ÂÅ¸Ã£â‚¬â€šÃ©â‚¬Å¡Ã¥Â¸Â¸Ã£ÂÂ¯ Instagram Ã£ÂÂ®Ã¨ÂªÂÃ¨Â¨Â¼Ã£â‚¬ÂAPI Ã£ÂÂ®Ã¤Â¸â‚¬Ã¦â„¢â€šÃ¥Ë†Â¶Ã©â„¢ÂÃ£â‚¬ÂÃ£ÂÂ¾Ã£ÂÅ¸Ã£ÂÂ¯Ã¦ÂÂ¥Ã§Â¶Å¡Ã¥â€¢ÂÃ©Â¡Å’Ã£ÂÅ’Ã¥ÂÅ¸Ã¥â€ºÂ Ã£ÂÂ§Ã£Ââ„¢Ã£â‚¬â€š2Ã£â‚¬Å“3 Ã¥Ë†â€ Ã¥Â¾Å’Ã£ÂÂ«Ã¥â€ ÂÃ¨Â©Â¦Ã¨Â¡Å’Ã£Ââ€”Ã£ÂÂ¦Ã£ÂÂÃ£ÂÂ Ã£Ââ€¢Ã£Ââ€Ã£â‚¬â€š",
+          "ストーリーデータを取得できませんでした。通常は Instagram の認証、API の一時制限、または接続問題が原因です。2〜3 分後に再試行してください。",
       "story_generic":
-          "Ã£â€šÂ¹Ã£Æ’Ë†Ã£Æ’Â¼Ã£Æ’ÂªÃ£Æ’Â¼Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã£â€šâ€™Ã¥Ââ€“Ã¥Â¾â€”Ã£ÂÂ§Ã£ÂÂÃ£ÂÂ¾Ã£Ââ€ºÃ£â€šâ€œÃ£ÂÂ§Ã£Ââ€”Ã£ÂÅ¸Ã£â‚¬â€šÃ£Ââ€”Ã£ÂÂ°Ã£â€šâ€°Ã£ÂÂÃ£Ââ€”Ã£ÂÂ¦Ã£Ââ€¹Ã£â€šâ€°Ã¥â€ ÂÃ¨Â©Â¦Ã¨Â¡Å’Ã£Ââ€”Ã£ÂÂ¦Ã£ÂÂÃ£ÂÂ Ã£Ââ€¢Ã£Ââ€Ã£â‚¬â€š",
+          "ストーリーデータを取得できませんでした。しばらくしてから再試行してください。",
       "secret_mode_label":
-          "Ã£â€šÂ·Ã£Æ’Â¼Ã£â€šÂ¯Ã£Æ’Â¬Ã£Æ’Æ’Ã£Æ’Ë†Ã£Æ’Â¢Ã£Æ’Â¼Ã£Æ’â€°",
+          "シークレットモード",
     },
     "ru": {
       "followers_incomplete":
-          "Äâ€”ÄÂ°ÄÂ³Ã‘â‚¬Ã‘Æ’ÄÂ·ÄÂºÄÂ° ÄÂ¿Ã‘â‚¬ÄÂµÃ‘â‚¬ÄÂ²ÄÂ°ÄÂ½ÄÂ°: ÄÂ´ÄÂ°ÄÂ½ÄÂ½Ã‘â€¹ÄÂµ ÄÂ¿ÄÂ¾ÄÂ´ÄÂ¿ÄÂ¸Ã‘ÂÃ‘â€¡ÄÂ¸ÄÂºÄÂ¾ÄÂ² ÄÂ½ÄÂµÄÂ¿ÄÂ¾ÄÂ»ÄÂ½Ã‘â€¹ÄÂµ ({fetched}/{total}).",
+          "Загрузка прервана: данные подписчиков неполные ({fetched}/{total}).",
       "following_incomplete":
-          "Äâ€”ÄÂ°ÄÂ³Ã‘â‚¬Ã‘Æ’ÄÂ·ÄÂºÄÂ° ÄÂ¿Ã‘â‚¬ÄÂµÃ‘â‚¬ÄÂ²ÄÂ°ÄÂ½ÄÂ°: ÄÂ´ÄÂ°ÄÂ½ÄÂ½Ã‘â€¹ÄÂµ ÄÂ¿ÄÂ¾ÄÂ´ÄÂ¿ÄÂ¸Ã‘ÂÄÂ¾ÄÂº ÄÂ½ÄÂµÄÂ¿ÄÂ¾ÄÂ»ÄÂ½Ã‘â€¹ÄÂµ ({fetched}/{total}).",
+          "Загрузка прервана: данные подписок неполные ({fetched}/{total}).",
       "empty_data":
-          "Äâ€”ÄÂ°ÄÂ³Ã‘â‚¬Ã‘Æ’ÄÂ·ÄÂºÄÂ° ÄÂ¿Ã‘â‚¬ÄÂµÃ‘â‚¬ÄÂ²ÄÂ°ÄÂ½ÄÂ°: Instagram ÄÂ²ÄÂµÃ‘â‚¬ÄÂ½Ã‘Æ’ÄÂ» ÄÂ¿Ã‘Æ’Ã‘ÂÃ‘â€šÃ‘â€¹ÄÂµ ÄÂ´ÄÂ°ÄÂ½ÄÂ½Ã‘â€¹ÄÂµ.",
+          "Загрузка прервана: Instagram вернул пустые данные.",
       "unexpected_error":
-          "Äâ€”ÄÂ°ÄÂ³Ã‘â‚¬Ã‘Æ’ÄÂ·ÄÂºÄÂ° ÄÂ¿Ã‘â‚¬ÄÂµÃ‘â‚¬ÄÂ²ÄÂ°ÄÂ½ÄÂ°: ÄÂ¿Ã‘â‚¬ÄÂ¾ÄÂ¸ÄÂ·ÄÂ¾Ã‘Ë†ÄÂ»ÄÂ° ÄÂ½ÄÂµÄÂ¿Ã‘â‚¬ÄÂµÄÂ´ÄÂ²ÄÂ¸ÄÂ´ÄÂµÄÂ½ÄÂ½ÄÂ°Ã‘Â ÄÂ¾Ã‘Ë†ÄÂ¸ÄÂ±ÄÂºÄÂ°.",
+          "Загрузка прервана: произошла непредвиденная ошибка.",
       "automation_warning":
-          "Instagram ÄÂ¾ÄÂ±ÄÂ½ÄÂ°Ã‘â‚¬Ã‘Æ’ÄÂ¶ÄÂ¸ÄÂ» ÄÂ¿Ã‘â‚¬ÄÂ¸ÄÂ·ÄÂ½ÄÂ°ÄÂºÄÂ¸ ÄÂ°ÄÂ²Ã‘â€šÄÂ¾ÄÂ¼ÄÂ°Ã‘â€šÄÂ¸ÄÂ·ÄÂ°Ã‘â€ ÄÂ¸ÄÂ¸. Äâ€ÄÂ»Ã‘Â ÄÂ±ÄÂµÄÂ·ÄÂ¾ÄÂ¿ÄÂ°Ã‘ÂÄÂ½ÄÂ¾Ã‘ÂÃ‘â€šÄÂ¸ ÄÂ·ÄÂ°ÄÂ³Ã‘â‚¬Ã‘Æ’ÄÂ·ÄÂºÄÂ° ÄÂ¾Ã‘ÂÃ‘â€šÄÂ°ÄÂ½ÄÂ¾ÄÂ²ÄÂ»ÄÂµÄÂ½ÄÂ°.",
+          "Instagram обнаружил признаки автоматизации. Для безопасности загрузка остановлена.",
       "security_required":
-          "Instagram Ã‘â€šÃ‘â‚¬ÄÂµÄÂ±Ã‘Æ’ÄÂµÃ‘â€š ÄÂ¿Ã‘â‚¬ÄÂ¾ÄÂ²ÄÂµÃ‘â‚¬ÄÂºÃ‘Æ’ ÄÂ±ÄÂµÄÂ·ÄÂ¾ÄÂ¿ÄÂ°Ã‘ÂÄÂ½ÄÂ¾Ã‘ÂÃ‘â€šÄÂ¸. ÄÅ¸ÄÂ¾ÄÂ´Ã‘â€šÄÂ²ÄÂµÃ‘â‚¬ÄÂ´ÄÂ¸Ã‘â€šÄÂµ ÄÂ² ÄÂ¿Ã‘â‚¬ÄÂ¸ÄÂ»ÄÂ¾ÄÂ¶ÄÂµÄÂ½ÄÂ¸ÄÂ¸ ÄÂ¸ ÄÂ¿ÄÂ¾ÄÂ¿Ã‘â‚¬ÄÂ¾ÄÂ±Ã‘Æ’ÄÂ¹Ã‘â€šÄÂµ Ã‘ÂÄÂ½ÄÂ¾ÄÂ²ÄÂ°.",
+          "Instagram требует проверку безопасности. Подтвердите в приложении и попробуйте снова.",
       "session_invalid":
-          "ÄÂ¡ÄÂµÃ‘ÂÃ‘ÂÄÂ¸Ã‘Â ÄÂ½ÄÂµÄÂ´ÄÂµÄÂ¹Ã‘ÂÃ‘â€šÄÂ²ÄÂ¸Ã‘â€šÄÂµÄÂ»Ã‘Å’ÄÂ½ÄÂ° ÄÂ¸ÄÂ»ÄÂ¸ ÄÂ¾ÄÂ¶ÄÂ¸ÄÂ´ÄÂ°ÄÂµÃ‘â€š ÄÂ¿ÄÂ¾ÄÂ´Ã‘â€šÄÂ²ÄÂµÃ‘â‚¬ÄÂ¶ÄÂ´ÄÂµÄÂ½ÄÂ¸Ã‘Â. Äâ€™ÄÂ¾ÄÂ¹ÄÂ´ÄÂ¸Ã‘â€šÄÂµ Ã‘ÂÄÂ½ÄÂ¾ÄÂ²ÄÂ°.",
+          "Сессия недействительна или ожидает подтверждения. Войдите снова.",
       "rate_limited":
-          "ÄÂÃ‘â€šÄÂ¿Ã‘â‚¬ÄÂ°ÄÂ²ÄÂ»ÄÂµÄÂ½ÄÂ¾ Ã‘ÂÄÂ»ÄÂ¸Ã‘Ë†ÄÂºÄÂ¾ÄÂ¼ ÄÂ¼ÄÂ½ÄÂ¾ÄÂ³ÄÂ¾ ÄÂ·ÄÂ°ÄÂ¿Ã‘â‚¬ÄÂ¾Ã‘ÂÄÂ¾ÄÂ². Äâ€ÄÂ»Ã‘Â ÄÂ±ÄÂµÄÂ·ÄÂ¾ÄÂ¿ÄÂ°Ã‘ÂÄÂ½ÄÂ¾Ã‘ÂÃ‘â€šÄÂ¸ ÄÂ·ÄÂ°ÄÂ³Ã‘â‚¬Ã‘Æ’ÄÂ·ÄÂºÄÂ° ÄÂ¾Ã‘ÂÃ‘â€šÄÂ°ÄÂ½ÄÂ¾ÄÂ²ÄÂ»ÄÂµÄÂ½ÄÂ°.",
+          "Отправлено слишком много запросов. Для безопасности загрузка остановлена.",
       "connection_error":
-          "ÄÂÄÂµ Ã‘Æ’ÄÂ´ÄÂ°ÄÂ»ÄÂ¾Ã‘ÂÃ‘Å’ ÄÂ·ÄÂ°ÄÂ²ÄÂµÃ‘â‚¬Ã‘Ë†ÄÂ¸Ã‘â€šÃ‘Å’ ÄÂ·ÄÂ°ÄÂ³Ã‘â‚¬Ã‘Æ’ÄÂ·ÄÂºÃ‘Æ’ ÄÂ¸ÄÂ·-ÄÂ·ÄÂ° ÄÂ¿Ã‘â‚¬ÄÂ¾ÄÂ±ÄÂ»ÄÂµÄÂ¼Ã‘â€¹ Ã‘Â ÄÂ¿ÄÂ¾ÄÂ´ÄÂºÄÂ»Ã‘ÂÃ‘â€¡ÄÂµÄÂ½ÄÂ¸ÄÂµÄÂ¼.",
+          "Не удалось завершить загрузку из-за проблемы с подключением.",
       "server_error":
-          "ÄÂÃ‘Ë†ÄÂ¸ÄÂ±ÄÂºÄÂ° Instagram (HTTP {code}). Äâ€”ÄÂ°ÄÂ³Ã‘â‚¬Ã‘Æ’ÄÂ·ÄÂºÄÂ° ÄÂ¿Ã‘â‚¬ÄÂµÃ‘â‚¬ÄÂ²ÄÂ°ÄÂ½ÄÂ°.",
+          "Ошибка Instagram (HTTP {code}). Загрузка прервана.",
       "story_security_required":
-          "ÄÂ¢Ã‘â‚¬ÄÂµÄÂ±Ã‘Æ’ÄÂµÃ‘â€šÃ‘ÂÃ‘Â ÄÂ¿Ã‘â‚¬ÄÂ¾ÄÂ²ÄÂµÃ‘â‚¬ÄÂºÄÂ° ÄÂ±ÄÂµÄÂ·ÄÂ¾ÄÂ¿ÄÂ°Ã‘ÂÄÂ½ÄÂ¾Ã‘ÂÃ‘â€šÄÂ¸ Instagram (ÄÂ´ÄÂ°ÄÂ½ÄÂ½Ã‘â€¹ÄÂµ Ã‘ÂÃ‘â€šÄÂ¾Ã‘â‚¬ÄÂ¸Ã‘Â ÄÂ½ÄÂµÄÂ´ÄÂ¾Ã‘ÂÃ‘â€šÃ‘Æ’ÄÂ¿ÄÂ½Ã‘â€¹).",
+          "Требуется проверка безопасности Instagram (данные сторис недоступны).",
       "story_detail":
-          "ÄÂÄÂµ Ã‘Æ’ÄÂ´ÄÂ°ÄÂ»ÄÂ¾Ã‘ÂÃ‘Å’ ÄÂ¿ÄÂ¾ÄÂ»Ã‘Æ’Ã‘â€¡ÄÂ¸Ã‘â€šÃ‘Å’ ÄÂ´ÄÂ°ÄÂ½ÄÂ½Ã‘â€¹ÄÂµ Ã‘ÂÃ‘â€šÄÂ¾Ã‘â‚¬ÄÂ¸Ã‘Â. ÄÂÄÂ±Ã‘â€¹Ã‘â€¡ÄÂ½ÄÂ¾ Ã‘ÂÃ‘â€šÄÂ¾ Ã‘ÂÄÂ²Ã‘ÂÄÂ·ÄÂ°ÄÂ½ÄÂ¾ Ã‘Â ÄÂ¿Ã‘â‚¬ÄÂ¾ÄÂ²ÄÂµÃ‘â‚¬ÄÂºÄÂ¾ÄÂ¹ Instagram, ÄÂ²Ã‘â‚¬ÄÂµÄÂ¼ÄÂµÄÂ½ÄÂ½Ã‘â€¹ÄÂ¼ÄÂ¸ ÄÂ¾ÄÂ³Ã‘â‚¬ÄÂ°ÄÂ½ÄÂ¸Ã‘â€¡ÄÂµÄÂ½ÄÂ¸Ã‘ÂÄÂ¼ÄÂ¸ API ÄÂ¸ÄÂ»ÄÂ¸ Ã‘ÂÄÂ±ÄÂ¾ÄÂµÄÂ¼ Ã‘ÂÄÂµÃ‘â€šÄÂ¸. ÄÅ¸ÄÂ¾ÄÂ²Ã‘â€šÄÂ¾Ã‘â‚¬ÄÂ¸Ã‘â€šÄÂµ Ã‘â€¡ÄÂµÃ‘â‚¬ÄÂµÄÂ· 2Ã¢â‚¬â€œ3 ÄÂ¼ÄÂ¸ÄÂ½Ã‘Æ’Ã‘â€šÃ‘â€¹.",
+          "Не удалось получить данные сторис. Обычно это связано с проверкой Instagram, временными ограничениями API или сбоем сети. Повторите через 2–3 минуты.",
       "story_generic":
-          "ÄÂÄÂµ Ã‘Æ’ÄÂ´ÄÂ°ÄÂ»ÄÂ¾Ã‘ÂÃ‘Å’ ÄÂ¿ÄÂ¾ÄÂ»Ã‘Æ’Ã‘â€¡ÄÂ¸Ã‘â€šÃ‘Å’ ÄÂ´ÄÂ°ÄÂ½ÄÂ½Ã‘â€¹ÄÂµ Ã‘ÂÃ‘â€šÄÂ¾Ã‘â‚¬ÄÂ¸Ã‘Â. ÄÅ¸ÄÂ¾ÄÂ¿Ã‘â‚¬ÄÂ¾ÄÂ±Ã‘Æ’ÄÂ¹Ã‘â€šÄÂµ Ã‘ÂÄÂ½ÄÂ¾ÄÂ²ÄÂ° Ã‘â€¡Ã‘Æ’Ã‘â€šÃ‘Å’ ÄÂ¿ÄÂ¾ÄÂ·ÄÂ¶ÄÂµ.",
+          "Не удалось получить данные сторис. Попробуйте снова чуть позже.",
       "secret_mode_label":
-          "ÄÂ¡Äâ€¢ÄÅ¡ÄÂ Äâ€¢ÄÂ¢ÄÂÄÂ«Äâ„¢ ÄÂ Äâ€¢Äâ€“ÄËœÄÅ“",
+          "СЕКРЕТНЫЙ РЕЖИМ",
     },
     "ar": {
       "followers_incomplete":
-          "Ã˜ÂªÃ™â€¦ Ã˜Â¥Ã™Å Ã™â€šÃ˜Â§Ã™Â Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€¦Ã™Å Ã™â€: Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€Ã™â€¦Ã˜ÂªÃ˜Â§Ã˜Â¨Ã˜Â¹Ã™Å Ã™â€  Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã™Æ’Ã˜ÂªÃ™â€¦Ã™â€Ã˜Â© ({fetched}/{total}).",
+          "تم إيقاف التحميل: بيانات المتابعين غير مكتملة ({fetched}/{total}).",
       "following_incomplete":
-          "Ã˜ÂªÃ™â€¦ Ã˜Â¥Ã™Å Ã™â€šÃ˜Â§Ã™Â Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€¦Ã™Å Ã™â€: Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€Ã™â€¦Ã˜ÂªÃ˜Â§Ã˜Â¨Ã™ÂÃ˜Â¹Ã™Å Ã™â€  Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã™Æ’Ã˜ÂªÃ™â€¦Ã™â€Ã˜Â© ({fetched}/{total}).",
+          "تم إيقاف التحميل: بيانات المتابَعين غير مكتملة ({fetched}/{total}).",
       "empty_data":
-          "Ã˜ÂªÃ™â€¦ Ã˜Â¥Ã™Å Ã™â€šÃ˜Â§Ã™Â Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€¦Ã™Å Ã™â€: Ã˜Â£Ã˜Â¹Ã˜Â§Ã˜Â¯ Instagram Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª Ã™ÂÃ˜Â§Ã˜Â±Ã˜ÂºÃ˜Â©.",
+          "تم إيقاف التحميل: أعاد Instagram بيانات فارغة.",
       "unexpected_error":
-          "Ã˜ÂªÃ™â€¦ Ã˜Â¥Ã™Å Ã™â€šÃ˜Â§Ã™Â Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€¦Ã™Å Ã™â€ Ã˜Â¨Ã˜Â³Ã˜Â¨Ã˜Â¨ Ã˜Â®Ã˜Â·Ã˜Â£ Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂªÃ™Ë†Ã™â€šÃ˜Â¹.",
+          "تم إيقاف التحميل بسبب خطأ غير متوقع.",
       "automation_warning":
-          "Ã˜Â±Ã˜ÂµÃ˜Â¯ Instagram Ã˜Â³Ã™â€Ã™Ë†Ã™Æ’Ã™â€¹Ã˜Â§ Ã˜Â¢Ã™â€Ã™Å Ã™â€¹Ã˜Â§. Ã˜ÂªÃ™â€¦ Ã˜Â¥Ã™Å Ã™â€šÃ˜Â§Ã™Â Ã˜Â¬Ã™â€Ã˜Â¨ Ã˜Â§Ã™â€Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª Ã˜Â­Ã™ÂÃ˜Â§Ã˜Â¸Ã™â€¹Ã˜Â§ Ã˜Â¹Ã™â€Ã™â€° Ã˜Â§Ã™â€Ã˜Â£Ã™â€¦Ã˜Â§Ã™â€ .",
+          "رصد Instagram سلوكًا آليًا. تم إيقاف جلب البيانات حفاظًا على الأمان.",
       "security_required":
-          "Ã™Å Ã˜ÂªÃ˜Â·Ã™â€Ã˜Â¨ Instagram Ã˜ÂªÃ˜Â­Ã™â€šÃ™â€šÃ™â€¹Ã˜Â§ Ã˜Â£Ã™â€¦Ã™â€ Ã™Å Ã™â€¹Ã˜Â§. Ã˜Â£Ã™Æ’Ã™â€¦Ã™â€ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€šÃ™â€š Ã™â€¦Ã™â€  Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â·Ã˜Â¨Ã™Å Ã™â€š Ã˜Â«Ã™â€¦ Ã˜Â­Ã˜Â§Ã™Ë†Ã™â€ Ã™â€¦Ã˜Â±Ã˜Â© Ã˜Â£Ã˜Â®Ã˜Â±Ã™â€°.",
+          "يتطلب Instagram تحققًا أمنيًا. أكمل التحقق من التطبيق ثم حاول مرة أخرى.",
       "session_invalid":
-          "Ã˜Â§Ã™â€Ã˜Â¬Ã™â€Ã˜Â³Ã˜Â© Ã˜ÂºÃ™Å Ã˜Â± Ã˜ÂµÃ˜Â§Ã™â€Ã˜Â­Ã˜Â© Ã˜Â£Ã™Ë† Ã˜Â¨Ã˜Â§Ã™â€ Ã˜ÂªÃ˜Â¸Ã˜Â§Ã˜Â± Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€šÃ™â€š. Ã™Å Ã˜Â±Ã˜Â¬Ã™â€° Ã˜ÂªÃ˜Â³Ã˜Â¬Ã™Å Ã™â€ Ã˜Â§Ã™â€Ã˜Â¯Ã˜Â®Ã™Ë†Ã™â€ Ã™â€¦Ã˜Â±Ã˜Â© Ã˜Â£Ã˜Â®Ã˜Â±Ã™â€°.",
+          "الجلسة غير صالحة أو بانتظار التحقق. يرجى تسجيل الدخول مرة أخرى.",
       "rate_limited":
-          "Ã˜ÂªÃ™â€¦ Ã˜Â¥Ã˜Â±Ã˜Â³Ã˜Â§Ã™â€ Ã˜Â¹Ã˜Â¯Ã˜Â¯ Ã™Æ’Ã˜Â¨Ã™Å Ã˜Â± Ã˜Â¬Ã˜Â¯Ã™â€¹Ã˜Â§ Ã™â€¦Ã™â€  Ã˜Â§Ã™â€Ã˜Â·Ã™â€Ã˜Â¨Ã˜Â§Ã˜Âª. Ã˜ÂªÃ™â€¦ Ã˜Â¥Ã™Å Ã™â€šÃ˜Â§Ã™Â Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€¦Ã™Å Ã™â€ Ã˜Â­Ã™ÂÃ˜Â§Ã˜Â¸Ã™â€¹Ã˜Â§ Ã˜Â¹Ã™â€Ã™â€° Ã˜Â§Ã™â€Ã˜Â£Ã™â€¦Ã˜Â§Ã™â€ .",
+          "تم إرسال عدد كبير جدًا من الطلبات. تم إيقاف التحميل حفاظًا على الأمان.",
       "connection_error":
-          "Ã˜ÂªÃ˜Â¹Ã˜Â°Ã˜Â± Ã˜Â¥Ã™Æ’Ã™â€¦Ã˜Â§Ã™â€ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€¦Ã™Å Ã™â€ Ã˜Â¨Ã˜Â³Ã˜Â¨Ã˜Â¨ Ã™â€¦Ã˜Â´Ã™Æ’Ã™â€Ã˜Â© Ã™ÂÃ™Å  Ã˜Â§Ã™â€Ã˜Â§Ã˜ÂªÃ˜ÂµÃ˜Â§Ã™â€.",
+          "تعذر إكمال التحميل بسبب مشكلة في الاتصال.",
       "server_error":
-          "Ã˜Â®Ã˜Â·Ã˜Â£ Ã™â€¦Ã™â€  Instagram Ã¢â‚¬Â(HTTP {code}). Ã˜ÂªÃ™â€¦ Ã˜Â¥Ã™Å Ã™â€šÃ˜Â§Ã™Â Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€¦Ã™Å Ã™â€.",
+          "خطأ من Instagram ‏(HTTP {code}). تم إيقاف التحميل.",
       "story_security_required":
-          "Ã™Å Ã™â€Ã˜Â²Ã™â€¦ Ã˜ÂªÃ˜Â­Ã™â€šÃ™â€š Ã˜Â£Ã™â€¦Ã™â€ Ã™Å  Ã™â€¦Ã™â€  Instagram (Ã˜ÂªÃ˜Â¹Ã˜Â°Ã˜Â± Ã˜Â¬Ã™â€Ã˜Â¨ Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€Ã˜Â³Ã˜ÂªÃ™Ë†Ã˜Â±Ã™Å ).",
+          "يلزم تحقق أمني من Instagram (تعذر جلب بيانات الستوري).",
       "story_detail":
-          "Ã˜ÂªÃ˜Â¹Ã˜Â°Ã˜Â± Ã˜Â¬Ã™â€Ã˜Â¨ Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€Ã˜Â³Ã˜ÂªÃ™Ë†Ã˜Â±Ã™Å . Ã™Å Ã˜Â­Ã˜Â¯Ã˜Â« Ã˜Â°Ã™â€Ã™Æ’ Ã˜ÂºÃ˜Â§Ã™â€Ã˜Â¨Ã™â€¹Ã˜Â§ Ã˜Â¨Ã˜Â³Ã˜Â¨Ã˜Â¨ Ã˜ÂªÃ˜Â­Ã™â€šÃ™â€š Instagram Ã˜Â£Ã™Ë† Ã™â€šÃ™Å Ã™Ë†Ã˜Â¯ API Ã™â€¦Ã˜Â¤Ã™â€šÃ˜ÂªÃ˜Â© Ã˜Â£Ã™Ë† Ã™â€¦Ã˜Â´Ã™Æ’Ã™â€Ã˜Â© Ã˜Â´Ã˜Â¨Ã™Æ’Ã˜Â©. Ã˜Â­Ã˜Â§Ã™Ë†Ã™â€ Ã™â€¦Ã˜Â±Ã˜Â© Ã˜Â£Ã˜Â®Ã˜Â±Ã™â€° Ã˜Â¨Ã˜Â¹Ã˜Â¯ 2-3 Ã˜Â¯Ã™â€šÃ˜Â§Ã˜Â¦Ã™â€š.",
+          "تعذر جلب بيانات الستوري. يحدث ذلك غالبًا بسبب تحقق Instagram أو قيود API مؤقتة أو مشكلة شبكة. حاول مرة أخرى بعد 2-3 دقائق.",
       "story_generic":
-          "Ã˜ÂªÃ˜Â¹Ã˜Â°Ã˜Â± Ã˜Â¬Ã™â€Ã˜Â¨ Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€Ã˜Â³Ã˜ÂªÃ™Ë†Ã˜Â±Ã™Å . Ã™Å Ã˜Â±Ã˜Â¬Ã™â€° Ã˜Â§Ã™â€Ã™â€¦Ã˜Â­Ã˜Â§Ã™Ë†Ã™â€Ã˜Â© Ã™â€¦Ã˜Â±Ã˜Â© Ã˜Â£Ã˜Â®Ã˜Â±Ã™â€° Ã˜Â¨Ã˜Â¹Ã˜Â¯ Ã™â€šÃ™â€Ã™Å Ã™â€.",
-      "secret_mode_label": "Ã˜Â§Ã™â€Ã™Ë†Ã˜Â¶Ã˜Â¹ Ã˜Â§Ã™â€Ã˜Â³Ã˜Â±Ã™Å ",
+          "تعذر جلب بيانات الستوري. يرجى المحاولة مرة أخرى بعد قليل.",
+      "secret_mode_label": "الوضع السري",
     },
     "hi": {
       "followers_incomplete":
-          "Ã Â¤Â¡Ã Â¥â€¡Ã Â¤Å¸Ã Â¤Â¾ Ã Â¤Â²Ã Â¥â€¹Ã Â¤Â¡ Ã Â¤Â°Ã Â¥ÂÃ Â¤â€¢ Ã Â¤â€”Ã Â¤Â¯Ã Â¤Â¾: Ã Â¤Â«Ã Â¤Â¼Ã Â¥â€°Ã Â¤Â²Ã Â¥â€¹Ã Â¤â€¦Ã Â¤Â° Ã Â¤Â¡Ã Â¥â€¡Ã Â¤Å¸Ã Â¤Â¾ Ã Â¤â€¦Ã Â¤Â§Ã Â¥â€šÃ Â¤Â°Ã Â¤Â¾ Ã Â¤Â¹Ã Â¥Ë† ({fetched}/{total}).",
+          "डेटा लोड रुक गया: फ़ॉलोअर डेटा अधूरा है ({fetched}/{total}).",
       "following_incomplete":
-          "Ã Â¤Â¡Ã Â¥â€¡Ã Â¤Å¸Ã Â¤Â¾ Ã Â¤Â²Ã Â¥â€¹Ã Â¤Â¡ Ã Â¤Â°Ã Â¥ÂÃ Â¤â€¢ Ã Â¤â€”Ã Â¤Â¯Ã Â¤Â¾: Ã Â¤Â«Ã Â¤Â¼Ã Â¥â€°Ã Â¤Â²Ã Â¥â€¹Ã Â¤â€¡Ã Â¤â€šÃ Â¤â€” Ã Â¤Â¡Ã Â¥â€¡Ã Â¤Å¸Ã Â¤Â¾ Ã Â¤â€¦Ã Â¤Â§Ã Â¥â€šÃ Â¤Â°Ã Â¤Â¾ Ã Â¤Â¹Ã Â¥Ë† ({fetched}/{total}).",
+          "डेटा लोड रुक गया: फ़ॉलोइंग डेटा अधूरा है ({fetched}/{total}).",
       "empty_data":
-          "Ã Â¤Â¡Ã Â¥â€¡Ã Â¤Å¸Ã Â¤Â¾ Ã Â¤Â²Ã Â¥â€¹Ã Â¤Â¡ Ã Â¤Â°Ã Â¥ÂÃ Â¤â€¢ Ã Â¤â€”Ã Â¤Â¯Ã Â¤Â¾: Instagram Ã Â¤Â¨Ã Â¥â€¡ Ã Â¤â€“Ã Â¤Â¾Ã Â¤Â²Ã Â¥â‚¬ Ã Â¤Â¡Ã Â¥â€¡Ã Â¤Å¸Ã Â¤Â¾ Ã Â¤Â²Ã Â¥Å’Ã Â¤Å¸Ã Â¤Â¾Ã Â¤Â¯Ã Â¤Â¾Ã Â¥Â¤",
+          "डेटा लोड रुक गया: Instagram ने खाली डेटा लौटाया।",
       "unexpected_error":
-          "Ã Â¤Â¡Ã Â¥â€¡Ã Â¤Å¸Ã Â¤Â¾ Ã Â¤Â²Ã Â¥â€¹Ã Â¤Â¡ Ã Â¤Â°Ã Â¥ÂÃ Â¤â€¢ Ã Â¤â€”Ã Â¤Â¯Ã Â¤Â¾: Ã Â¤ÂÃ Â¤â€¢ Ã Â¤â€¦Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â°Ã Â¤Â¤Ã Â¥ÂÃ Â¤Â¯Ã Â¤Â¾Ã Â¤Â¶Ã Â¤Â¿Ã Â¤Â¤ Ã Â¤Â¤Ã Â¥ÂÃ Â¤Â°Ã Â¥ÂÃ Â¤Å¸Ã Â¤Â¿ Ã Â¤Â¹Ã Â¥ÂÃ Â¤Ë†Ã Â¥Â¤",
+          "डेटा लोड रुक गया: एक अप्रत्याशित त्रुटि हुई।",
       "automation_warning":
-          "Instagram Ã Â¤Â¨Ã Â¥â€¡ Ã Â¤â€˜Ã Â¤Å¸Ã Â¥â€¹Ã Â¤Â®Ã Â¥â€¡Ã Â¤Â¶Ã Â¤Â¨ Ã Â¤Å“Ã Â¥Ë†Ã Â¤Â¸Ã Â¥â‚¬ Ã Â¤â€”Ã Â¤Â¤Ã Â¤Â¿Ã Â¤ÂµÃ Â¤Â¿Ã Â¤Â§Ã Â¤Â¿ Ã Â¤ÂªÃ Â¤Â¹Ã Â¤Å¡Ã Â¤Â¾Ã Â¤Â¨Ã Â¥â‚¬Ã Â¥Â¤ Ã Â¤Â¸Ã Â¥ÂÃ Â¤Â°Ã Â¤â€¢Ã Â¥ÂÃ Â¤Â·Ã Â¤Â¾ Ã Â¤â€¢Ã Â¥â€¡ Ã Â¤Â²Ã Â¤Â¿Ã Â¤Â Ã Â¤Â¡Ã Â¥â€¡Ã Â¤Å¸Ã Â¤Â¾ Ã Â¤Â²Ã Â¥â€¹Ã Â¤Â¡ Ã Â¤Â°Ã Â¥â€¹Ã Â¤â€¢ Ã Â¤Â¦Ã Â¤Â¿Ã Â¤Â¯Ã Â¤Â¾ Ã Â¤â€”Ã Â¤Â¯Ã Â¤Â¾Ã Â¥Â¤",
+          "Instagram ने ऑटोमेशन जैसी गतिविधि पहचानी। सुरक्षा के लिए डेटा लोड रोक दिया गया।",
       "security_required":
-          "Instagram Ã Â¤Â¸Ã Â¥ÂÃ Â¤Â°Ã Â¤â€¢Ã Â¥ÂÃ Â¤Â·Ã Â¤Â¾ Ã Â¤Â¸Ã Â¤Â¤Ã Â¥ÂÃ Â¤Â¯Ã Â¤Â¾Ã Â¤ÂªÃ Â¤Â¨ Ã Â¤Â®Ã Â¤Â¾Ã Â¤â€šÃ Â¤â€” Ã Â¤Â°Ã Â¤Â¹Ã Â¤Â¾ Ã Â¤Â¹Ã Â¥Ë†Ã Â¥Â¤ Ã Â¤ÂÃ Â¤Âª Ã Â¤Â®Ã Â¥â€¡Ã Â¤â€š Ã Â¤Â¸Ã Â¤Â¤Ã Â¥ÂÃ Â¤Â¯Ã Â¤Â¾Ã Â¤ÂªÃ Â¤Â¿Ã Â¤Â¤ Ã Â¤â€¢Ã Â¤Â°Ã Â¤â€¢Ã Â¥â€¡ Ã Â¤Â«Ã Â¤Â¿Ã Â¤Â° Ã Â¤â€¢Ã Â¥â€¹Ã Â¤Â¶Ã Â¤Â¿Ã Â¤Â¶ Ã Â¤â€¢Ã Â¤Â°Ã Â¥â€¡Ã Â¤â€šÃ Â¥Â¤",
+          "Instagram सुरक्षा सत्यापन मांग रहा है। ऐप में सत्यापित करके फिर कोशिश करें।",
       "session_invalid":
-          "Ã Â¤Â¸Ã Â¥â€¡Ã Â¤Â¶Ã Â¤Â¨ Ã Â¤â€¦Ã Â¤Â®Ã Â¤Â¾Ã Â¤Â¨Ã Â¥ÂÃ Â¤Â¯ Ã Â¤Â¹Ã Â¥Ë† Ã Â¤Â¯Ã Â¤Â¾ Ã Â¤Â¸Ã Â¤Â¤Ã Â¥ÂÃ Â¤Â¯Ã Â¤Â¾Ã Â¤ÂªÃ Â¤Â¨ Ã Â¤â€¢Ã Â¥â‚¬ Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â°Ã Â¤Â¤Ã Â¥â‚¬Ã Â¤â€¢Ã Â¥ÂÃ Â¤Â·Ã Â¤Â¾ Ã Â¤Â®Ã Â¥â€¡Ã Â¤â€š Ã Â¤Â¹Ã Â¥Ë†Ã Â¥Â¤ Ã Â¤â€¢Ã Â¥Æ’Ã Â¤ÂªÃ Â¤Â¯Ã Â¤Â¾ Ã Â¤Â¦Ã Â¥â€¹Ã Â¤Â¬Ã Â¤Â¾Ã Â¤Â°Ã Â¤Â¾ Ã Â¤Â²Ã Â¥â€°Ã Â¤â€”Ã Â¤Â¿Ã Â¤Â¨ Ã Â¤â€¢Ã Â¤Â°Ã Â¥â€¡Ã Â¤â€šÃ Â¥Â¤",
+          "सेशन अमान्य है या सत्यापन की प्रतीक्षा में है। कृपया दोबारा लॉगिन करें।",
       "rate_limited":
-          "Ã Â¤Â¬Ã Â¤Â¹Ã Â¥ÂÃ Â¤Â¤ Ã Â¤â€¦Ã Â¤Â§Ã Â¤Â¿Ã Â¤â€¢ Ã Â¤â€¦Ã Â¤Â¨Ã Â¥ÂÃ Â¤Â°Ã Â¥â€¹Ã Â¤Â§ Ã Â¤Â­Ã Â¥â€¡Ã Â¤Å“Ã Â¥â€¡ Ã Â¤â€”Ã Â¤ÂÃ Â¥Â¤ Ã Â¤Â¸Ã Â¥ÂÃ Â¤Â°Ã Â¤â€¢Ã Â¥ÂÃ Â¤Â·Ã Â¤Â¾ Ã Â¤â€¢Ã Â¥â€¡ Ã Â¤Â²Ã Â¤Â¿Ã Â¤Â Ã Â¤Â¡Ã Â¥â€¡Ã Â¤Å¸Ã Â¤Â¾ Ã Â¤Â²Ã Â¥â€¹Ã Â¤Â¡ Ã Â¤Â°Ã Â¥â€¹Ã Â¤â€¢ Ã Â¤Â¦Ã Â¤Â¿Ã Â¤Â¯Ã Â¤Â¾ Ã Â¤â€”Ã Â¤Â¯Ã Â¤Â¾Ã Â¥Â¤",
+          "बहुत अधिक अनुरोध भेजे गए। सुरक्षा के लिए डेटा लोड रोक दिया गया।",
       "connection_error":
-          "Ã Â¤â€¢Ã Â¤Â¨Ã Â¥â€¡Ã Â¤â€¢Ã Â¥ÂÃ Â¤Â¶Ã Â¤Â¨ Ã Â¤Â¸Ã Â¤Â®Ã Â¤Â¸Ã Â¥ÂÃ Â¤Â¯Ã Â¤Â¾ Ã Â¤â€¢Ã Â¥â€¡ Ã Â¤â€¢Ã Â¤Â¾Ã Â¤Â°Ã Â¤Â£ Ã Â¤Â¡Ã Â¥â€¡Ã Â¤Å¸Ã Â¤Â¾ Ã Â¤Â²Ã Â¥â€¹Ã Â¤Â¡ Ã Â¤ÂªÃ Â¥â€šÃ Â¤Â°Ã Â¤Â¾ Ã Â¤Â¨Ã Â¤Â¹Ã Â¥â‚¬Ã Â¤â€š Ã Â¤Â¹Ã Â¥â€¹ Ã Â¤Â¸Ã Â¤â€¢Ã Â¤Â¾Ã Â¥Â¤",
+          "कनेक्शन समस्या के कारण डेटा लोड पूरा नहीं हो सका।",
       "server_error":
-          "Instagram Ã Â¤Â¤Ã Â¥ÂÃ Â¤Â°Ã Â¥ÂÃ Â¤Å¸Ã Â¤Â¿ (HTTP {code}) Ã Â¤â€¢Ã Â¥â€¡ Ã Â¤â€¢Ã Â¤Â¾Ã Â¤Â°Ã Â¤Â£ Ã Â¤Â¡Ã Â¥â€¡Ã Â¤Å¸Ã Â¤Â¾ Ã Â¤Â²Ã Â¥â€¹Ã Â¤Â¡ Ã Â¤Â°Ã Â¥ÂÃ Â¤â€¢ Ã Â¤â€”Ã Â¤Â¯Ã Â¤Â¾Ã Â¥Â¤",
+          "Instagram त्रुटि (HTTP {code}) के कारण डेटा लोड रुक गया।",
       "story_security_required":
-          "Instagram Ã Â¤Â¸Ã Â¥ÂÃ Â¤Â°Ã Â¤â€¢Ã Â¥ÂÃ Â¤Â·Ã Â¤Â¾ Ã Â¤Â¸Ã Â¤Â¤Ã Â¥ÂÃ Â¤Â¯Ã Â¤Â¾Ã Â¤ÂªÃ Â¤Â¨ Ã Â¤â€ Ã Â¤ÂµÃ Â¤Â¶Ã Â¥ÂÃ Â¤Â¯Ã Â¤â€¢ Ã Â¤Â¹Ã Â¥Ë† (Ã Â¤Â¸Ã Â¥ÂÃ Â¤Å¸Ã Â¥â€¹Ã Â¤Â°Ã Â¥â‚¬ Ã Â¤Â¡Ã Â¥â€¡Ã Â¤Å¸Ã Â¤Â¾ Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â°Ã Â¤Â¾Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â¤ Ã Â¤Â¨Ã Â¤Â¹Ã Â¥â‚¬Ã Â¤â€š Ã Â¤Â¹Ã Â¥â€¹ Ã Â¤Â¸Ã Â¤â€¢Ã Â¤Â¾)Ã Â¥Â¤",
+          "Instagram सुरक्षा सत्यापन आवश्यक है (स्टोरी डेटा प्राप्त नहीं हो सका)।",
       "story_detail":
-          "Ã Â¤Â¸Ã Â¥ÂÃ Â¤Å¸Ã Â¥â€¹Ã Â¤Â°Ã Â¥â‚¬ Ã Â¤Â¡Ã Â¥â€¡Ã Â¤Å¸Ã Â¤Â¾ Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â°Ã Â¤Â¾Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â¤ Ã Â¤Â¨Ã Â¤Â¹Ã Â¥â‚¬Ã Â¤â€š Ã Â¤Â¹Ã Â¥â€¹ Ã Â¤Â¸Ã Â¤â€¢Ã Â¤Â¾Ã Â¥Â¤ Ã Â¤â€ Ã Â¤Â®Ã Â¤Â¤Ã Â¥Å’Ã Â¤Â° Ã Â¤ÂªÃ Â¤Â° Ã Â¤Â¯Ã Â¤Â¹ Instagram Ã Â¤Â¸Ã Â¤Â¤Ã Â¥ÂÃ Â¤Â¯Ã Â¤Â¾Ã Â¤ÂªÃ Â¤Â¨, Ã Â¤â€¦Ã Â¤Â¸Ã Â¥ÂÃ Â¤Â¥Ã Â¤Â¾Ã Â¤Â¯Ã Â¥â‚¬ API Ã Â¤Â¸Ã Â¥â‚¬Ã Â¤Â®Ã Â¤Â¾ Ã Â¤Â¯Ã Â¤Â¾ Ã Â¤Â¨Ã Â¥â€¡Ã Â¤Å¸Ã Â¤ÂµÃ Â¤Â°Ã Â¥ÂÃ Â¤â€¢ Ã Â¤Â¸Ã Â¤Â®Ã Â¤Â¸Ã Â¥ÂÃ Â¤Â¯Ã Â¤Â¾ Ã Â¤â€¢Ã Â¥â€¡ Ã Â¤â€¢Ã Â¤Â¾Ã Â¤Â°Ã Â¤Â£ Ã Â¤Â¹Ã Â¥â€¹Ã Â¤Â¤Ã Â¤Â¾ Ã Â¤Â¹Ã Â¥Ë†Ã Â¥Â¤ 2-3 Ã Â¤Â®Ã Â¤Â¿Ã Â¤Â¨Ã Â¤Å¸ Ã Â¤Â¬Ã Â¤Â¾Ã Â¤Â¦ Ã Â¤Â«Ã Â¤Â¿Ã Â¤Â° Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â°Ã Â¤Â¯Ã Â¤Â¾Ã Â¤Â¸ Ã Â¤â€¢Ã Â¤Â°Ã Â¥â€¡Ã Â¤â€šÃ Â¥Â¤",
+          "स्टोरी डेटा प्राप्त नहीं हो सका। आमतौर पर यह Instagram सत्यापन, अस्थायी API सीमा या नेटवर्क समस्या के कारण होता है। 2-3 मिनट बाद फिर प्रयास करें।",
       "story_generic":
-          "Ã Â¤Â¸Ã Â¥ÂÃ Â¤Å¸Ã Â¥â€¹Ã Â¤Â°Ã Â¥â‚¬ Ã Â¤Â¡Ã Â¥â€¡Ã Â¤Å¸Ã Â¤Â¾ Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â°Ã Â¤Â¾Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â¤ Ã Â¤Â¨Ã Â¤Â¹Ã Â¥â‚¬Ã Â¤â€š Ã Â¤Â¹Ã Â¥â€¹ Ã Â¤Â¸Ã Â¤â€¢Ã Â¤Â¾Ã Â¥Â¤ Ã Â¤â€¢Ã Â¥Æ’Ã Â¤ÂªÃ Â¤Â¯Ã Â¤Â¾ Ã Â¤Â¥Ã Â¥â€¹Ã Â¤Â¡Ã Â¤Â¼Ã Â¥â‚¬ Ã Â¤Â¦Ã Â¥â€¡Ã Â¤Â° Ã Â¤Â¬Ã Â¤Â¾Ã Â¤Â¦ Ã Â¤Â«Ã Â¤Â¿Ã Â¤Â° Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â°Ã Â¤Â¯Ã Â¤Â¾Ã Â¤Â¸ Ã Â¤â€¢Ã Â¤Â°Ã Â¥â€¡Ã Â¤â€šÃ Â¥Â¤",
+          "स्टोरी डेटा प्राप्त नहीं हो सका। कृपया थोड़ी देर बाद फिर प्रयास करें।",
       "secret_mode_label":
-          "Ã Â¤Â¸Ã Â¥â‚¬Ã Â¤â€¢Ã Â¥ÂÃ Â¤Â°Ã Â¥â€¡Ã Â¤Å¸ Ã Â¤Â®Ã Â¥â€¹Ã Â¤Â¡",
+          "सीक्रेट मोड",
     },
     "es": {
       "followers_incomplete":
@@ -6278,12 +6278,12 @@ class _DashboardScreenState extends State<DashboardScreen>
   static const Map<String, Map<String, String>> _humanizedUiOverrides = {
     'tr': {
       'story_section_title':
-          'Hikayeleri gizlice izle veya profil fotoÃ„Å¸rafÃ„Â±nÃ„Â± bÃƒÂ¼yÃƒÂ¼t',
+          'Hikayeleri gizlice izle veya profil fotoğrafını büyüt',
       'story_login_required':
-          'Hikayeleri gizlice izleyebilmek ve profil fotoÃ„Å¸raflarÃ„Â±nÃ„Â± bÃƒÂ¼yÃƒÂ¼tmek iÃƒÂ§in lÃƒÂ¼tfen giriÃ…Å¸ yapÃ„Â±nÃ„Â±z.',
-      'story_ad_wait': 'Reklamdan sonra gÃƒÂ¶sterilecek. LÃƒÂ¼tfen bekleyin.',
+          'Hikayeleri gizlice izleyebilmek ve profil fotoğraflarını büyütmek için lütfen giriş yapınız.',
+      'story_ad_wait': 'Reklamdan sonra gösterilecek. Lütfen bekleyin.',
       'story_action_title': 'Ne yapmak istersiniz?',
-      'story_view_photo': 'Profil fotoÃ„Å¸rafÃ„Â±nÃ„Â± bÃƒÂ¼yÃƒÂ¼t',
+      'story_view_photo': 'Profil fotoğrafını büyüt',
       'story_watch_secret': 'Hikayeyi gizlice izle',
       'story_no_data': 'Hikaye verisi yok.',
       'story_close': 'KAPAT',
@@ -6301,19 +6301,19 @@ class _DashboardScreenState extends State<DashboardScreen>
     },
     'de': {
       'story_section_title':
-          'Stories heimlich ansehen oder Profilfotos vergrÃƒÂ¶ÃƒÅ¸ern',
+          'Stories heimlich ansehen oder Profilfotos vergrößern',
       'story_login_required':
-          'Bitte melde dich an, um Stories anonym anzusehen und Profilfotos zu vergrÃƒÂ¶ÃƒÅ¸ern.',
+          'Bitte melde dich an, um Stories anonym anzusehen und Profilfotos zu vergrößern.',
       'story_ad_wait': 'Wird nach der Werbung angezeigt. Bitte warten.',
-      'story_action_title': 'Was mÃƒÂ¶chtest du tun?',
-      'story_view_photo': 'Profilfoto vergrÃƒÂ¶ÃƒÅ¸ern',
+      'story_action_title': 'Was möchtest du tun?',
+      'story_view_photo': 'Profilfoto vergrößern',
       'story_watch_secret': 'Story heimlich ansehen',
-      'story_no_data': 'Keine Story-Daten verfÃƒÂ¼gbar.',
+      'story_no_data': 'Keine Story-Daten verfügbar.',
       'story_close': 'SCHLIESSEN',
-      'adsense_banner': 'WERBEFLÃƒâ€CHE',
-      'analysis_available_now': 'Analyse ist jetzt verfÃƒÂ¼gbar.',
+      'adsense_banner': 'WERBEFLÄCHE',
+      'analysis_available_now': 'Analyse ist jetzt verfügbar.',
       'analysis_fast_no_change':
-          'SchnellprÃƒÂ¼fung: Keine Ãƒâ€nderung gefunden.',
+          'Schnellprüfung: Keine Änderung gefunden.',
       'data_fetch_error':
           'Daten konnten nicht geladen werden: {err}\n\nTipp: Abmelden und erneut anmelden kann helfen.',
       'error_title': 'FEHLER',
@@ -6322,250 +6322,250 @@ class _DashboardScreenState extends State<DashboardScreen>
       'left_followers': 'Verlorene Follower',
       'left_following': 'Entfolgte Konten',
       'new_followers': 'Neue Follower',
-      'non_followers': 'Folgen nicht zurÃƒÂ¼ck',
+      'non_followers': 'Folgen nicht zurück',
       'premium_not_active':
           'Kauf abgeschlossen, aber Premium ist nicht aktiv. Bitte versuche es erneut.',
       'rate_test_message':
-          'GefÃƒÂ¤llt dir die App? Deine Bewertung hilft uns sehr.',
-      'redirecting': 'Sitzung bestÃƒÂ¤tigt, du wirst weitergeleitet...',
+          'Gefällt dir die App? Deine Bewertung hilft uns sehr.',
+      'redirecting': 'Sitzung bestätigt, du wirst weitergeleitet...',
       'usage_metrics_active': 'Aktive Nutzer',
       'usage_metrics_live': 'live',
       'usage_metrics_na': '--',
-      'usage_metrics_queries': 'TÃƒÂ¤gliche Abfragen',
+      'usage_metrics_queries': 'Tägliche Abfragen',
       'usage_metrics_title': 'Tagesmetriken',
       'warning': 'Warnung',
     },
     'ko': {
       'story_section_title':
-          'Ã¬Å Â¤Ã­â€ Â Ã«Â¦Â¬Ã«Â¥Â¼ Ã«ÂªÂ°Ã«ÂËœ Ã«Â³Â´ÃªÂ±Â°Ã«â€šËœ Ã­â€â€Ã«Â¡Å“Ã­â€¢â€ Ã¬â€šÂ¬Ã¬Â§â€Ã¬Ââ€ Ã­â„¢â€¢Ã«Å’â‚¬Ã­â€¢ËœÃ¬â€Â¸Ã¬Å¡â€',
+          '스토리를 몰래 보거나 프로필 사진을 확대하세요',
       'story_login_required':
-          'Ã¬Å Â¤Ã­â€ Â Ã«Â¦Â¬Ã«Â¥Â¼ Ã¬ÂÂµÃ«Âªâ€¦Ã¬Å“Â¼Ã«Â¡Å“ Ã«Â³Â´ÃªÂ³Â  Ã­â€â€Ã«Â¡Å“Ã­â€¢â€ Ã¬â€šÂ¬Ã¬Â§â€Ã¬Ââ€ Ã­â„¢â€¢Ã«Å’â‚¬Ã­â€¢ËœÃ«Â Â¤Ã«Â©Â´ Ã«Â¡Å“ÃªÂ·Â¸Ã¬ÂÂ¸Ã­â€¢Â´ Ã¬Â£Â¼Ã¬â€Â¸Ã¬Å¡â€.',
+          '스토리를 익명으로 보고 프로필 사진을 확대하려면 로그인해 주세요.',
       'story_ad_wait':
-          'ÃªÂ´â€˜ÃªÂ³Â  Ã­â€ºâ€ Ã­â€˜Å“Ã¬â€¹Å“Ã«ÂÂ©Ã«â€¹Ë†Ã«â€¹Â¤. Ã¬ÂÂ Ã¬â€¹Å“Ã«Â§Å’ ÃªÂ¸Â°Ã«â€¹Â¤Ã«Â Â¤ Ã¬Â£Â¼Ã¬â€Â¸Ã¬Å¡â€.',
+          '광고 후 표시됩니다. 잠시만 기다려 주세요.',
       'story_action_title':
-          'Ã«Â¬Â´Ã¬â€”â€¡Ã¬Ââ€ Ã­â€¢ËœÃ¬â€¹Å“ÃªÂ²Â Ã¬â€“Â´Ã¬Å¡â€?',
+          '무엇을 하시겠어요?',
       'story_view_photo':
-          'Ã­â€â€Ã«Â¡Å“Ã­â€¢â€ Ã¬â€šÂ¬Ã¬Â§â€ Ã­â„¢â€¢Ã«Å’â‚¬',
-      'story_watch_secret': 'Ã¬Å Â¤Ã­â€ Â Ã«Â¦Â¬ Ã«ÂªÂ°Ã«ÂËœ Ã«Â³Â´ÃªÂ¸Â°',
+          '프로필 사진 확대',
+      'story_watch_secret': '스토리 몰래 보기',
       'story_no_data':
-          'Ã¬Å Â¤Ã­â€ Â Ã«Â¦Â¬ Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â°ÃªÂ°â‚¬ Ã¬â€”â€ Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤.',
-      'story_close': 'Ã«â€¹Â«ÃªÂ¸Â°',
-      'adsense_banner': 'ÃªÂ´â€˜ÃªÂ³Â  Ã¬ËœÂÃ¬â€”Â­',
+          '스토리 데이터가 없습니다.',
+      'story_close': '닫기',
+      'adsense_banner': '광고 영역',
       'analysis_available_now':
-          'Ã¬Â§â‚¬ÃªÂ¸Ë† Ã«Â¶â€Ã¬â€ÂÃ­â€¢Â  Ã¬Ë†Ëœ Ã¬ÂË†Ã¬â€“Â´Ã¬Å¡â€.',
+          '지금 분석할 수 있어요.',
       'analysis_fast_no_change':
-          'Ã«Â¹Â Ã«Â¥Â¸ Ã­â„¢â€¢Ã¬ÂÂ¸: Ã«Â³â‚¬ÃªÂ²Â½ Ã¬â€šÂ¬Ã­â€¢Â­Ã¬ÂÂ´ Ã¬â€”â€ Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤.',
+          '빠른 확인: 변경 사항이 없습니다.',
       'data_fetch_error':
-          'Ã«ÂÂ°Ã¬ÂÂ´Ã­â€Â°Ã«Â¥Â¼ ÃªÂ°â‚¬Ã¬Â Â¸Ã¬ËœÂ¤Ã¬Â§â‚¬ Ã«ÂªÂ»Ã­â€“Ë†Ã¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤: {err}\\n\\nÃ­Å’Â: Ã«Â¡Å“ÃªÂ·Â¸Ã¬â€¢â€Ã¬â€ºÆ’ Ã­â€ºâ€ Ã«â€¹Â¤Ã¬â€¹Å“ Ã«Â¡Å“ÃªÂ·Â¸Ã¬ÂÂ¸Ã­â€¢Â´ Ã«Â³Â´Ã¬â€Â¸Ã¬Å¡â€.',
-      'error_title': 'Ã¬ËœÂ¤Ã«Â¥Ëœ',
-      'followers': 'Ã­Å’â€Ã«Â¡Å“Ã¬â€ºÅ’',
-      'following': 'Ã­Å’â€Ã«Â¡Å“Ã¬Ââ€°',
-      'left_followers': 'Ã«â€“Â Ã«â€šÅ“ Ã­Å’â€Ã«Â¡Å“Ã¬â€ºÅ’',
-      'left_following': 'Ã¬â€“Â¸Ã­Å’â€Ã«Â¡Å“Ã¬Å¡Â°Ã­â€¢Å“ ÃªÂ³â€Ã¬Â â€¢',
-      'new_followers': 'Ã¬Æ’Ë† Ã­Å’â€Ã«Â¡Å“Ã¬â€ºÅ’',
+          '데이터를 가져오지 못했습니다: {err}\\n\\n팁: 로그아웃 후 다시 로그인해 보세요.',
+      'error_title': '오류',
+      'followers': '팔로워',
+      'following': '팔로잉',
+      'left_followers': '떠난 팔로워',
+      'left_following': '언팔로우한 계정',
+      'new_followers': '새 팔로워',
       'non_followers':
-          'Ã«Â§ÂÃ­Å’â€Ã­â€¢ËœÃ¬Â§â‚¬ Ã¬â€¢Å Ã«Å â€ ÃªÂ³â€Ã¬Â â€¢',
+          '맞팔하지 않는 계정',
       'premium_not_active':
-          'ÃªÂµÂ¬Ã«Â§Â¤Ã«Å â€ Ã¬â„¢â€Ã«Â£Å’Ã«ÂËœÃ¬â€”Ë†Ã¬Â§â‚¬Ã«Â§Å’ Ã­â€â€Ã«Â¦Â¬Ã«Â¯Â¸Ã¬â€”â€Ã¬ÂÂ´ Ã­â„¢Å“Ã¬â€Â±Ã­â„¢â€Ã«ÂËœÃ¬Â§â‚¬ Ã¬â€¢Å Ã¬â€¢ËœÃ¬Å ÂµÃ«â€¹Ë†Ã«â€¹Â¤. Ã«â€¹Â¤Ã¬â€¹Å“ Ã¬â€¹Å“Ã«Ââ€Ã­â€¢Â´ Ã¬Â£Â¼Ã¬â€Â¸Ã¬Å¡â€.',
+          '구매는 완료되었지만 프리미엄이 활성화되지 않았습니다. 다시 시도해 주세요.',
       'rate_test_message':
-          'Ã¬â€¢Â±Ã¬ÂÂ´ Ã«Â§Ë†Ã¬ÂÅ’Ã¬â€”Â Ã«â€œÅ“Ã¬â€¹Å“Ã«â€šËœÃ¬Å¡â€? Ã­Ââ€°Ã¬Â ÂÃ¬ÂÂ´ Ã­ÂÂ° Ã«Ââ€Ã¬â€ºâ‚¬Ã¬ÂÂ´ Ã«ÂÂ©Ã«â€¹Ë†Ã«â€¹Â¤.',
+          '앱이 마음에 드시나요? 평점이 큰 도움이 됩니다.',
       'redirecting':
-          'Ã¬â€Â¸Ã¬â€¦ËœÃ¬ÂÂ´ Ã­â„¢â€¢Ã¬ÂÂ¸Ã«ÂËœÃ¬â€“Â´ Ã¬ÂÂ´Ã«Ââ„¢ Ã¬Â¤â€˜Ã¬Ââ€¦Ã«â€¹Ë†Ã«â€¹Â¤...',
-      'usage_metrics_active': 'Ã­â„¢Å“Ã¬â€Â± Ã¬â€šÂ¬Ã¬Å¡Â©Ã¬ÂÂ',
-      'usage_metrics_live': 'Ã¬â€¹Â¤Ã¬â€¹Å“ÃªÂ°â€',
+          '세션이 확인되어 이동 중입니다...',
+      'usage_metrics_active': '활성 사용자',
+      'usage_metrics_live': '실시간',
       'usage_metrics_na': '--',
-      'usage_metrics_queries': 'Ã¬ÂÂ¼Ã¬ÂÂ¼ Ã¬Â¡Â°Ã­Å¡Å’ Ã¬Ë†Ëœ',
-      'usage_metrics_title': 'Ã¬ÂÂ¼Ã¬ÂÂ¼ Ã¬Â§â‚¬Ã­â€˜Å“',
-      'warning': 'ÃƒÂªÃ‚Â²Ã‚Â½ÃƒÂªÃ‚Â³Ã‚Â ',
+      'usage_metrics_queries': '일일 조회 수',
+      'usage_metrics_title': '일일 지표',
+      'warning': '경고',
     },
     'ja': {
       'story_section_title':
-          'Ã£â€šÂ¹Ã£Æ’Ë†Ã£Æ’Â¼Ã£Æ’ÂªÃ£Æ’Â¼Ã£â€šâ€™Ã£Ââ€œÃ£ÂÂ£Ã£ÂÂÃ£â€šÅ Ã¨Â¦â€¹Ã£â€šâ€¹ / Ã£Æ’â€”Ã£Æ’Â­Ã£Æ’â€¢Ã£â€šÂ£Ã£Æ’Â¼Ã£Æ’Â«Ã¥â€ â„¢Ã§Å“Å¸Ã£â€šâ€™Ã¦â€¹Â¡Ã¥Â¤Â§',
+          'ストーリーをこっそり見る / プロフィール写真を拡大',
       'story_login_required':
-          'Ã£â€šÂ¹Ã£Æ’Ë†Ã£Æ’Â¼Ã£Æ’ÂªÃ£Æ’Â¼Ã£â€šâ€™Ã¥Å’Â¿Ã¥ÂÂÃ£ÂÂ§Ã¨Â¦â€¹Ã£ÂÅ¸Ã£â€šÅ Ã£â‚¬ÂÃ£Æ’â€”Ã£Æ’Â­Ã£Æ’â€¢Ã£â€šÂ£Ã£Æ’Â¼Ã£Æ’Â«Ã¥â€ â„¢Ã§Å“Å¸Ã£â€šâ€™Ã¦â€¹Â¡Ã¥Â¤Â§Ã£Ââ€”Ã£ÂÅ¸Ã£â€šÅ Ã£Ââ„¢Ã£â€šâ€¹Ã£ÂÂ«Ã£ÂÂ¯Ã£Æ’Â­Ã£â€šÂ°Ã£â€šÂ¤Ã£Æ’Â³Ã£Ââ€”Ã£ÂÂ¦Ã£ÂÂÃ£ÂÂ Ã£Ââ€¢Ã£Ââ€Ã£â‚¬â€š',
+          'ストーリーを匿名で見たり、プロフィール写真を拡大したりするにはログインしてください。',
       'story_ad_wait':
-          'Ã¥ÂºÆ’Ã¥â€˜Å Ã£ÂÂ®Ã¥Â¾Å’Ã£ÂÂ«Ã¨Â¡Â¨Ã§Â¤ÂºÃ£Ââ€¢Ã£â€šÅ’Ã£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€šÃ£Ââ€”Ã£ÂÂ°Ã£â€šâ€°Ã£ÂÂÃ£ÂÅ Ã¥Â¾â€¦Ã£ÂÂ¡Ã£ÂÂÃ£ÂÂ Ã£Ââ€¢Ã£Ââ€Ã£â‚¬â€š',
-      'story_action_title': 'Ã£ÂÂ©Ã£Ââ€ Ã£Ââ€”Ã£ÂÂ¾Ã£Ââ„¢Ã£Ââ€¹Ã¯Â¼Å¸',
+          '広告の後に表示されます。しばらくお待ちください。',
+      'story_action_title': 'どうしますか？',
       'story_view_photo':
-          'Ã£Æ’â€”Ã£Æ’Â­Ã£Æ’â€¢Ã£â€šÂ£Ã£Æ’Â¼Ã£Æ’Â«Ã¥â€ â„¢Ã§Å“Å¸Ã£â€šâ€™Ã¦â€¹Â¡Ã¥Â¤Â§',
+          'プロフィール写真を拡大',
       'story_watch_secret':
-          'Ã¨Â¶Â³Ã¨Â·Â¡Ã£â€šâ€™Ã¦Â®â€¹Ã£Ââ€¢Ã£ÂÅ¡Ã¨Â¦â€¹Ã£â€šâ€¹',
+          '足跡を残さず見る',
       'story_no_data':
-          'Ã£â€šÂ¹Ã£Æ’Ë†Ã£Æ’Â¼Ã£Æ’ÂªÃ£Æ’Â¼Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã£ÂÅ’Ã£Ââ€šÃ£â€šÅ Ã£ÂÂ¾Ã£Ââ€ºÃ£â€šâ€œÃ£â‚¬â€š',
-      'story_close': 'Ã©â€“â€°Ã£ÂËœÃ£â€šâ€¹',
-      'adsense_banner': 'Ã¥ÂºÆ’Ã¥â€˜Å Ã¦ÂÂ ',
+          'ストーリーデータがありません。',
+      'story_close': '閉じる',
+      'adsense_banner': '広告枠',
       'analysis_available_now':
-          'Ã¤Â»Å Ã£Ââ„¢Ã£ÂÂÃ¥Ë†â€ Ã¦ÂÂÃ£ÂÂ§Ã£ÂÂÃ£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€š',
+          '今すぐ分析できます。',
       'analysis_fast_no_change':
-          'Ã£â€šÂ¯Ã£â€šÂ¤Ã£Æ’Æ’Ã£â€šÂ¯Ã§Â¢ÂºÃ¨ÂªÂ: Ã¥Â¤â€°Ã¦â€ºÂ´Ã£ÂÂ¯Ã¨Â¦â€¹Ã£ÂÂ¤Ã£Ââ€¹Ã£â€šÅ Ã£ÂÂ¾Ã£Ââ€ºÃ£â€šâ€œÃ£ÂÂ§Ã£Ââ€”Ã£ÂÅ¸Ã£â‚¬â€š',
+          'クイック確認: 変更は見つかりませんでした。',
       'data_fetch_error':
-          'Ã£Æ’â€¡Ã£Æ’Â¼Ã£â€šÂ¿Ã£â€šâ€™Ã¥Ââ€“Ã¥Â¾â€”Ã£ÂÂ§Ã£ÂÂÃ£ÂÂ¾Ã£Ââ€ºÃ£â€šâ€œÃ£ÂÂ§Ã£Ââ€”Ã£ÂÅ¸: {err}\\n\\nÃ£Æ’â€™Ã£Æ’Â³Ã£Æ’Ë†: Ã£Ââ€Ã£ÂÂ£Ã£ÂÅ¸Ã£â€šâ€œÃ£Æ’Â­Ã£â€šÂ°Ã£â€šÂ¢Ã£â€šÂ¦Ã£Æ’Ë†Ã£Ââ€”Ã£ÂÂ¦Ã¥â€ ÂÃ£Æ’Â­Ã£â€šÂ°Ã£â€šÂ¤Ã£Æ’Â³Ã£Ââ„¢Ã£â€šâ€¹Ã£ÂÂ¨Ã¦â€Â¹Ã¥â€“â€Ã£Ââ„¢Ã£â€šâ€¹Ã¥Â Â´Ã¥ÂË†Ã£ÂÅ’Ã£Ââ€šÃ£â€šÅ Ã£ÂÂ¾Ã£Ââ„¢Ã£â‚¬â€š',
-      'error_title': 'Ã£â€šÂ¨Ã£Æ’Â©Ã£Æ’Â¼',
-      'followers': 'Ã£Æ’â€¢Ã£â€šÂ©Ã£Æ’Â­Ã£Æ’Â¯Ã£Æ’Â¼',
-      'following': 'Ã£Æ’â€¢Ã£â€šÂ©Ã£Æ’Â­Ã£Æ’Â¼Ã¤Â¸Â­',
-      'left_followers': 'Ã©â€ºÂ¢Ã£â€šÅ’Ã£ÂÅ¸Ã£Æ’â€¢Ã£â€šÂ©Ã£Æ’Â­Ã£Æ’Â¯Ã£Æ’Â¼',
+          'データを取得できませんでした: {err}\\n\\nヒント: いったんログアウトして再ログインすると改善する場合があります。',
+      'error_title': 'エラー',
+      'followers': 'フォロワー',
+      'following': 'フォロー中',
+      'left_followers': '離れたフォロワー',
       'left_following':
-          'Ã£Æ’â€¢Ã£â€šÂ©Ã£Æ’Â­Ã£Æ’Â¼Ã¨Â§Â£Ã©â„¢Â¤Ã£Ââ€”Ã£ÂÅ¸Ã£â€šÂ¢Ã£â€šÂ«Ã£â€šÂ¦Ã£Æ’Â³Ã£Æ’Ë†',
-      'new_followers': 'Ã¦â€“Â°Ã£Ââ€”Ã£Ââ€Ã£Æ’â€¢Ã£â€šÂ©Ã£Æ’Â­Ã£Æ’Â¯Ã£Æ’Â¼',
+          'フォロー解除したアカウント',
+      'new_followers': '新しいフォロワー',
       'non_followers':
-          'Ã£Æ’â€¢Ã£â€šÂ©Ã£Æ’Â­Ã£Æ’Â¼Ã£Æ’ÂÃ£Æ’Æ’Ã£â€šÂ¯Ã£Ââ€”Ã£ÂÂ¦Ã£Ââ€Ã£ÂÂªÃ£Ââ€Ã£Æ’Â¦Ã£Æ’Â¼Ã£â€šÂ¶Ã£Æ’Â¼',
+          'フォローバックしていないユーザー',
       'premium_not_active':
-          'Ã¨Â³Â¼Ã¥â€¦Â¥Ã£ÂÂ¯Ã¥Â®Å’Ã¤Âºâ€ Ã£Ââ€”Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸Ã£ÂÅ’Ã£â‚¬ÂÃ£Æ’â€”Ã£Æ’Â¬Ã£Æ’Å¸Ã£â€šÂ¢Ã£Æ’Â Ã£ÂÅ’Ã¦Å“â€°Ã¥Å Â¹Ã£ÂÂ«Ã£ÂÂªÃ£ÂÂ£Ã£ÂÂ¦Ã£Ââ€Ã£ÂÂ¾Ã£Ââ€ºÃ£â€šâ€œÃ£â‚¬â€šÃ£â€šâ€šÃ£Ââ€ Ã¤Â¸â‚¬Ã¥ÂºÂ¦Ã£ÂÅ Ã¨Â©Â¦Ã£Ââ€”Ã£ÂÂÃ£ÂÂ Ã£Ââ€¢Ã£Ââ€Ã£â‚¬â€š',
+          '購入は完了しましたが、プレミアムが有効になっていません。もう一度お試しください。',
       'rate_test_message':
-          'Ã£Ââ€œÃ£ÂÂ®Ã£â€šÂ¢Ã£Æ’â€”Ã£Æ’ÂªÃ£ÂÂ¯Ã¥Â½Â¹Ã£ÂÂ«Ã§Â«â€¹Ã£ÂÂ¡Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸Ã£Ââ€¹Ã¯Â¼Å¸Ã¨Â©â€¢Ã¤Â¾Â¡Ã£ÂÂ§Ã¥Â¿Å“Ã¦ÂÂ´Ã£Ââ€”Ã£ÂÂ¦Ã£ÂÂÃ£ÂÂ Ã£Ââ€¢Ã£Ââ€Ã£â‚¬â€š',
+          'このアプリは役に立ちましたか？評価で応援してください。',
       'redirecting':
-          'Ã£â€šÂ»Ã£Æ’Æ’Ã£â€šÂ·Ã£Æ’Â§Ã£Æ’Â³Ã£â€šâ€™Ã§Â¢ÂºÃ¨ÂªÂÃ£Ââ€”Ã£ÂÂ¾Ã£Ââ€”Ã£ÂÅ¸Ã£â‚¬â€šÃ£Æ’ÂªÃ£Æ’â‚¬Ã£â€šÂ¤Ã£Æ’Â¬Ã£â€šÂ¯Ã£Æ’Ë†Ã£Ââ€”Ã£ÂÂ¦Ã£Ââ€Ã£ÂÂ¾Ã£Ââ„¢...',
+          'セッションを確認しました。リダイレクトしています...',
       'usage_metrics_active':
-          'Ã£â€šÂ¢Ã£â€šÂ¯Ã£Æ’â€ Ã£â€šÂ£Ã£Æ’â€“Ã£Æ’Â¦Ã£Æ’Â¼Ã£â€šÂ¶Ã£Æ’Â¼',
-      'usage_metrics_live': 'Ã£Æ’Â©Ã£â€šÂ¤Ã£Æ’â€“',
+          'アクティブユーザー',
+      'usage_metrics_live': 'ライブ',
       'usage_metrics_na': '--',
-      'usage_metrics_queries': '1Ã¦â€”Â¥Ã£ÂÂ®Ã£â€šÂ¯Ã£â€šÂ¨Ã£Æ’ÂªÃ¦â€¢Â°',
-      'usage_metrics_title': 'Ã¦â€”Â¥Ã¦Â¬Â¡Ã£Æ’Â¡Ã£Æ’Ë†Ã£Æ’ÂªÃ£â€šÂ¯Ã£â€šÂ¹',
-      'warning': 'Ã¨Â­Â¦Ã¥â€˜Å ',
+      'usage_metrics_queries': '1日のクエリ数',
+      'usage_metrics_title': '日次メトリクス',
+      'warning': '警告',
     },
     'ru': {
       'story_section_title':
-          'ÄÂ¡ÄÂ¼ÄÂ¾Ã‘â€šÃ‘â‚¬ÄÂµÃ‘â€šÃ‘Å’ Ã‘ÂÃ‘â€šÄÂ¾Ã‘â‚¬ÄÂ¸Ã‘Â ÄÂ°ÄÂ½ÄÂ¾ÄÂ½ÄÂ¸ÄÂ¼ÄÂ½ÄÂ¾ ÄÂ¸ÄÂ»ÄÂ¸ Ã‘Æ’ÄÂ²ÄÂµÄÂ»ÄÂ¸Ã‘â€¡ÄÂ¸Ã‘â€šÃ‘Å’ Ã‘â€ÄÂ¾Ã‘â€šÄÂ¾ ÄÂ¿Ã‘â‚¬ÄÂ¾Ã‘â€ÄÂ¸ÄÂ»Ã‘Â',
+          'Смотреть сторис анонимно или увеличить фото профиля',
       'story_login_required':
-          'ÄÅ¸ÄÂ¾ÄÂ¶ÄÂ°ÄÂ»Ã‘Æ’ÄÂ¹Ã‘ÂÃ‘â€šÄÂ°, ÄÂ²ÄÂ¾ÄÂ¹ÄÂ´ÄÂ¸Ã‘â€šÄÂµ, Ã‘â€¡Ã‘â€šÄÂ¾ÄÂ±Ã‘â€¹ ÄÂ°ÄÂ½ÄÂ¾ÄÂ½ÄÂ¸ÄÂ¼ÄÂ½ÄÂ¾ Ã‘ÂÄÂ¼ÄÂ¾Ã‘â€šÃ‘â‚¬ÄÂµÃ‘â€šÃ‘Å’ Ã‘ÂÃ‘â€šÄÂ¾Ã‘â‚¬ÄÂ¸Ã‘Â ÄÂ¸ Ã‘Æ’ÄÂ²ÄÂµÄÂ»ÄÂ¸Ã‘â€¡ÄÂ¸ÄÂ²ÄÂ°Ã‘â€šÃ‘Å’ Ã‘â€ÄÂ¾Ã‘â€šÄÂ¾ ÄÂ¿Ã‘â‚¬ÄÂ¾Ã‘â€ÄÂ¸ÄÂ»Ã‘Â.',
+          'Пожалуйста, войдите, чтобы анонимно смотреть сторис и увеличивать фото профиля.',
       'story_ad_wait':
-          'ÄÅ¸ÄÂ¾Ã‘ÂÄÂ²ÄÂ¸Ã‘â€šÃ‘ÂÃ‘Â ÄÂ¿ÄÂ¾Ã‘ÂÄÂ»ÄÂµ Ã‘â‚¬ÄÂµÄÂºÄÂ»ÄÂ°ÄÂ¼Ã‘â€¹. ÄÅ¸ÄÂ¾ÄÂ¶ÄÂ°ÄÂ»Ã‘Æ’ÄÂ¹Ã‘ÂÃ‘â€šÄÂ°, ÄÂ¿ÄÂ¾ÄÂ´ÄÂ¾ÄÂ¶ÄÂ´ÄÂ¸Ã‘â€šÄÂµ.',
+          'Появится после рекламы. Пожалуйста, подождите.',
       'story_action_title':
-          'ÄÂ§Ã‘â€šÄÂ¾ Ã‘â€¦ÄÂ¾Ã‘â€šÄÂ¸Ã‘â€šÄÂµ Ã‘ÂÄÂ´ÄÂµÄÂ»ÄÂ°Ã‘â€šÃ‘Å’?',
+          'Что хотите сделать?',
       'story_view_photo':
-          'ÄÂ£ÄÂ²ÄÂµÄÂ»ÄÂ¸Ã‘â€¡ÄÂ¸Ã‘â€šÃ‘Å’ Ã‘â€ÄÂ¾Ã‘â€šÄÂ¾ ÄÂ¿Ã‘â‚¬ÄÂ¾Ã‘â€ÄÂ¸ÄÂ»Ã‘Â',
+          'Увеличить фото профиля',
       'story_watch_secret':
-          'ÄÂ¡ÄÂ¼ÄÂ¾Ã‘â€šÃ‘â‚¬ÄÂµÃ‘â€šÃ‘Å’ Ã‘ÂÃ‘â€šÄÂ¾Ã‘â‚¬ÄÂ¸Ã‘Â ÄÂ°ÄÂ½ÄÂ¾ÄÂ½ÄÂ¸ÄÂ¼ÄÂ½ÄÂ¾',
+          'Смотреть сторис анонимно',
       'story_no_data':
-          'Äâ€ÄÂ°ÄÂ½ÄÂ½Ã‘â€¹ÄÂµ Ã‘ÂÃ‘â€šÄÂ¾Ã‘â‚¬ÄÂ¸Ã‘Â ÄÂ½ÄÂµÄÂ´ÄÂ¾Ã‘ÂÃ‘â€šÃ‘Æ’ÄÂ¿ÄÂ½Ã‘â€¹.',
-      'story_close': 'Äâ€”ÄÂÄÅ¡ÄÂ ÄÂ«ÄÂ¢ÄÂ¬',
+          'Данные сторис недоступны.',
+      'story_close': 'ЗАКРЫТЬ',
       'adsense_banner':
-          'ÄÂ Äâ€¢ÄÅ¡Äâ€ºÄÂÄÅ“ÄÂÄÂÄâ€¢ ÄÅ“Äâ€¢ÄÂ¡ÄÂ¢ÄÂ',
+          'РЕКЛАМНОЕ МЕСТО',
       'analysis_available_now':
-          'ÄÂÄÂ½ÄÂ°ÄÂ»ÄÂ¸ÄÂ· ÄÂ´ÄÂ¾Ã‘ÂÃ‘â€šÃ‘Æ’ÄÂ¿ÄÂµÄÂ½ Ã‘ÂÄÂµÄÂ¹Ã‘â€¡ÄÂ°Ã‘Â.',
+          'Анализ доступен сейчас.',
       'analysis_fast_no_change':
-          'Äâ€˜Ã‘â€¹Ã‘ÂÃ‘â€šÃ‘â‚¬ÄÂ°Ã‘Â ÄÂ¿Ã‘â‚¬ÄÂ¾ÄÂ²ÄÂµÃ‘â‚¬ÄÂºÄÂ°: ÄÂ¸ÄÂ·ÄÂ¼ÄÂµÄÂ½ÄÂµÄÂ½ÄÂ¸ÄÂ¹ ÄÂ½ÄÂµ ÄÂ½ÄÂ°ÄÂ¹ÄÂ´ÄÂµÄÂ½ÄÂ¾.',
+          'Быстрая проверка: изменений не найдено.',
       'data_fetch_error':
-          'ÄÂÄÂµ Ã‘Æ’ÄÂ´ÄÂ°ÄÂ»ÄÂ¾Ã‘ÂÃ‘Å’ ÄÂ¿ÄÂ¾ÄÂ»Ã‘Æ’Ã‘â€¡ÄÂ¸Ã‘â€šÃ‘Å’ ÄÂ´ÄÂ°ÄÂ½ÄÂ½Ã‘â€¹ÄÂµ: {err}\\n\\nÄÂ¡ÄÂ¾ÄÂ²ÄÂµÃ‘â€š: ÄÂ²Ã‘â€¹ÄÂ¹ÄÂ´ÄÂ¸Ã‘â€šÄÂµ ÄÂ¸ ÄÂ²ÄÂ¾ÄÂ¹ÄÂ´ÄÂ¸Ã‘â€šÄÂµ Ã‘ÂÄÂ½ÄÂ¾ÄÂ²ÄÂ°.',
-      'error_title': 'ÄÂÄÂ¨ÄËœÄâ€˜ÄÅ¡ÄÂ',
-      'followers': 'ÄÅ¸ÄÂ¾ÄÂ´ÄÂ¿ÄÂ¸Ã‘ÂÃ‘â€¡ÄÂ¸ÄÂºÄÂ¸',
-      'following': 'ÄÅ¸ÄÂ¾ÄÂ´ÄÂ¿ÄÂ¸Ã‘ÂÄÂºÄÂ¸',
-      'left_followers': 'ÄÂÃ‘â€šÄÂ¿ÄÂ¸Ã‘ÂÄÂ°ÄÂ²Ã‘Ë†ÄÂ¸ÄÂµÃ‘ÂÃ‘Â',
+          'Не удалось получить данные: {err}\\n\\nСовет: выйдите и войдите снова.',
+      'error_title': 'ОШИБКА',
+      'followers': 'Подписчики',
+      'following': 'Подписки',
+      'left_followers': 'Отписавшиеся',
       'left_following':
-          'Äâ€™Ã‘â€¹ ÄÂ¿ÄÂµÃ‘â‚¬ÄÂµÃ‘ÂÃ‘â€šÄÂ°ÄÂ»ÄÂ¸ Ã‘â€¡ÄÂ¸Ã‘â€šÄÂ°Ã‘â€šÃ‘Å’',
+          'Вы перестали читать',
       'new_followers':
-          'ÄÂÄÂ¾ÄÂ²Ã‘â€¹ÄÂµ ÄÂ¿ÄÂ¾ÄÂ´ÄÂ¿ÄÂ¸Ã‘ÂÃ‘â€¡ÄÂ¸ÄÂºÄÂ¸',
+          'Новые подписчики',
       'non_followers':
-          'ÄÂÄÂµ ÄÂ¿ÄÂ¾ÄÂ´ÄÂ¿ÄÂ¸Ã‘ÂÄÂ°ÄÂ½Ã‘â€¹ ÄÂ² ÄÂ¾Ã‘â€šÄÂ²ÄÂµÃ‘â€š',
+          'Не подписаны в ответ',
       'premium_not_active':
-          'ÄÅ¸ÄÂ¾ÄÂºÃ‘Æ’ÄÂ¿ÄÂºÄÂ° ÄÂ·ÄÂ°ÄÂ²ÄÂµÃ‘â‚¬Ã‘Ë†ÄÂµÄÂ½ÄÂ°, ÄÂ½ÄÂ¾ Premium ÄÂ½ÄÂµ ÄÂ°ÄÂºÃ‘â€šÄÂ¸ÄÂ²ÄÂµÄÂ½. ÄÅ¸ÄÂ¾ÄÂ¿Ã‘â‚¬ÄÂ¾ÄÂ±Ã‘Æ’ÄÂ¹Ã‘â€šÄÂµ Ã‘ÂÄÂ½ÄÂ¾ÄÂ²ÄÂ°.',
+          'Покупка завершена, но Premium не активен. Попробуйте снова.',
       'rate_test_message':
-          'ÄÂÃ‘â‚¬ÄÂ°ÄÂ²ÄÂ¸Ã‘â€šÃ‘ÂÃ‘Â ÄÂ¿Ã‘â‚¬ÄÂ¸ÄÂ»ÄÂ¾ÄÂ¶ÄÂµÄÂ½ÄÂ¸ÄÂµ? Äâ€™ÄÂ°Ã‘Ë†ÄÂ° ÄÂ¾Ã‘â€ ÄÂµÄÂ½ÄÂºÄÂ° ÄÂ¾Ã‘â€¡ÄÂµÄÂ½Ã‘Å’ ÄÂ¿ÄÂ¾ÄÂ¼ÄÂ¾ÄÂ³ÄÂ°ÄÂµÃ‘â€š.',
+          'Нравится приложение? Ваша оценка очень помогает.',
       'redirecting':
-          'ÄÂ¡ÄÂµÃ‘ÂÃ‘ÂÄÂ¸Ã‘Â ÄÂ¿ÄÂ¾ÄÂ´Ã‘â€šÄÂ²ÄÂµÃ‘â‚¬ÄÂ¶ÄÂ´ÄÂµÄÂ½ÄÂ°, ÄÂ²Ã‘â€¹ÄÂ¿ÄÂ¾ÄÂ»ÄÂ½Ã‘ÂÄÂµÃ‘â€šÃ‘ÂÃ‘Â ÄÂ¿ÄÂµÃ‘â‚¬ÄÂµÃ‘â€¦ÄÂ¾ÄÂ´...',
+          'Сессия подтверждена, выполняется переход...',
       'usage_metrics_active':
-          'ÄÂÄÂºÃ‘â€šÄÂ¸ÄÂ²ÄÂ½Ã‘â€¹ÄÂµ ÄÂ¿ÄÂ¾ÄÂ»Ã‘Å’ÄÂ·ÄÂ¾ÄÂ²ÄÂ°Ã‘â€šÄÂµÄÂ»ÄÂ¸',
+          'Активные пользователи',
       'usage_metrics_live':
-          'ÄÂ² Ã‘â‚¬ÄÂµÄÂ°ÄÂ»Ã‘Å’ÄÂ½ÄÂ¾ÄÂ¼ ÄÂ²Ã‘â‚¬ÄÂµÄÂ¼ÄÂµÄÂ½ÄÂ¸',
+          'в реальном времени',
       'usage_metrics_na': '--',
       'usage_metrics_queries':
-          'Äâ€”ÄÂ°ÄÂ¿Ã‘â‚¬ÄÂ¾Ã‘ÂÄÂ¾ÄÂ² ÄÂ·ÄÂ° ÄÂ´ÄÂµÄÂ½Ã‘Å’',
+          'Запросов за день',
       'usage_metrics_title':
-          'Äâ€ÄÂ½ÄÂµÄÂ²ÄÂ½Ã‘â€¹ÄÂµ ÄÂ¼ÄÂµÃ‘â€šÃ‘â‚¬ÄÂ¸ÄÂºÄÂ¸',
-      'warning': 'ÄÅ¸Ã‘â‚¬ÄÂµÄÂ´Ã‘Æ’ÄÂ¿Ã‘â‚¬ÄÂµÄÂ¶ÄÂ´ÄÂµÄÂ½ÄÂ¸ÄÂµ',
+          'Дневные метрики',
+      'warning': 'Предупреждение',
     },
     'pt': {
       'story_section_title': 'Ver stories em segredo ou ampliar foto de perfil',
       'story_login_required':
-          'FaÃƒÂ§a login para ver stories anonimamente e ampliar fotos de perfil.',
-      'story_ad_wait': 'SerÃƒÂ¡ exibido apÃƒÂ³s o anÃƒÂºncio. Aguarde.',
-      'story_action_title': 'O que vocÃƒÂª quer fazer?',
+          'Faça login para ver stories anonimamente e ampliar fotos de perfil.',
+      'story_ad_wait': 'Será exibido após o anúncio. Aguarde.',
+      'story_action_title': 'O que você quer fazer?',
       'story_view_photo': 'Ampliar foto de perfil',
       'story_watch_secret': 'Ver story em segredo',
-      'story_no_data': 'NÃƒÂ£o hÃƒÂ¡ dados de story disponÃƒÂ­veis.',
+      'story_no_data': 'Não há dados de story disponíveis.',
       'story_close': 'FECHAR',
-      'adsense_banner': 'ESPAÃƒâ€¡O DE ANÃƒÅ¡NCIO',
-      'analysis_available_now': 'AnÃƒÂ¡lise disponÃƒÂ­vel agora.',
+      'adsense_banner': 'ESPAÇO DE ANÚNCIO',
+      'analysis_available_now': 'Análise disponível agora.',
       'analysis_fast_no_change':
-          'VerificaÃƒÂ§ÃƒÂ£o rÃƒÂ¡pida: nenhuma alteraÃƒÂ§ÃƒÂ£o encontrada.',
+          'Verificação rápida: nenhuma alteração encontrada.',
       'data_fetch_error':
-          'NÃƒÂ£o foi possÃƒÂ­vel obter os dados: {err}\\n\\nDica: sair e entrar novamente pode ajudar.',
+          'Não foi possível obter os dados: {err}\\n\\nDica: sair e entrar novamente pode ajudar.',
       'error_title': 'ERRO',
       'followers': 'Seguidores',
       'following': 'Seguindo',
       'left_followers': 'Perdeu seguidores',
       'left_following': 'Deixou de seguir',
       'new_followers': 'Novos seguidores',
-      'non_followers': 'NÃƒÂ£o seguem de volta',
+      'non_followers': 'Não seguem de volta',
       'premium_not_active':
-          'Compra concluÃƒÂ­da, mas o Premium nÃƒÂ£o foi ativado. Tente novamente.',
+          'Compra concluída, mas o Premium não foi ativado. Tente novamente.',
       'rate_test_message':
-          'EstÃƒÂ¡ gostando do app? Sua avaliaÃƒÂ§ÃƒÂ£o ajuda muito.',
-      'redirecting': 'SessÃƒÂ£o verificada, redirecionando...',
-      'usage_metrics_active': 'UsuÃƒÂ¡rios ativos',
+          'Está gostando do app? Sua avaliação ajuda muito.',
+      'redirecting': 'Sessão verificada, redirecionando...',
+      'usage_metrics_active': 'Usuários ativos',
       'usage_metrics_live': 'ao vivo',
       'usage_metrics_na': '--',
-      'usage_metrics_queries': 'Consultas diÃƒÂ¡rias',
-      'usage_metrics_title': 'MÃƒÂ©tricas diÃƒÂ¡rias',
+      'usage_metrics_queries': 'Consultas diárias',
+      'usage_metrics_title': 'Métricas diárias',
       'warning': 'Aviso',
     },
     'ar': {
       'story_section_title':
-          'Ã˜Â´Ã˜Â§Ã™â€¡Ã˜Â¯ Ã˜Â§Ã™â€Ã™â€šÃ˜ÂµÃ˜Âµ Ã˜Â¨Ã˜Â³Ã˜Â±Ã™Å Ã˜Â© Ã˜Â£Ã™Ë† Ã™Æ’Ã˜Â¨Ã™â€˜Ã˜Â± Ã˜ÂµÃ™Ë†Ã˜Â±Ã˜Â© Ã˜Â§Ã™â€Ã™â€¦Ã™â€Ã™Â Ã˜Â§Ã™â€Ã˜Â´Ã˜Â®Ã˜ÂµÃ™Å ',
+          'شاهد القصص بسرية أو كبّر صورة الملف الشخصي',
       'story_login_required':
-          'Ã™Å Ã˜Â±Ã˜Â¬Ã™â€° Ã˜ÂªÃ˜Â³Ã˜Â¬Ã™Å Ã™â€ Ã˜Â§Ã™â€Ã˜Â¯Ã˜Â®Ã™Ë†Ã™â€ Ã™â€Ã™â€¦Ã˜Â´Ã˜Â§Ã™â€¡Ã˜Â¯Ã˜Â© Ã˜Â§Ã™â€Ã™â€šÃ˜ÂµÃ˜Âµ Ã˜Â¨Ã˜Â´Ã™Æ’Ã™â€ Ã˜Â³Ã˜Â±Ã™Å  Ã™Ë†Ã˜ÂªÃ™Æ’Ã˜Â¨Ã™Å Ã˜Â± Ã˜ÂµÃ™Ë†Ã˜Â± Ã˜Â§Ã™â€Ã™â€¦Ã™â€Ã™Â Ã˜Â§Ã™â€Ã˜Â´Ã˜Â®Ã˜ÂµÃ™Å .',
+          'يرجى تسجيل الدخول لمشاهدة القصص بشكل سري وتكبير صور الملف الشخصي.',
       'story_ad_wait':
-          'Ã˜Â³Ã™Å Ã˜Â¸Ã™â€¡Ã˜Â± Ã˜Â¨Ã˜Â¹Ã˜Â¯ Ã˜Â§Ã™â€Ã˜Â¥Ã˜Â¹Ã™â€Ã˜Â§Ã™â€ . Ã™Å Ã˜Â±Ã˜Â¬Ã™â€° Ã˜Â§Ã™â€Ã˜Â§Ã™â€ Ã˜ÂªÃ˜Â¸Ã˜Â§Ã˜Â±.',
+          'سيظهر بعد الإعلان. يرجى الانتظار.',
       'story_action_title':
-          'Ã™â€¦Ã˜Â§Ã˜Â°Ã˜Â§ Ã˜ÂªÃ˜Â±Ã™Å Ã˜Â¯ Ã˜Â£Ã™â€  Ã˜ÂªÃ™ÂÃ˜Â¹Ã™â€Ã˜Å¸',
+          'ماذا تريد أن تفعل؟',
       'story_view_photo':
-          'Ã˜ÂªÃ™Æ’Ã˜Â¨Ã™Å Ã˜Â± Ã˜ÂµÃ™Ë†Ã˜Â±Ã˜Â© Ã˜Â§Ã™â€Ã™â€¦Ã™â€Ã™Â Ã˜Â§Ã™â€Ã˜Â´Ã˜Â®Ã˜ÂµÃ™Å ',
+          'تكبير صورة الملف الشخصي',
       'story_watch_secret':
-          'Ã™â€¦Ã˜Â´Ã˜Â§Ã™â€¡Ã˜Â¯Ã˜Â© Ã˜Â§Ã™â€Ã™â€šÃ˜ÂµÃ˜Â© Ã˜Â¨Ã˜Â³Ã˜Â±Ã™Å Ã˜Â©',
+          'مشاهدة القصة بسرية',
       'story_no_data':
-          'Ã™â€Ã˜Â§ Ã˜ÂªÃ˜ÂªÃ™Ë†Ã™ÂÃ˜Â± Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€Ã™â€šÃ˜ÂµÃ˜Â©.',
-      'story_close': 'Ã˜Â¥Ã˜ÂºÃ™â€Ã˜Â§Ã™â€š',
-      'adsense_banner': 'Ã™â€¦Ã˜Â³Ã˜Â§Ã˜Â­Ã˜Â© Ã˜Â¥Ã˜Â¹Ã™â€Ã˜Â§Ã™â€ Ã™Å Ã˜Â©',
+          'لا تتوفر بيانات القصة.',
+      'story_close': 'إغلاق',
+      'adsense_banner': 'مساحة إعلانية',
       'analysis_available_now':
-          'Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€ Ã™â€¦Ã˜ÂªÃ˜Â§Ã˜Â­ Ã˜Â§Ã™â€Ã˜Â¢Ã™â€ .',
+          'التحليل متاح الآن.',
       'analysis_fast_no_change':
-          'Ã™ÂÃ˜Â­Ã˜Âµ Ã˜Â³Ã˜Â±Ã™Å Ã˜Â¹: Ã™â€Ã˜Â§ Ã˜ÂªÃ™Ë†Ã˜Â¬Ã˜Â¯ Ã˜ÂªÃ˜ÂºÃ™Å Ã™Å Ã˜Â±Ã˜Â§Ã˜Âª.',
+          'فحص سريع: لا توجد تغييرات.',
       'data_fetch_error':
-          'Ã˜ÂªÃ˜Â¹Ã˜Â°Ã™â€˜Ã˜Â± Ã˜Â¬Ã™â€Ã˜Â¨ Ã˜Â§Ã™â€Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª: {err}\\n\\nÃ™â€ Ã˜ÂµÃ™Å Ã˜Â­Ã˜Â©: Ã˜Â³Ã˜Â¬Ã™â€˜Ã™â€ Ã˜Â§Ã™â€Ã˜Â®Ã˜Â±Ã™Ë†Ã˜Â¬ Ã˜Â«Ã™â€¦ Ã˜Â³Ã˜Â¬Ã™â€˜Ã™â€ Ã˜Â§Ã™â€Ã˜Â¯Ã˜Â®Ã™Ë†Ã™â€ Ã™â€¦Ã˜Â±Ã˜Â© Ã˜Â£Ã˜Â®Ã˜Â±Ã™â€°.',
-      'error_title': 'ÃƒËœÃ‚Â®ÃƒËœÃ‚Â·ÃƒËœÃ‚Â£',
-      'followers': 'Ã˜Â§Ã™â€Ã™â€¦Ã˜ÂªÃ˜Â§Ã˜Â¨Ã˜Â¹Ã™Ë†Ã™â€ ',
-      'following': 'ÃƒËœÃ‚ÂªÃƒËœÃ‚ÂªÃƒËœÃ‚Â§ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â¹',
+          'تعذّر جلب البيانات: {err}\\n\\nنصيحة: سجّل الخروج ثم سجّل الدخول مرة أخرى.',
+      'error_title': 'خطأ',
+      'followers': 'المتابعون',
+      'following': 'تتابع',
       'left_followers':
-          'Ã™â€¦Ã™â€  Ã˜Â£Ã™â€Ã˜ÂºÃ™â€° Ã™â€¦Ã˜ÂªÃ˜Â§Ã˜Â¨Ã˜Â¹Ã˜ÂªÃ™Æ’',
+          'من ألغى متابعتك',
       'left_following':
-          'Ã˜Â£Ã™â€Ã˜ÂºÃ™Å Ã˜Âª Ã™â€¦Ã˜ÂªÃ˜Â§Ã˜Â¨Ã˜Â¹Ã˜ÂªÃ™â€¡Ã™â€¦',
-      'new_followers': 'Ã™â€¦Ã˜ÂªÃ˜Â§Ã˜Â¨Ã˜Â¹Ã™Ë†Ã™â€  Ã˜Â¬Ã˜Â¯Ã˜Â¯',
+          'ألغيت متابعتهم',
+      'new_followers': 'متابعون جدد',
       'non_followers':
-          'Ã™â€Ã˜Â§ Ã™Å Ã˜ÂªÃ˜Â§Ã˜Â¨Ã˜Â¹Ã™Ë†Ã™â€ Ã™Æ’ Ã˜Â¨Ã˜Â§Ã™â€Ã™â€¦Ã™â€šÃ˜Â§Ã˜Â¨Ã™â€',
+          'لا يتابعونك بالمقابل',
       'premium_not_active':
-          'Ã˜Â§Ã™Æ’Ã˜ÂªÃ™â€¦Ã™â€Ã˜Âª Ã˜Â¹Ã™â€¦Ã™â€Ã™Å Ã˜Â© Ã˜Â§Ã™â€Ã˜Â´Ã˜Â±Ã˜Â§Ã˜Â¡ Ã™â€Ã™Æ’Ã™â€  Ã™â€Ã™â€¦ Ã™Å Ã˜ÂªÃ™â€¦ Ã˜ÂªÃ™ÂÃ˜Â¹Ã™Å Ã™â€ Premium. Ã˜Â­Ã˜Â§Ã™Ë†Ã™â€ Ã™â€¦Ã˜Â±Ã˜Â© Ã˜Â£Ã˜Â®Ã˜Â±Ã™â€°.',
+          'اكتملت عملية الشراء لكن لم يتم تفعيل Premium. حاول مرة أخرى.',
       'rate_test_message':
-          'Ã™â€¡Ã™â€ Ã˜Â£Ã˜Â¹Ã˜Â¬Ã˜Â¨Ã™Æ’ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â·Ã˜Â¨Ã™Å Ã™â€šÃ˜Å¸ Ã˜ÂªÃ™â€šÃ™Å Ã™Å Ã™â€¦Ã™Æ’ Ã™Å Ã˜Â³Ã˜Â§Ã˜Â¹Ã˜Â¯Ã™â€ Ã˜Â§ Ã™Æ’Ã˜Â«Ã™Å Ã˜Â±Ã™â€¹Ã˜Â§.',
+          'هل أعجبك التطبيق؟ تقييمك يساعدنا كثيرًا.',
       'redirecting':
-          'Ã˜ÂªÃ™â€¦ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€šÃ™â€š Ã™â€¦Ã™â€  Ã˜Â§Ã™â€Ã˜Â¬Ã™â€Ã˜Â³Ã˜Â©Ã˜Å’ Ã˜Â¬Ã˜Â§Ã˜Â±Ã™Â Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™Ë†Ã™Å Ã™â€...',
+          'تم التحقق من الجلسة، جارٍ التحويل...',
       'usage_metrics_active':
-          'Ã˜Â§Ã™â€Ã™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦Ã™Ë†Ã™â€  Ã˜Â§Ã™â€Ã™â€ Ã˜Â´Ã˜Â·Ã™Ë†Ã™â€ ',
-      'usage_metrics_live': 'Ã™â€¦Ã˜Â¨Ã˜Â§Ã˜Â´Ã˜Â±',
+          'المستخدمون النشطون',
+      'usage_metrics_live': 'مباشر',
       'usage_metrics_na': '--',
       'usage_metrics_queries':
-          'Ã˜Â¹Ã˜Â¯Ã˜Â¯ Ã˜Â§Ã™â€Ã˜ÂªÃ˜Â­Ã™â€Ã™Å Ã™â€Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€Ã™Å Ã™Ë†Ã™â€¦Ã™Å Ã˜Â©',
+          'عدد التحليلات اليومية',
       'usage_metrics_title':
-          'Ã˜Â¥Ã˜Â­Ã˜ÂµÃ˜Â§Ã˜Â¡Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€Ã™Å Ã™Ë†Ã™â€¦',
-      'warning': 'Ã˜ÂªÃ˜Â­Ã˜Â°Ã™Å Ã˜Â±',
+          'إحصاءات اليوم',
+      'warning': 'تحذير',
     },
     'es': {
       'story_section_title':
           'Ver historias en secreto o ampliar foto de perfil',
       'story_login_required':
-          'Inicia sesiÃƒÂ³n para ver historias en modo anÃƒÂ³nimo y ampliar fotos de perfil.',
+          'Inicia sesión para ver historias en modo anónimo y ampliar fotos de perfil.',
       'story_ad_wait':
-          'Se mostrarÃƒÂ¡ despuÃƒÂ©s del anuncio. Espera un momento.',
-      'story_action_title': 'Ã‚Â¿QuÃƒÂ© te gustarÃƒÂ­a hacer?',
+          'Se mostrará después del anuncio. Espera un momento.',
+      'story_action_title': '¿Qué te gustaría hacer?',
       'story_view_photo': 'Ampliar foto de perfil',
       'story_watch_secret': 'Ver historia en secreto',
       'story_no_data': 'No hay datos de historias disponibles.',
@@ -6575,10 +6575,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_section_title':
           'Ver historias en secreto o ampliar foto de perfil',
       'story_login_required':
-          'Inicia sesiÃƒÂ³n para ver historias en modo anÃƒÂ³nimo y ampliar fotos de perfil.',
+          'Inicia sesión para ver historias en modo anónimo y ampliar fotos de perfil.',
       'story_ad_wait':
-          'Se mostrarÃƒÂ¡ despuÃƒÂ©s del anuncio. Espera un momento.',
-      'story_action_title': 'Ã‚Â¿QuÃƒÂ© te gustarÃƒÂ­a hacer?',
+          'Se mostrará después del anuncio. Espera un momento.',
+      'story_action_title': '¿Qué te gustaría hacer?',
       'story_view_photo': 'Ampliar foto de perfil',
       'story_watch_secret': 'Ver historia en secreto',
       'story_no_data': 'No hay datos de historias disponibles.',
@@ -6586,46 +6586,46 @@ class _DashboardScreenState extends State<DashboardScreen>
     },
     'hi': {
       'story_section_title':
-          'Ã Â¤Â¸Ã Â¥ÂÃ Â¤Å¸Ã Â¥â€¹Ã Â¤Â°Ã Â¥â‚¬ Ã Â¤Å¡Ã Â¥ÂÃ Â¤ÂªÃ Â¤Å¡Ã Â¤Â¾Ã Â¤Âª Ã Â¤Â¦Ã Â¥â€¡Ã Â¤â€“Ã Â¥â€¡Ã Â¤â€š Ã Â¤Â¯Ã Â¤Â¾ Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â°Ã Â¥â€¹Ã Â¤Â«Ã Â¤Â¾Ã Â¤â€¡Ã Â¤Â² Ã Â¤Â«Ã Â¥â€¹Ã Â¤Å¸Ã Â¥â€¹ Ã Â¤Â¬Ã Â¤Â¡Ã Â¤Â¼Ã Â¤Â¾ Ã Â¤â€¢Ã Â¤Â°Ã Â¥â€¡Ã Â¤â€š',
+          'स्टोरी चुपचाप देखें या प्रोफाइल फोटो बड़ा करें',
       'story_login_required':
-          'Ã Â¤Â¸Ã Â¥ÂÃ Â¤Å¸Ã Â¥â€¹Ã Â¤Â°Ã Â¥â‚¬ Ã Â¤â€¢Ã Â¥â€¹ Ã Â¤â€”Ã Â¥ÂÃ Â¤ÂªÃ Â¥ÂÃ Â¤Â¤ Ã Â¤Â°Ã Â¥â€šÃ Â¤Âª Ã Â¤Â¸Ã Â¥â€¡ Ã Â¤Â¦Ã Â¥â€¡Ã Â¤â€“Ã Â¤Â¨Ã Â¥â€¡ Ã Â¤â€Ã Â¤Â° Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â°Ã Â¥â€¹Ã Â¤Â«Ã Â¤Â¼Ã Â¤Â¾Ã Â¤â€¡Ã Â¤Â² Ã Â¤Â«Ã Â¥â€¹Ã Â¤Å¸Ã Â¥â€¹ Ã Â¤Â¬Ã Â¤Â¡Ã Â¤Â¼Ã Â¤Â¾ Ã Â¤â€¢Ã Â¤Â°Ã Â¤Â¨Ã Â¥â€¡ Ã Â¤â€¢Ã Â¥â€¡ Ã Â¤Â²Ã Â¤Â¿Ã Â¤Â Ã Â¤â€¢Ã Â¥Æ’Ã Â¤ÂªÃ Â¤Â¯Ã Â¤Â¾ Ã Â¤Â²Ã Â¥â€°Ã Â¤â€”Ã Â¤Â¿Ã Â¤Â¨ Ã Â¤â€¢Ã Â¤Â°Ã Â¥â€¡Ã Â¤â€šÃ Â¥Â¤',
+          'स्टोरी को गुप्त रूप से देखने और प्रोफ़ाइल फोटो बड़ा करने के लिए कृपया लॉगिन करें।',
       'story_ad_wait':
-          'Ã Â¤ÂµÃ Â¤Â¿Ã Â¤Å“Ã Â¥ÂÃ Â¤ÂÃ Â¤Â¾Ã Â¤ÂªÃ Â¤Â¨ Ã Â¤â€¢Ã Â¥â€¡ Ã Â¤Â¬Ã Â¤Â¾Ã Â¤Â¦ Ã Â¤Â¦Ã Â¤Â¿Ã Â¤â€“Ã Â¤Â¾Ã Â¤Â¯Ã Â¤Â¾ Ã Â¤Å“Ã Â¤Â¾Ã Â¤ÂÃ Â¤â€”Ã Â¤Â¾Ã Â¥Â¤ Ã Â¤â€¢Ã Â¥Æ’Ã Â¤ÂªÃ Â¤Â¯Ã Â¤Â¾ Ã Â¤â€¡Ã Â¤â€šÃ Â¤Â¤Ã Â¤Å“Ã Â¤Â¼Ã Â¤Â¾Ã Â¤Â° Ã Â¤â€¢Ã Â¤Â°Ã Â¥â€¡Ã Â¤â€šÃ Â¥Â¤',
+          'विज्ञापन के बाद दिखाया जाएगा। कृपया इंतज़ार करें।',
       'story_action_title':
-          'Ã Â¤â€ Ã Â¤Âª Ã Â¤â€¢Ã Â¥ÂÃ Â¤Â¯Ã Â¤Â¾ Ã Â¤â€¢Ã Â¤Â°Ã Â¤Â¨Ã Â¤Â¾ Ã Â¤Å¡Ã Â¤Â¾Ã Â¤Â¹Ã Â¥â€¡Ã Â¤â€šÃ Â¤â€”Ã Â¥â€¡?',
+          'आप क्या करना चाहेंगे?',
       'story_view_photo':
-          'Ã Â¤ÂªÃ Â¥ÂÃ Â¤Â°Ã Â¥â€¹Ã Â¤Â«Ã Â¤Â¾Ã Â¤â€¡Ã Â¤Â² Ã Â¤Â«Ã Â¥â€¹Ã Â¤Å¸Ã Â¥â€¹ Ã Â¤Â¬Ã Â¤Â¡Ã Â¤Â¼Ã Â¤Â¾ Ã Â¤â€¢Ã Â¤Â°Ã Â¥â€¡Ã Â¤â€š',
+          'प्रोफाइल फोटो बड़ा करें',
       'story_watch_secret':
-          'Ã Â¤Â¸Ã Â¥ÂÃ Â¤Å¸Ã Â¥â€¹Ã Â¤Â°Ã Â¥â‚¬ Ã Â¤Å¡Ã Â¥ÂÃ Â¤ÂªÃ Â¤Å¡Ã Â¤Â¾Ã Â¤Âª Ã Â¤Â¦Ã Â¥â€¡Ã Â¤â€“Ã Â¥â€¡Ã Â¤â€š',
+          'स्टोरी चुपचाप देखें',
       'story_no_data':
-          'Ã Â¤Â¸Ã Â¥ÂÃ Â¤Å¸Ã Â¥â€¹Ã Â¤Â°Ã Â¥â‚¬ Ã Â¤Â¡Ã Â¥â€¡Ã Â¤Å¸Ã Â¤Â¾ Ã Â¤â€°Ã Â¤ÂªÃ Â¤Â²Ã Â¤Â¬Ã Â¥ÂÃ Â¤Â§ Ã Â¤Â¨Ã Â¤Â¹Ã Â¥â‚¬Ã Â¤â€š Ã Â¤Â¹Ã Â¥Ë†Ã Â¥Â¤',
-      'story_close': 'Ã Â¤Â¬Ã Â¤â€šÃ Â¤Â¦ Ã Â¤â€¢Ã Â¤Â°Ã Â¥â€¡Ã Â¤â€š',
+          'स्टोरी डेटा उपलब्ध नहीं है।',
+      'story_close': 'बंद करें',
     },
     'hu': {
       'story_section_title':
-          'Sztorik megtekintÃƒÂ©se titokban vagy profilkÃƒÂ©p nagyÃƒÂ­tÃƒÂ¡sa',
+          'Sztorik megtekintése titokban vagy profilkép nagyítása',
       'story_login_required':
-          'KÃƒÂ©rjÃƒÂ¼k, jelentkezz be a tÃƒÂ¶rtÃƒÂ©netek nÃƒÂ©vtelen megtekintÃƒÂ©sÃƒÂ©hez ÃƒÂ©s a profilkÃƒÂ©pek nagyÃƒÂ­tÃƒÂ¡sÃƒÂ¡hoz.',
+          'Kérjük, jelentkezz be a történetek névtelen megtekintéséhez és a profilképek nagyításához.',
       'story_ad_wait':
-          'A hirdetÃƒÂ©s utÃƒÂ¡n jelenik meg. KÃƒÂ©rjÃƒÂ¼k, vÃƒÂ¡rj.',
-      'story_action_title': 'Mit szeretnÃƒÂ©l csinÃƒÂ¡lni?',
-      'story_view_photo': 'ProfilkÃƒÂ©p nagyÃƒÂ­tÃƒÂ¡sa',
-      'story_watch_secret': 'Sztori megtekintÃƒÂ©se titokban',
-      'story_no_data': 'Nem ÃƒÂ©rhetÃ…â€˜ el sztoriadat.',
-      'story_close': 'BEZÃƒÂR',
+          'A hirdetés után jelenik meg. Kérjük, várj.',
+      'story_action_title': 'Mit szeretnél csinálni?',
+      'story_view_photo': 'Profilkép nagyítása',
+      'story_watch_secret': 'Sztori megtekintése titokban',
+      'story_no_data': 'Nem érhető el sztoriadat.',
+      'story_close': 'BEZÁR',
     },
     'zh-hans': {
       'story_section_title':
-          'Ã¥Å’Â¿Ã¥ÂÂÃ¦Å¸Â¥Ã§Å“â€¹Ã¥Å Â¨Ã¦â‚¬ÂÃ¦Ë†â€“Ã¦â€Â¾Ã¥Â¤Â§Ã¥Â¤Â´Ã¥Æ’Â',
+          '匿名查看动态或放大头像',
       'story_login_required':
-          'Ã¨Â¯Â·Ã§â„¢Â»Ã¥Â½â€¢Ã¤Â»Â¥Ã¥Å’Â¿Ã¥ÂÂÃ¦Å¸Â¥Ã§Å“â€¹Ã¥Å Â¨Ã¦â‚¬ÂÃ¥Â¹Â¶Ã¦â€Â¾Ã¥Â¤Â§Ã¥Â¤Â´Ã¥Æ’ÂÃ§â€¦Â§Ã§â€°â€¡Ã£â‚¬â€š',
+          '请登录以匿名查看动态并放大头像照片。',
       'story_ad_wait':
-          'Ã¥Â¹Â¿Ã¥â€˜Å Ã¥ÂÂÃ¦ËœÂ¾Ã§Â¤ÂºÃ¯Â¼Å’Ã¨Â¯Â·Ã§Â¨ÂÃ¥â‚¬â„¢Ã£â‚¬â€š',
-      'story_action_title': 'Ã¤Â½Â Ã¦Æ’Â³Ã¥ÂÅ¡Ã¤Â»â‚¬Ã¤Â¹Ë†Ã¯Â¼Å¸',
-      'story_view_photo': 'Ã¦â€Â¾Ã¥Â¤Â§Ã¥Â¤Â´Ã¥Æ’Â',
-      'story_watch_secret': 'Ã¥Å’Â¿Ã¥ÂÂÃ¦Å¸Â¥Ã§Å“â€¹Ã¥Å Â¨Ã¦â‚¬Â',
-      'story_no_data': 'Ã¦Å¡â€šÃ¦â€”Â Ã¥Å Â¨Ã¦â‚¬ÂÃ¦â€¢Â°Ã¦ÂÂ®Ã£â‚¬â€š',
-      'story_close': 'Ã¥â€¦Â³Ã©â€”Â­',
+          '广告后显示，请稍候。',
+      'story_action_title': '你想做什么？',
+      'story_view_photo': '放大头像',
+      'story_watch_secret': '匿名查看动态',
+      'story_no_data': '暂无动态数据。',
+      'story_close': '关闭',
     },
     'id': {
       'story_section_title': 'Lihat story diam-diam atau perbesar foto profil',
@@ -6652,15 +6652,15 @@ class _DashboardScreenState extends State<DashboardScreen>
     },
     'fr': {
       'story_section_title':
-          'Voir les stories discrÃƒÂ¨tement ou agrandir la photo de profil',
+          'Voir les stories discrètement ou agrandir la photo de profil',
       'story_login_required':
           'Connectez-vous pour voir les stories en mode anonyme et agrandir les photos de profil.',
       'story_ad_wait':
-          'SÃ¢â‚¬â„¢affichera aprÃƒÂ¨s la publicitÃƒÂ©. Veuillez patienter.',
+          'S’affichera après la publicité. Veuillez patienter.',
       'story_action_title': 'Que souhaitez-vous faire ?',
       'story_view_photo': 'Agrandir la photo de profil',
-      'story_watch_secret': 'Voir la story discrÃƒÂ¨tement',
-      'story_no_data': 'Aucune donnÃƒÂ©e de story disponible.',
+      'story_watch_secret': 'Voir la story discrètement',
+      'story_no_data': 'Aucune donnée de story disponible.',
       'story_close': 'FERMER',
     },
     'it': {
@@ -6668,7 +6668,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'Guarda le storie in segreto o ingrandisci la foto profilo',
       'story_login_required':
           'Accedi per vedere le storie in modo anonimo e ingrandire le foto profilo.',
-      'story_ad_wait': 'VerrÃƒÂ  mostrato dopo lÃ¢â‚¬â„¢annuncio. Attendi.',
+      'story_ad_wait': 'Verrà mostrato dopo l’annuncio. Attendi.',
       'story_action_title': 'Cosa vuoi fare?',
       'story_view_photo': 'Ingrandisci la foto profilo',
       'story_watch_secret': 'Guarda la storia in segreto',
@@ -6677,43 +6677,43 @@ class _DashboardScreenState extends State<DashboardScreen>
     },
     'vi': {
       'story_section_title':
-          'Xem story bÃƒÂ­ mÃ¡ÂºÂ­t hoÃ¡ÂºÂ·c phÃƒÂ³ng to Ã¡ÂºÂ£nh hÃ¡Â»â€œ sÃ†Â¡',
+          'Xem story bí mật hoặc phóng to ảnh hồ sơ',
       'story_login_required':
-          'Vui lÃƒÂ²ng Ã„â€˜Ã„Æ’ng nhÃ¡ÂºÂ­p Ã„â€˜Ã¡Â»Æ’ xem story Ã¡ÂºÂ©n danh vÃƒÂ  phÃƒÂ³ng to Ã¡ÂºÂ£nh hÃ¡Â»â€œ sÃ†Â¡.',
+          'Vui lòng đăng nhập để xem story ẩn danh và phóng to ảnh hồ sơ.',
       'story_ad_wait':
-          'SÃ¡ÂºÂ½ hiÃ¡Â»Æ’n thÃ¡Â»â€¹ sau quÃ¡ÂºÂ£ng cÃƒÂ¡o. Vui lÃƒÂ²ng chÃ¡Â»Â.',
-      'story_action_title': 'BÃ¡ÂºÂ¡n muÃ¡Â»â€˜n lÃƒÂ m gÃƒÂ¬?',
-      'story_view_photo': 'PhÃƒÂ³ng to Ã¡ÂºÂ£nh hÃ¡Â»â€œ sÃ†Â¡',
-      'story_watch_secret': 'Xem story bÃƒÂ­ mÃ¡ÂºÂ­t',
-      'story_no_data': 'KhÃƒÂ´ng cÃƒÂ³ dÃ¡Â»Â¯ liÃ¡Â»â€¡u story.',
-      'story_close': 'Ã„ÂÃƒâ€œNG',
+          'Sẽ hiển thị sau quảng cáo. Vui lòng chờ.',
+      'story_action_title': 'Bạn muốn làm gì?',
+      'story_view_photo': 'Phóng to ảnh hồ sơ',
+      'story_watch_secret': 'Xem story bí mật',
+      'story_no_data': 'Không có dữ liệu story.',
+      'story_close': 'ĐÓNG',
     },
     'th': {
       'story_section_title':
-          'Ã Â¸â€Ã Â¸Â¹Ã Â¸ÂªÃ Â¸â€¢Ã Â¸Â­Ã Â¸Â£Ã Â¸ÂµÃ Â¹ÂÃ Â¸Å¡Ã Â¸Å¡Ã Â¸Â¥Ã Â¸Â±Ã Â¸Å¡ Ã Â¹â€  Ã Â¸Â«Ã Â¸Â£Ã Â¸Â·Ã Â¸Â­Ã Â¸â€šÃ Â¸Â¢Ã Â¸Â²Ã Â¸Â¢Ã Â¸Â£Ã Â¸Â¹Ã Â¸â€ºÃ Â¹â€šÃ Â¸â€ºÃ Â¸Â£Ã Â¹â€Ã Â¸Å¸Ã Â¸Â¥Ã Â¹Å’',
+          'ดูสตอรีแบบลับ ๆ หรือขยายรูปโปรไฟล์',
       'story_login_required':
-          'Ã Â¹â€šÃ Â¸â€ºÃ Â¸Â£Ã Â¸â€Ã Â¹â‚¬Ã Â¸â€šÃ Â¹â€°Ã Â¸Â²Ã Â¸ÂªÃ Â¸Â¹Ã Â¹Ë†Ã Â¸Â£Ã Â¸Â°Ã Â¸Å¡Ã Â¸Å¡Ã Â¹â‚¬Ã Â¸ÂÃ Â¸Â·Ã Â¹Ë†Ã Â¸Â­Ã Â¸â€Ã Â¸Â¹Ã Â¸ÂªÃ Â¸â€¢Ã Â¸Â­Ã Â¸Â£Ã Â¸ÂµÃ Â¹ÂÃ Â¸Å¡Ã Â¸Å¡Ã Â¹â€Ã Â¸Â¡Ã Â¹Ë†Ã Â¸Â£Ã Â¸Â°Ã Â¸Å¡Ã Â¸Â¸Ã Â¸â€¢Ã Â¸Â±Ã Â¸Â§Ã Â¸â€¢Ã Â¸â„¢Ã Â¹ÂÃ Â¸Â¥Ã Â¸Â°Ã Â¸â€šÃ Â¸Â¢Ã Â¸Â²Ã Â¸Â¢Ã Â¸Â£Ã Â¸Â¹Ã Â¸â€ºÃ Â¹â€šÃ Â¸â€ºÃ Â¸Â£Ã Â¹â€Ã Â¸Å¸Ã Â¸Â¥Ã Â¹Å’',
+          'โปรดเข้าสู่ระบบเพื่อดูสตอรีแบบไม่ระบุตัวตนและขยายรูปโปรไฟล์',
       'story_ad_wait':
-          'Ã Â¸Ë†Ã Â¸Â°Ã Â¹ÂÃ Â¸ÂªÃ Â¸â€Ã Â¸â€¡Ã Â¸Â«Ã Â¸Â¥Ã Â¸Â±Ã Â¸â€¡Ã Â¹â€šÃ Â¸â€ Ã Â¸Â©Ã Â¸â€œÃ Â¸Â² Ã Â¸ÂÃ Â¸Â£Ã Â¸Â¸Ã Â¸â€œÃ Â¸Â²Ã Â¸Â£Ã Â¸Â­Ã Â¸ÂªÃ Â¸Â±Ã Â¸ÂÃ Â¸â€Ã Â¸Â£Ã Â¸Â¹Ã Â¹Ë†',
+          'จะแสดงหลังโฆษณา กรุณารอสักครู่',
       'story_action_title':
-          'Ã Â¸â€Ã Â¸Â¸Ã Â¸â€œÃ Â¸â€¢Ã Â¹â€°Ã Â¸Â­Ã Â¸â€¡Ã Â¸ÂÃ Â¸Â²Ã Â¸Â£Ã Â¸â€”Ã Â¸Â³Ã Â¸Â­Ã Â¸Â°Ã Â¹â€Ã Â¸Â£?',
+          'คุณต้องการทำอะไร?',
       'story_view_photo':
-          'Ã Â¸â€šÃ Â¸Â¢Ã Â¸Â²Ã Â¸Â¢Ã Â¸Â£Ã Â¸Â¹Ã Â¸â€ºÃ Â¹â€šÃ Â¸â€ºÃ Â¸Â£Ã Â¹â€Ã Â¸Å¸Ã Â¸Â¥Ã Â¹Å’',
+          'ขยายรูปโปรไฟล์',
       'story_watch_secret':
-          'Ã Â¸â€Ã Â¸Â¹Ã Â¸ÂªÃ Â¸â€¢Ã Â¸Â­Ã Â¸Â£Ã Â¸ÂµÃ Â¹ÂÃ Â¸Å¡Ã Â¸Å¡Ã Â¸Â¥Ã Â¸Â±Ã Â¸Å¡ Ã Â¹â€ ',
+          'ดูสตอรีแบบลับ ๆ',
       'story_no_data':
-          'Ã Â¹â€Ã Â¸Â¡Ã Â¹Ë†Ã Â¸Â¡Ã Â¸ÂµÃ Â¸â€šÃ Â¹â€°Ã Â¸Â­Ã Â¸Â¡Ã Â¸Â¹Ã Â¸Â¥Ã Â¸ÂªÃ Â¸â€¢Ã Â¸Â­Ã Â¸Â£Ã Â¸Âµ',
-      'story_close': 'Ã Â¸â€ºÃ Â¸Â´Ã Â¸â€',
+          'ไม่มีข้อมูลสตอรี',
+      'story_close': 'ปิด',
     },
     'pl': {
       'story_section_title':
-          'OglÃ„â€¦daj relacje anonimowo lub powiÃ„â„¢ksz zdjÃ„â„¢cie profilowe',
+          'Oglądaj relacje anonimowo lub powiększ zdjęcie profilowe',
       'story_login_required':
-          'Zaloguj siÃ„â„¢, aby oglÃ„â€¦daÃ„â€¡ relacje anonimowo i powiÃ„â„¢kszaÃ„â€¡ zdjÃ„â„¢cia profilowe.',
-      'story_ad_wait': 'Zostanie pokazane po reklamie. Prosimy czekaÃ„â€¡.',
+          'Zaloguj się, aby oglądać relacje anonimowo i powiększać zdjęcia profilowe.',
+      'story_ad_wait': 'Zostanie pokazane po reklamie. Prosimy czekać.',
       'story_action_title': 'Co chcesz zrobic?',
-      'story_view_photo': 'PowiÃ„â„¢ksz zdjÃ„â„¢cie profilowe',
-      'story_watch_secret': 'OglÃ„â€¦daj relacjÃ„â„¢ anonimowo',
+      'story_view_photo': 'Powiększ zdjęcie profilowe',
+      'story_watch_secret': 'OglÄ…daj relacjÄ™ anonimowo',
       'story_no_data': 'Brak danych relacji.',
       'story_close': 'ZAMKNIJ',
     },
@@ -7662,7 +7662,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(localizeTrEn(
-              _lang, 'GeÃƒÂ§ersiz maÃ„Å¸aza linki.', 'Invalid store link.')),
+              _lang, 'Geçersiz mağaza linki.', 'Invalid store link.')),
           backgroundColor: Colors.redAccent,
         ));
       }
@@ -7672,7 +7672,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(localizeTrEn(
-              _lang, 'Link aÃƒÂ§Ã„Â±lamadÃ„Â±.', 'Could not open the link.')),
+              _lang, 'Link açılamadı.', 'Could not open the link.')),
           backgroundColor: Colors.redAccent,
         ));
       }
@@ -7685,7 +7685,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(localizeTrEn(
-            _lang, 'Link aÃƒÂ§Ã„Â±lamadÃ„Â±.', 'Could not open the link.')),
+            _lang, 'Link açılamadı.', 'Could not open the link.')),
         backgroundColor: Colors.redAccent,
       ));
     }
@@ -7791,7 +7791,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         popCritical: true,
       );
       final String err =
-          localizeTrEn(_lang, 'LÃƒÂ¼tfen tekrar deneyin.', 'Please try again.');
+          localizeTrEn(_lang, 'Lütfen tekrar deneyin.', 'Please try again.');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(_t('restore_purchases_failed', {'err': err})),
         duration: const Duration(seconds: 4),
@@ -8181,7 +8181,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         "status": false,
         "skipped": true,
         "reason": "load_timeout",
-        "error": localizeTrEn(_lang, "Zaman aÃ…Å¸Ã„Â±mÃ„Â±", "Timeout"),
+        "error": localizeTrEn(_lang, "Zaman aşımı", "Timeout"),
       });
     });
 
@@ -8261,7 +8261,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 "skipped": true,
                 "reason": "show_timeout",
                 "shown": true,
-                "error": localizeTrEn(_lang, "Zaman aÃ…Å¸Ã„Â±mÃ„Â±", "Timeout"),
+                "error": localizeTrEn(_lang, "Zaman aşımı", "Timeout"),
               });
             });
             ad.show();
@@ -10557,7 +10557,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       _showDiagSnackBar(
         localizeTrEn(
             _lang,
-            'REST probe baÃ…Å¸arÃ„Â±sÃ„Â±z: kimlik doÃ„Å¸rulama yok.',
+            'REST probe başarısız: kimlik doğrulama yok.',
             'REST probe failed: missing auth.'),
         backgroundColor: Colors.red,
       );
@@ -10573,11 +10573,11 @@ class _DashboardScreenState extends State<DashboardScreen>
       ok
           ? (localizeTrEn(
               _lang,
-              'REST probe baÃ…Å¸arÃ„Â±lÃ„Â± (Firestore uÃƒÂ§ noktasÃ„Â±na eriÃ…Å¸ilebiliyor).',
+              'REST probe başarılı (Firestore uç noktasına erişilebiliyor).',
               'REST probe success (Firestore endpoint reachable).'))
           : (localizeTrEn(
               _lang,
-              'REST probe baÃ…Å¸arÃ„Â±sÃ„Â±z (loglara bakÃ„Â±n).',
+              'REST probe başarısız (loglara bakın).',
               'REST probe failed (check logs).')),
       backgroundColor: ok ? Colors.green : Colors.red,
       duration: const Duration(seconds: 5),
@@ -10869,7 +10869,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         popCritical: true,
       );
       _showDiagSnackBar(
-        localizeTrEn(_lang, 'Firebase Auth probe baÃ…Å¸arÃ„Â±sÃ„Â±z.',
+        localizeTrEn(_lang, 'Firebase Auth probe başarısız.',
             'Firebase Auth probe failed.'),
         backgroundColor: Colors.red,
       );
@@ -10883,7 +10883,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         'probe success uid=${user.uid} anon=${user.isAnonymous} tokenExp=${tokenResult.expirationTime?.toIso8601String() ?? '(null)'}',
       );
       _showDiagSnackBar(
-        localizeTrEn(_lang, 'Firebase Auth probe baÃ…Å¸arÃ„Â±lÃ„Â±.',
+        localizeTrEn(_lang, 'Firebase Auth probe başarılı.',
             'Firebase Auth probe success.'),
         backgroundColor: Colors.green,
       );
@@ -10897,7 +10897,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         popCritical: true,
       );
       _showDiagSnackBar(
-        localizeTrEn(_lang, 'Firebase token probe baÃ…Å¸arÃ„Â±sÃ„Â±z.',
+        localizeTrEn(_lang, 'Firebase token probe başarısız.',
             'Firebase token probe failed.'),
         backgroundColor: Colors.red,
       );
@@ -10944,7 +10944,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 children: [
                   const SizedBox(height: 8),
                   Text(
-                    localizeTrEn(_lang, 'KRÃ„Â°TÃ„Â°K TEÃ…ÂHÃ„Â°S HATASI',
+                    localizeTrEn(_lang, 'KRİTİK TEŞHİS HATASI',
                         'CRITICAL DIAGNOSTIC ERROR'),
                     style: const TextStyle(
                       color: Colors.white,
@@ -11974,7 +11974,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 title: Text(
                   localizeTrEn(
                     langCode,
-                    'TeÃ…Å¸his LoglarÃ„Â±',
+                    'Teşhis Logları',
                     'Diagnostic Logs',
                   ),
                   style: const TextStyle(fontWeight: FontWeight.w700),
@@ -11989,7 +11989,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 actions: [
                   IconButton(
                     tooltip: localizeTrEn(
-                        langCode, 'TÃƒÂ¼mÃƒÂ¼nÃƒÂ¼ kopyala', 'Copy all'),
+                        langCode, 'Tümünü kopyala', 'Copy all'),
                     onPressed: () => Clipboard.setData(
                       ClipboardData(text: _buildCombinedDiagnosticDump()),
                     ),
@@ -12054,7 +12054,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                       child: Text(
                                         localizeTrEn(
                                           langCode,
-                                          'HenÃƒÂ¼z IG logu yok.',
+                                          'Henüz IG logu yok.',
                                           'No IG logs yet.',
                                         ),
                                       ),
@@ -12294,7 +12294,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                           _showDiagSnackBar(
                                             localizeTrEn(
                                               langCode,
-                                              'SatÃ„Â±n alÃ„Â±m iptal edildi.',
+                                              'Satın alım iptal edildi.',
                                               'Purchase cancelled.',
                                             ),
                                             backgroundColor:
@@ -12304,7 +12304,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                           _showDiagSnackBar(
                                             localizeTrEn(
                                               langCode,
-                                              'SatÃ„Â±n alÃ„Â±m baÃ…Å¸arÃ„Â±lÃ„Â±.',
+                                              'Satın alım başarılı.',
                                               'Purchase successful.',
                                             ),
                                             backgroundColor: Colors.green,
@@ -12313,7 +12313,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                           _showDiagSnackBar(
                                             localizeTrEn(
                                               langCode,
-                                              'SatÃ„Â±n alÃ„Â±m baÃ…Å¸arÃ„Â±sÃ„Â±z.',
+                                              'Satın alım başarısız.',
                                               'Purchase failed.',
                                             ),
                                             backgroundColor: Colors.red,
@@ -12612,7 +12612,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       _showDiagSnackBar(
         localizeTrEn(
             _lang,
-            'Firebase Auth hatasÃ„Â±: kullanÃ„Â±cÃ„Â± doÃ„Å¸rulanamadÃ„Â±.',
+            'Firebase Auth hatası: kullanıcı doğrulanamadı.',
             'Firebase auth error: user verification failed.'),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 5),
@@ -12666,7 +12666,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       }
 
       _showDiagSnackBar(
-        localizeTrEn(_lang, 'Firestore test yazma baÃ…Å¸arÃ„Â±lÃ„Â±.',
+        localizeTrEn(_lang, 'Firestore test yazma başarılı.',
             'Firestore test write successful.'),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 3),
@@ -12681,7 +12681,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         popCritical: true,
       );
       _showDiagSnackBar(
-        localizeTrEn(_lang, 'Firestore test hatasÃ„Â± oluÃ…Å¸tu.',
+        localizeTrEn(_lang, 'Firestore test hatası oluştu.',
             'Firestore test failed.'),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 5),
@@ -12713,7 +12713,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       _showDiagSnackBar(
         localizeTrEn(
             _lang,
-            'Firestore auth hatasÃ„Â±: kullanÃ„Â±cÃ„Â± doÃ„Å¸rulanamadÃ„Â±.',
+            'Firestore auth hatası: kullanıcı doğrulanamadı.',
             'Firestore auth error: user verification failed.'),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 5),
@@ -12748,7 +12748,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         popCritical: true,
       );
       _showDiagSnackBar(
-        localizeTrEn(_lang, 'Firestore sayaÃƒÂ§ yazma hatasÃ„Â±.',
+        localizeTrEn(_lang, 'Firestore sayaç yazma hatası.',
             'Firestore counter write failed.'),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 5),
@@ -12793,7 +12793,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         popCritical: true,
       );
       _showDiagSnackBar(
-        localizeTrEn(_lang, 'Firestore auth yok: ig_users yazÃ„Â±lamadÃ„Â±.',
+        localizeTrEn(_lang, 'Firestore auth yok: ig_users yazılamadı.',
             'Firestore auth missing: ig_users write blocked.'),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 5),
@@ -12871,7 +12871,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         popCritical: true,
       );
       _showDiagSnackBar(
-        localizeTrEn(_lang, 'Firestore ig_users yazma hatasÃ„Â±.',
+        localizeTrEn(_lang, 'Firestore ig_users yazma hatası.',
             'Firestore ig_users write failed.'),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 5),
@@ -13254,7 +13254,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   String _startupSessionEndedMessage() {
     return localizeTrEn(
       _lang,
-      'Oturumunuz sonlandÃ„Â±, lÃƒÂ¼tfen tekrar giriÃ…Å¸ yapÃ„Â±nÃ„Â±z.',
+      'Oturumunuz sonlandı, lütfen tekrar giriş yapınız.',
       'Session is invalid. Please log in again.',
     );
   }
@@ -13418,7 +13418,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         );
       }
 
-      final String fallback = localizeTrEn(_lang, 'KullanÃ„Â±cÃ„Â±', 'User');
+      final String fallback = localizeTrEn(_lang, 'Kullanıcı', 'User');
       if (mounted) {
         setState(() {
           isLoggedIn = true;
@@ -13446,7 +13446,10 @@ class _DashboardScreenState extends State<DashboardScreen>
         prefs,
         cookie: cookie,
         userId: userId,
-        username: currentUsername,
+        // currentUsername burada fallback ("Kullanıcı") içeriyor olabilir;
+        // fallback'i kalıcı olarak kaydetmemek için ham (henüz fallback
+        // uygulanmamış) username değerini kullan.
+        username: username,
         userAgent: restoredUa,
       );
       unawaited(TelemetryService.instance.recordLogin(
@@ -13627,7 +13630,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 Icon(Icons.block, size: 72, color: Colors.redAccent.shade200),
                 const SizedBox(height: 16),
                 Text(
-                  localizeTrEn(_lang, 'HesabÃ„Â±nÃ„Â±z engellendi',
+                  localizeTrEn(_lang, 'Hesabınız engellendi',
                       'Your account is blocked'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -13639,7 +13642,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 Text(
                   localizeTrEn(
                       _lang,
-                      'Bu hesap iÃƒÂ§in eriÃ…Å¸im kÃ„Â±sÃ„Â±tlandÃ„Â±.',
+                      'Bu hesap için erişim kısıtlandı.',
                       'Access is restricted for this account.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -14144,7 +14147,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             );
             if (!ok && mounted) {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(localizeTrEn(_lang, 'Link aÃƒÂ§Ã„Â±lamadÃ„Â±.',
+                content: Text(localizeTrEn(_lang, 'Link açılamadı.',
                     'Could not open the link.')),
                 duration: const Duration(seconds: 2),
                 backgroundColor: Colors.redAccent,
@@ -14153,7 +14156,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           } catch (_) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(localizeTrEn(_lang, 'Link aÃƒÂ§Ã„Â±lamadÃ„Â±.',
+                content: Text(localizeTrEn(_lang, 'Link açılamadı.',
                     'Could not open the link.')),
                 duration: const Duration(seconds: 2),
                 backgroundColor: Colors.redAccent,
@@ -14589,7 +14592,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(localizeTrEn(
               _lang,
-              'Oturum geÃƒÂ§ersiz. LÃƒÂ¼tfen tekrar giriÃ…Å¸ yapÃ„Â±n.',
+              'Oturum geçersiz. Lütfen tekrar giriş yapın.',
               'Session verification is required. Please verify your account in the Instagram app and try again.')),
           backgroundColor: Colors.orange.shade700,
         ));
@@ -14785,7 +14788,7 @@ try {
   );
 }
 
-      // KullanÃ„Â±cÃ„Â± adÃ„Â± gÃƒÂ¼ncelle
+      // Kullanıcı adı güncelle
       if (info['username'] != null) {
         String freshUser = info['username'].toString();
         if (currentUsername != freshUser) {
@@ -14819,7 +14822,7 @@ try {
           followersMap.isNotEmpty || followingMap.isNotEmpty;
       if (hasStoredData && tFollowers == 0 && tFollowing == 0) {
         _showAnalysisWarning(localizeTrEn(_lang,
-            'Instagram veri dÃƒÂ¶ndÃƒÂ¼rmedi.', 'Instagram returned no data.'));
+            'Instagram veri döndürmedi.', 'Instagram returned no data.'));
         return;
       }
 
@@ -15039,7 +15042,7 @@ try {
           fetchedFollowers < (tFollowers * followersCoverageNeeded)) {
         _showAnalysisWarning(localizeTrEn(
           _lang,
-          'Veri yÃƒÂ¼kleme kesildi: takipÃƒÂ§i verisi eksik ($fetchedFollowers/$tFollowers). Biraz bekleyip tekrar deneyin.',
+          'Veri yükleme kesildi: takipçi verisi eksik ($fetchedFollowers/$tFollowers). Biraz bekleyip tekrar deneyin.',
           'Data loading was interrupted: follower data incomplete ($fetchedFollowers/$tFollowers). Please wait a bit and try again.',
         ));
         return;
@@ -15048,7 +15051,7 @@ try {
           fetchedFollowing < (tFollowing * followingCoverageNeeded)) {
         _showAnalysisWarning(localizeTrEn(
           _lang,
-          'Veri yÃƒÂ¼kleme kesildi: takip edilen verisi eksik ($fetchedFollowing/$tFollowing). Biraz bekleyip tekrar deneyin.',
+          'Veri yükleme kesildi: takip edilen verisi eksik ($fetchedFollowing/$tFollowing). Biraz bekleyip tekrar deneyin.',
           'Data loading was interrupted: following data incomplete ($fetchedFollowing/$tFollowing). Please wait a bit and try again.',
         ));
         return;
@@ -15113,7 +15116,7 @@ try {
         } else {
           _showAnalysisWarning(localizeTrEn(
             _lang,
-            'Veri yÃƒÂ¼kleme kesildi: Instagram boÃ…Å¸ veri dÃƒÂ¶ndÃƒÂ¼rdÃƒÂ¼. LÃƒÂ¼tfen tekrar deneyin.',
+            'Veri yükleme kesildi: Instagram boş veri döndürdü. Lütfen tekrar deneyin.',
             'Data loading was interrupted: Instagram returned empty data. Please try again.',
           ));
         }
@@ -15137,7 +15140,7 @@ try {
 
       String reason = localizeTrEn(
         _lang,
-        'Veri yÃƒÂ¼kleme kesildi: beklenmeyen bir hata oluÃ…Å¸tu.',
+        'Veri yükleme kesildi: beklenmeyen bir hata oluştu.',
         'Data loading stopped due to an unexpected error.',
       );
       final String raw = e.toString();
@@ -15147,7 +15150,7 @@ try {
         final String igMsg = _extractIgWarningTextFromError(e).trim();
         reason = localizeTrEn(
           _lang,
-          'Instagram otomatik davranÃ„Â±Ã…Å¸ uyarÃ„Â±sÃ„Â± verdi. GÃƒÂ¼venlik iÃƒÂ§in veri ÃƒÂ§ekme durduruldu. Biraz bekleyip tekrar deneyin.',
+          'Instagram otomatik davranış uyarısı verdi. Güvenlik için veri çekme durduruldu. Biraz bekleyip tekrar deneyin.',
           'Instagram returned an automated-behavior warning. We stopped fetching data for safety. Please wait and try again.',
         );
         unawaited(_showIgWarningGuide(igMsg));
@@ -15158,7 +15161,7 @@ try {
             : 'challenge_required';
         reason = localizeTrEn(
           _lang,
-          'Instagram gÃƒÂ¼venlik doÃ„Å¸rulamasÃ„Â± istedi (Ã…Å¸ÃƒÂ¼pheli giriÃ…Å¸ / hesap kilidi). Instagram uygulamasÃ„Â±ndan doÃ„Å¸rulayÃ„Â±p tekrar deneyin.',
+          'Instagram güvenlik doğrulaması istedi (şüpheli giriş / hesap kilidi). Instagram uygulamasından doğrulayıp tekrar deneyin.',
           'Instagram requested security verification (suspicious login / account lock). Verify in Instagram app and try again.',
         );
         unawaited(_showIgSecurityVerificationGuide(code));
@@ -15183,7 +15186,7 @@ try {
       } else if (rawLower.contains('http_429')) {
         reason = localizeTrEn(
           _lang,
-          'Ãƒâ€¡ok hÃ„Â±zlÃ„Â± istek gÃƒÂ¶nderildi. Veri yÃƒÂ¼kleme gÃƒÂ¼venlik nedeniyle kesildi.',
+          'Çok hızlı istek gönderildi. Veri yükleme güvenlik nedeniyle kesildi.',
           'Too many requests were sent. Data loading was interrupted for safety.',
         );
       } else if (rawLower.contains('ig_cooldown_active')) {
@@ -15195,7 +15198,7 @@ try {
           rawLower.contains('timeout')) {
         reason = localizeTrEn(
           _lang,
-          'BaÃ„Å¸lantÃ„Â± zaman aÃ…Å¸Ã„Â±mÃ„Â±na uÃ„Å¸radÃ„Â±. Veri yÃƒÂ¼kleme yarÃ„Â±da kesildi.',
+          'Bağlantı zaman aşımına uğradı. Veri yükleme yarıda kesildi.',
           'Connection timed out. Data loading was interrupted.',
         );
       } else if (rawLower.contains('socketexception') ||
@@ -15205,21 +15208,21 @@ try {
           rawLower.contains('clientexception')) {
         reason = localizeTrEn(
           _lang,
-          'Ã„Â°nternet baÃ„Å¸lantÃ„Â±sÃ„Â± kesildi veya zayÃ„Â±f. Veri yÃƒÂ¼kleme tamamlanamadÃ„Â±.',
+          'İnternet bağlantısı kesildi veya zayıf. Veri yükleme tamamlanamadı.',
           'Network connection dropped or is unstable. Data loading could not complete.',
         );
       } else if (rawLower.contains('handshakeexception') ||
           rawLower.contains('certificate')) {
         reason = localizeTrEn(
           _lang,
-          'GÃƒÂ¼venli baÃ„Å¸lantÃ„Â± kurulamadÃ„Â±Ã„Å¸Ã„Â± iÃƒÂ§in veri yÃƒÂ¼kleme durdu.',
+          'Güvenli bağlantı kurulamadığı için veri yükleme durdu.',
           'Secure connection could not be established, so loading stopped.',
         );
       } else if (rawLower.contains('invalid_json') ||
           rawLower.contains('invalid_payload')) {
         reason = localizeTrEn(
           _lang,
-          'Instagram beklenmeyen bir yanÃ„Â±t dÃƒÂ¶ndÃƒÂ¼rdÃƒÂ¼. Veri yÃƒÂ¼kleme kesildi.',
+          'Instagram beklenmeyen bir yanıt döndürdü. Veri yükleme kesildi.',
           'Instagram returned an unexpected response. Data loading was interrupted.',
         );
       } else if (rawLower.contains('http_')) {
@@ -15227,13 +15230,13 @@ try {
         if (code != null) {
           reason = localizeTrEn(
             _lang,
-            'Instagram sunucusu hata dÃƒÂ¶ndÃƒÂ¼rdÃƒÂ¼ (HTTP $code). Veri yÃƒÂ¼kleme kesildi.',
+            'Instagram sunucusu hata döndürdü (HTTP $code). Veri yükleme kesildi.',
             'Instagram returned an error (HTTP $code). Data loading was interrupted.',
           );
         } else {
           reason = localizeTrEn(
             _lang,
-            'Instagram sunucusu hata dÃƒÂ¶ndÃƒÂ¼rdÃƒÂ¼. Veri yÃƒÂ¼kleme kesildi.',
+            'Instagram sunucusu hata döndürdü. Veri yükleme kesildi.',
             'Instagram returned an error. Data loading was interrupted.',
           );
         }
@@ -15329,7 +15332,7 @@ try {
     if (cleanFeedbackMessage.isNotEmpty) {
       msg = msg.isEmpty
           ? cleanFeedbackMessage
-          : '$msg Ã¢â‚¬â€ $cleanFeedbackMessage';
+          : '$msg — $cleanFeedbackMessage';
     }
 
     final String cleanMessage = message.trim();
@@ -16154,7 +16157,7 @@ if (response.statusCode == 429) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(localizeTrEn(
               _lang,
-              'Oturum doÃ„Å¸rulamasÃ„Â± tamamlanamadÃ„Â±. LÃƒÂ¼tfen tekrar giriÃ…Å¸ yapÃ„Â±n.',
+              'Oturum doğrulaması tamamlanamadı. Lütfen tekrar giriş yapın.',
               'Session verification failed. Please log in again.')),
           backgroundColor: Colors.redAccent,
           duration: const Duration(seconds: 4),
@@ -16162,9 +16165,10 @@ if (response.statusCode == 429) {
       }
       return;
     }
-    final String username = usernameRaw.isNotEmpty
+    final bool hasRealUsername = usernameRaw.isNotEmpty;
+    final String username = hasRealUsername
         ? usernameRaw
-        : (localizeTrEn(_lang, 'KullanÃ„Â±cÃ„Â±', 'User'));
+        : (localizeTrEn(_lang, 'Kullanıcı', 'User'));
 
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -16172,7 +16176,11 @@ if (response.statusCode == 429) {
         prefs,
         cookie: cookie,
         userId: userId,
-        username: username,
+        // Gerçek kullanıcı adı gelmediyse placeholder'ı kalıcı olarak
+        // kaydetme; boş bırakılırsa bir sonraki açılışta
+        // _isPlaceholderUsername / _refreshUsernameForBanCheckIfNeeded
+        // gerçek adı tekrar çekmeyi dener.
+        username: hasRealUsername ? username : null,
         userAgent: userAgent,
       );
     } catch (_) {}
@@ -17013,42 +17021,42 @@ if (response.statusCode == 429) {
     final bool isCheckpoint = code.toLowerCase().contains('checkpoint');
     final String title = localizeTrEn(
       langCode,
-      'Instagram DoÃ„Å¸rulamasÃ„Â± Gerekli',
+      'Instagram Doğrulaması Gerekli',
       'Instagram Verification Required',
     );
     final String description = localizeTrEn(
       langCode,
-      'Instagram hesabÃ„Â±nÃ„Â±z iÃƒÂ§in gÃƒÂ¼venlik doÃ„Å¸rulamasÃ„Â± gerekiyor (Ã…Å¸ÃƒÂ¼pheli giriÃ…Å¸ bildirimi / geÃƒÂ§ici kilit). Bu yÃƒÂ¼zden verileri ÃƒÂ§ekemiyoruz.',
-      'Instagram requires a security verification for your account (suspicious login / temporary lock). We canÃ¢â‚¬â„¢t fetch data until itÃ¢â‚¬â„¢s verified.',
+      'Instagram hesabınız için güvenlik doğrulaması gerekiyor (şüpheli giriş bildirimi / geçici kilit). Bu yüzden verileri çekemiyoruz.',
+      'Instagram requires a security verification for your account (suspicious login / temporary lock). We can’t fetch data until it’s verified.',
     );
     final String typeHint = isCheckpoint
         ? localizeTrEn(
             langCode,
-            'Bu genelde Ã¢â‚¬Å“hesap kilidi / checkpointÃ¢â‚¬Â durumudur.',
-            'This is usually an Ã¢â‚¬Å“account lock / checkpointÃ¢â‚¬Â.',
+            'Bu genelde “hesap kilidi / checkpoint” durumudur.',
+            'This is usually an “account lock / checkpoint”.',
           )
         : localizeTrEn(
             langCode,
-            'Bu genelde Ã¢â‚¬Å“Ã…Å¸ÃƒÂ¼pheli giriÃ…Å¸Ã¢â‚¬Â doÃ„Å¸rulamasÃ„Â±dÃ„Â±r.',
-            'This is usually a Ã¢â‚¬Å“suspicious loginÃ¢â‚¬Â verification.',
+            'Bu genelde “şüpheli giriş” doğrulamasıdır.',
+            'This is usually a “suspicious login” verification.',
           );
     final String steps = localizeTrEn(
       langCode,
       'Ne yapmaliyim?\n'
-          '1) Instagram uygulamasÃ„Â±nÃ„Â± aÃƒÂ§Ã„Â±n.\n'
-          '2) Ã¢â‚¬Å“Ã…ÂÃƒÂ¼pheli giriÃ…Å¸Ã¢â‚¬Â uyarÃ„Â±sÃ„Â± varsa Ã¢â‚¬Å“Bu bendimÃ¢â‚¬Â diyerek doÃ„Å¸rulayÃ„Â±n.\n'
-          '3) Gerekirse Ã…Å¸ifrenizi deÃ„Å¸iÃ…Å¸tirip tekrar giriÃ…Å¸ yapÃ„Â±n.\n'
-          '4) Bu uygulamaya dÃƒÂ¶nÃƒÂ¼p Ã¢â‚¬Å“VERÃ„Â°LERÃ„Â° GÃƒÅ“NCELLEÃ¢â‚¬Âye basÃ„Â±n.',
+          '1) Instagram uygulamasını açın.\n'
+          '2) “Şüpheli giriş” uyarısı varsa “Bu bendim” diyerek doğrulayın.\n'
+          '3) Gerekirse şifrenizi değiştirip tekrar giriş yapın.\n'
+          '4) Bu uygulamaya dönüp “VERİLERİ GÜNCELLE”ye basın.',
       'What to do:\n'
           '1) Open the Instagram app.\n'
-          '2) If you see a Ã¢â‚¬Å“Suspicious loginÃ¢â‚¬Â alert, confirm itÃ¢â‚¬â„¢s you.\n'
+          '2) If you see a “Suspicious login” alert, confirm it’s you.\n'
           '3) If needed, change your password and log in again.\n'
-          '4) Come back here and tap Ã¢â‚¬Å“REFRESH DATAÃ¢â‚¬Â.',
+          '4) Come back here and tap “REFRESH DATA”.',
     );
     final String hint = localizeTrEn(
       langCode,
-      'Not: DoÃ„Å¸rulama sonrasÃ„Â± bazen 1Ã¢â‚¬â€œ2 dakika beklemek gerekebilir.',
-      'Note: After verification, you may need to wait 1Ã¢â‚¬â€œ2 minutes.',
+      'Not: Doğrulama sonrası bazen 1–2 dakika beklemek gerekebilir.',
+      'Note: After verification, you may need to wait 1–2 minutes.',
     );
 
     try {
@@ -17083,7 +17091,7 @@ if (response.statusCode == 429) {
                 } catch (_) {}
               },
               child: Text(localizeTrEn(
-                  langCode, "Instagram'Ã„Â± AÃƒÂ§", 'Open Instagram')),
+                  langCode, "Instagram'ı Aç", 'Open Instagram')),
             ),
           ],
         ),
@@ -17100,12 +17108,12 @@ if (response.statusCode == 429) {
 
     final String title = localizeTrEn(
       langCode,
-      'Instagram GeÃƒÂ§ici KÃ„Â±sÃ„Â±tlama',
+      'Instagram Geçici Kısıtlama',
       'Instagram Temporary Restriction',
     );
     final String description = localizeTrEn(
       langCode,
-      'Instagram bu iÃ…Å¸lemi geÃƒÂ§ici olarak kÃ„Â±sÃ„Â±tladÃ„Â±. Bu genelde ÃƒÂ§ok sÃ„Â±k istek / otomatik aktivite algÃ„Â±landÃ„Â±Ã„Å¸Ã„Â±nda olur. Veri ÃƒÂ§ekme durduruldu.',
+      'Instagram bu işlemi geçici olarak kısıtladı. Bu genelde çok sık istek / otomatik aktivite algılandığında olur. Veri çekme durduruldu.',
       'Instagram temporarily restricted this action. This can happen when requests are too frequent or activity looks automated. We stopped fetching data.',
     );
 
@@ -17118,25 +17126,25 @@ if (response.statusCode == 429) {
 
     final String igBlock = cleanIg.isEmpty
         ? ''
-        : '${localizeTrEn(langCode, 'Instagram mesajÃ„Â±', 'Instagram message')}:\n$cleanIg';
+        : '${localizeTrEn(langCode, 'Instagram mesajı', 'Instagram message')}:\n$cleanIg';
 
     final String steps = localizeTrEn(
       langCode,
       'Ne yapabilirsin?\n'
-          '1) Instagram uygulamasÃ„Â±nÃ„Â± aÃƒÂ§.\n'
-          '2) Bir uyarÃ„Â±/ek doÃ„Å¸rulama varsa tamamla.\n'
-          '3) 10Ã¢â‚¬â€œ30 dakika bekle.\n'
-          '4) Bu uygulamaya dÃƒÂ¶nÃƒÂ¼p tekrar Ã¢â‚¬Å“VERÃ„Â°LERÃ„Â° GÃƒÅ“NCELLEÃ¢â‚¬Âye bas.',
+          '1) Instagram uygulamasını aç.\n'
+          '2) Bir uyarı/ek doğrulama varsa tamamla.\n'
+          '3) 10–30 dakika bekle.\n'
+          '4) Bu uygulamaya dönüp tekrar “VERİLERİ GÜNCELLE”ye bas.',
       'What you can do:\n'
           '1) Open the Instagram app.\n'
           '2) Complete any alert or verification if shown.\n'
-          '3) Wait 10Ã¢â‚¬â€œ30 minutes.\n'
-          '4) Come back here and tap Ã¢â‚¬Å“REFRESH DATAÃ¢â‚¬Â again.',
+          '3) Wait 10–30 minutes.\n'
+          '4) Come back here and tap “REFRESH DATA” again.',
     );
 
     final String hint = localizeTrEn(
       langCode,
-      'Not: Arka arkaya ÃƒÂ§ok sÃ„Â±k analiz yapmak bu uyarÃ„Â±yÃ„Â± tetikleyebilir.',
+      'Not: Arka arkaya çok sık analiz yapmak bu uyarıyı tetikleyebilir.',
       'Note: Running analyses back-to-back can trigger this.',
     );
 
@@ -17174,7 +17182,7 @@ if (response.statusCode == 429) {
                 } catch (_) {}
               },
               child: Text(localizeTrEn(
-                  langCode, "Instagram'Ã„Â± AÃƒÂ§", 'Open Instagram')),
+                  langCode, "Instagram'ı Aç", 'Open Instagram')),
             ),
           ],
         ),
@@ -17664,7 +17672,7 @@ if (response.statusCode == 429) {
               const SizedBox(width: 8),
               Text(
                 localizeTrEn(
-                    _lang, 'Hikayeler yÃƒÂ¼kleniyor...', 'Loading stories...'),
+                    _lang, 'Hikayeler yükleniyor...', 'Loading stories...'),
                 style: TextStyle(
                     fontSize: 10,
                     color: isDarkMode ? Colors.white60 : Colors.black54),
@@ -18441,7 +18449,7 @@ if (response.statusCode == 429) {
             _storyRequiresSecurityVerification = true;
             _lastIgWarning = localizeTrEn(
               _lang,
-              'Instagram gÃƒÂ¼venlik doÃ„Å¸rulamasÃ„Â± gerekiyor (hikaye verisi alÃ„Â±namadÃ„Â±).',
+              'Instagram güvenlik doğrulaması gerekiyor (hikaye verisi alınamadı).',
               'Instagram security verification is required (story data could not be fetched).',
             );
           }
@@ -18465,7 +18473,7 @@ if (response.statusCode == 429) {
             _storyRequiresSecurityVerification = true;
             _lastIgWarning = localizeTrEn(
               _lang,
-              'Instagram gÃƒÂ¼venlik doÃ„Å¸rulamasÃ„Â± gerekiyor (hikaye verisi alÃ„Â±namadÃ„Â±).',
+              'Instagram güvenlik doğrulaması gerekiyor (hikaye verisi alınamadı).',
               'Instagram security verification is required (story data could not be fetched).',
             );
             continue;
@@ -18633,7 +18641,7 @@ if (response.statusCode == 429) {
             : (profile.hasStory
                 ? localizeTrEn(
                     _lang,
-                    'Hikaye verisi alÃ„Â±namadÃ„Â±. Bu durum genelde Instagram doÃ„Å¸rulamasÃ„Â±, geÃƒÂ§ici API kÃ„Â±sÃ„Â±tÃ„Â± veya baÃ„Å¸lantÃ„Â± kesintisinden kaynaklanÃ„Â±r. 2-3 dakika sonra tekrar deneyin.',
+                    'Hikaye verisi alınamadı. Bu durum genelde Instagram doğrulaması, geçici API kısıtı veya bağlantı kesintisinden kaynaklanır. 2-3 dakika sonra tekrar deneyin.',
                     'Story data could not be fetched. This is usually caused by Instagram verification, temporary API restrictions, or connection interruption. Please try again in 2-3 minutes.',
                   )
                 : _t('story_no_data'));
@@ -18667,12 +18675,12 @@ if (response.statusCode == 429) {
               raw.contains('failed host lookup'))
           ? localizeTrEn(
               _lang,
-              'Hikaye yÃƒÂ¼kleme baÃ„Å¸lantÃ„Â± kesintisi nedeniyle durdu. LÃƒÂ¼tfen tekrar deneyin.',
+              'Hikaye yükleme bağlantı kesintisi nedeniyle durdu. Lütfen tekrar deneyin.',
               'Story loading stopped due to a network interruption. Please try again.',
             )
           : localizeTrEn(
               _lang,
-              'Hikaye verisi alÃ„Â±namadÃ„Â±. LÃƒÂ¼tfen biraz sonra tekrar deneyin.',
+              'Hikaye verisi alınamadı. Lütfen biraz sonra tekrar deneyin.',
               'Could not fetch story data. Please try again shortly.',
             );
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -19785,7 +19793,7 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
           },
         ),
       );
-    // Eski oturum izlerini temizleyerek taze bir baÃ…Å¸langÃ„Â±ÃƒÂ§ yap.
+    // Eski oturum izlerini temizleyerek taze bir başlangıç yap.
     unawaited(_clearInstagramWebSessionStorage());
     _controller
         .loadRequest(Uri.parse('https://www.instagram.com/accounts/login/'));
@@ -19927,7 +19935,7 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
       if (cookieString == null || cookieString.trim().isEmpty) {
         if (mounted) setState(() => isScanning = false);
         _showLoginError(
-          'Ãƒâ€¡erez alÃ„Â±namadÃ„Â±. LÃƒÂ¼tfen tekrar giriÃ…Å¸ yapÃ„Â±n.',
+          'Çerez alınamadı. Lütfen tekrar giriş yapın.',
           'Could not read cookies. Please log in again.',
         );
         return;
@@ -19946,7 +19954,7 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
       if (sessionId.isEmpty) {
         if (mounted) setState(() => isScanning = false);
         _showLoginError(
-          'Oturum ÃƒÂ§erezi eksik. LÃƒÂ¼tfen Instagram giriÃ…Å¸ini tekrar yapÃ„Â±n.',
+          'Oturum çerezi eksik. Lütfen Instagram girişini tekrar yapın.',
           'Session cookie is missing. Please log in to Instagram again.',
         );
         return;
@@ -19998,7 +20006,7 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
         if (targetUserId.isEmpty) {
           if (mounted) setState(() => isScanning = false);
           _showLoginError(
-            'Oturum bilgisi alÃ„Â±namadÃ„Â±. LÃƒÂ¼tfen Instagram giriÃ…Å¸ini tekrar yapÃ„Â±n.',
+            'Oturum bilgisi alınamadı. Lütfen Instagram girişini tekrar yapın.',
             'Session data is missing. Please log in to Instagram again.',
           );
           return;
@@ -20057,7 +20065,7 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
         }
         if (mounted) setState(() => isScanning = false);
         _showLoginError(
-          'Oturum doÃ„Å¸rulanamadÃ„Â±. LÃƒÂ¼tfen tekrar giriÃ…Å¸ yapÃ„Â±n.',
+          'Oturum doğrulanamadı. Lütfen tekrar giriş yapın.',
           'Session verification failed. Please log in again.',
         );
         return;
@@ -20071,7 +20079,7 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
     } catch (e) {
       if (mounted) setState(() => isScanning = false);
       _showLoginError(
-        'Oturum doÃ„Å¸rulamasÃ„Â± sÃ„Â±rasÃ„Â±nda bir hata oluÃ…Å¸tu.',
+        'Oturum doğrulaması sırasında bir hata oluştu.',
         'An error occurred while verifying the session.',
       );
     }
@@ -20082,7 +20090,7 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
     return Scaffold(
         backgroundColor: widget.isDark ? Colors.black : Colors.white,
         appBar: AppBar(
-            title: Text(localizeTrEn(widget.lang, 'GiriÃ…Å¸ Yap', 'Login')),
+            title: Text(localizeTrEn(widget.lang, 'GiriÅŸ Yap', 'Login')),
             backgroundColor:
                 widget.isDark ? const Color(0xFF121212) : Colors.white,
             foregroundColor: widget.isDark ? Colors.white : Colors.black),
@@ -20100,7 +20108,7 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
                     Text(
                         localizeTrEn(
                             widget.lang,
-                            'Oturum doÃ„Å¸rulandÃ„Â±, yÃƒÂ¶nlendiriliyorsunuz...',
+                            'Oturum doğrulandı, yönlendiriliyorsunuz...',
                             'Session verified, redirecting...'),
                         textAlign: TextAlign.center,
                         style: TextStyle(
