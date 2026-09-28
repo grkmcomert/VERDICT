@@ -1271,7 +1271,7 @@ Xóa: Bạn có thể xóa tất cả dữ liệu được Ứng dụng lưu tr�
 Xóa "Bộ nhớ/bộ nhớ đệm" của ứng dụng trong cài đặt điện thoại của bạn.
 Gỡ cài đặt ứng dụng. Sau khi gỡ cài đặt, chúng tôi sẽ không còn dấu vết nào về dữ liệu của bạn.
 
-6. Báº£o máº­t
+6. Bảo mật
 An toàn của bạn rất quan trọng với chúng tôi. Chúng tôi bảo vệ dữ liệu trên thiết bị của bạn bằng mã hóa tiêu chuẩn và phương thức lưu trữ an toàn, đồng thời liên tục cải thiện các biện pháp này.
 
 7. Quyền riêng tư của trẻ em

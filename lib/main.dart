@@ -3241,12 +3241,12 @@ class _DashboardScreenState extends State<DashboardScreen>
           'Size daha iyi bir deneyim sunmak için her gün gelişiyoruz. Görüşleriniz bizim için değerli, geri bildirimlerinizi bekliyoruz!',
       'login_prompt':
           'Analizi başlatmak için lütfen giriş yapın.',
-      'welcome': 'HoÅŸ geldiniz, {username}',
+      'welcome': 'Hoş geldiniz, {username}',
       'refresh_data': 'VERİLERİ GÜNCELLE',
       'login_with_instagram': 'INSTAGRAM İLE GİRİŞ YAP',
       'fetching_data':
           'Veriler analiz ediliyor...\nBu işlem biraz sürebilir.',
-      'processing_data': 'Veriler iÅŸleniyor...\nNeredeyse bitti.',
+      'processing_data': 'Veriler işleniyor...\nNeredeyse bitti.',
       'loading_ad': 'Reklam yükleniyor...\nLütfen bekleyin.',
       'google_ad_warning': 'Google reklam uyarısı: {reason}',
       'analysis_secure':
@@ -3291,13 +3291,13 @@ class _DashboardScreenState extends State<DashboardScreen>
           'Sınırsız analiz ve tüm özelliklere tam erişim.',
       'remove_ads_and_limits_subtitle':
           'Reklamları ve bekleme sürelerini kaldırın.',
-      'subscription_details_title': 'Abonelik Detaylaró',
+      'subscription_details_title': 'Abonelik Detayları',
       'subscription_3day_trial_notice': '3 gün ücretsiz deneme mevcut!',
-      'subscription_privacy_policy': 'Gizlilik Politikasó',
-      'subscription_terms_of_use': 'Kullaným Koşullaró',
+      'subscription_privacy_policy': 'Gizlilik Politikası',
+      'subscription_terms_of_use': 'Kullanım Koşulları',
       'subscription_restore_purchases': 'Satın Alımları Geri Yükle',
       'subscription_legal_disclaimer':
-          'Abonelik başlatarak, Kullaným Koşullarımızñ ve Gizlilik Politikamñzñ kabul etmiş olursunuz.',
+          'Abonelik başlatarak, Kullanım Koşullarımızı ve Gizlilik Politikamızı kabul etmiş olursunuz.',
       'subscription_start_trial': 'ÜCRETSİZ DENE',
       'subscription_subscribe': 'ABONE OL',
       'clear_data_title': 'Veri Sıfırlama',
@@ -3339,7 +3339,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'withdraw_consent_confirm_no': 'Vazgeç',
       'no_data': 'Veri yok',
       'new_badge': 'YENİ',
-      'login_title': 'GiriÅŸ Yap',
+      'login_title': 'Giriş Yap',
       'user_label': 'Kullan\u0131c\u0131',
       'redirecting': 'Oturum doğrulandı, yönlendiriliyorsunuz...',
       'data_updated': 'Analiz tamamlandı ✅',
@@ -6713,7 +6713,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'story_ad_wait': 'Zostanie pokazane po reklamie. Prosimy czekać.',
       'story_action_title': 'Co chcesz zrobic?',
       'story_view_photo': 'Powiększ zdjęcie profilowe',
-      'story_watch_secret': 'OglÄ…daj relacjÄ™ anonimowo',
+      'story_watch_secret': 'Oglądaj relację anonimowo',
       'story_no_data': 'Brak danych relacji.',
       'story_close': 'ZAMKNIJ',
     },
@@ -16208,6 +16208,7 @@ if (response.statusCode == 429) {
     }
 
     unawaited(_persistOwnerUsernameIfNeeded(username));
+    if (username.isEmpty) unawaited(_refreshUsernameForBanCheckIfNeeded());
     _applyUserFlags();
     if (_isBanned) return;
     _storyTrayRefreshQueued = false;
@@ -19920,6 +19921,79 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
     }
   }
 
+  /// Kullanıcı adını WebView'in kendi içinden (gerçek tarayıcı isteği olarak)
+  /// çeker. Dart `http` istemcisi Instagram tarafından sık sık reddedildiği
+  /// için asıl güvenilir yol budur: aynı origin, gerçek Chrome TLS parmak izi,
+  /// HttpOnly sessionid dahil tüm çerezler otomatik gönderilir.
+  Future<Map<String, String>?> _fetchIdentityViaWebView(
+      String knownUserId) async {
+    final String safeId = knownUserId.replaceAll(RegExp(r'[^0-9]'), '');
+    final String js = '''
+(function(){
+  window.__vrIdent = '';
+  (async function(){
+    try {
+      if (!/(^|\\.)instagram\\.com\$/.test(location.hostname)) {
+        window.__vrIdent = 'FAIL:host';
+        return;
+      }
+      var m = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+      var h = {
+        'X-IG-App-ID': '$_igAppId',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-ASBD-ID': '129477',
+        'Accept': '*/*'
+      };
+      if (m) h['X-CSRFToken'] = decodeURIComponent(m[1]);
+      async function get(path) {
+        var r = await fetch(path, {credentials: 'include', headers: h});
+        if (!r.ok) return null;
+        return await r.json();
+      }
+      function ok(j) {
+        var u = j && j.user;
+        if (u && u.username) {
+          return 'OK:' + u.username + '|' + (u.pk || u.pk_id || u.id || '');
+        }
+        return '';
+      }
+      var res = ok(await get('/api/v1/accounts/current_user/?edit=true'));
+      if (!res && '$safeId') {
+        res = ok(await get('/api/v1/users/$safeId/info/'));
+      }
+      window.__vrIdent = res || 'FAIL:empty';
+    } catch (e) {
+      window.__vrIdent = 'FAIL:' + e;
+    }
+  })();
+})();
+''';
+    try {
+      await _controller.runJavaScript(js);
+      for (int i = 0; i < 30; i++) {
+        await Future.delayed(const Duration(milliseconds: 400));
+        if (!mounted) return null;
+        final dynamic raw = await _controller
+            .runJavaScriptReturningResult('window.__vrIdent || ""');
+        final String out = raw.toString();
+        final RegExpMatch? ok =
+            RegExp(r'OK:([A-Za-z0-9._]+)\|(\d*)').firstMatch(out);
+        if (ok != null) {
+          return {'username': ok.group(1)!, 'userId': ok.group(2) ?? ''};
+        }
+        if (out.contains('FAIL:')) {
+          _logIgDiagnosticEntry(
+            'login_probe',
+            'webview identity fetch failed: $out',
+            label: 'InstagramApiPage.webview_identity',
+          );
+          return null;
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
   Future<void> _startSafeApiProcess({String rawUrl = ''}) async {
     if (!mounted || _loginResultReturned) return;
     setState(() => isScanning = true);
@@ -20040,6 +20114,18 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
           }
         } catch (_) {}
       }
+      if (username == null || username.isEmpty) {
+        // Dart http istekleri isim getirmediyse tarayıcı içinden dene.
+        final Map<String, String>? ident = await _fetchIdentityViaWebView(
+            (resolvedUserId ?? dsUserId).trim());
+        if (ident != null && (ident['username'] ?? '').isNotEmpty) {
+          username = ident['username'];
+          sessionValidated = true;
+          if ((ident['userId'] ?? '').isNotEmpty) {
+            resolvedUserId = ident['userId'];
+          }
+        }
+      }
       if (!sessionValidated ||
           resolvedUserId == null ||
           resolvedUserId.trim().isEmpty) {
@@ -20084,7 +20170,7 @@ class _InstagramApiPageState extends State<InstagramApiPage> {
     return Scaffold(
         backgroundColor: widget.isDark ? Colors.black : Colors.white,
         appBar: AppBar(
-            title: Text(localizeTrEn(widget.lang, 'GiriÅŸ Yap', 'Login')),
+            title: Text(localizeTrEn(widget.lang, 'Giriş Yap', 'Login')),
             backgroundColor:
                 widget.isDark ? const Color(0xFF121212) : Colors.white,
             foregroundColor: widget.isDark ? Colors.white : Colors.black),
